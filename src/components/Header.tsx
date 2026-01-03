@@ -1,4 +1,4 @@
-import { Bot, Zap, LogOut, Heart } from "lucide-react";
+import { Bot, Zap, LogOut, Heart, ShoppingBag } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -26,14 +26,15 @@ export const Header = () => {
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex">
+          <Link to="/products" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+            <ShoppingBag className="mr-1 inline h-4 w-4" />
+            Products
+          </Link>
           <a href="#how-it-works" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
             How it Works
           </a>
           <a href="#features" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
             Features
-          </a>
-          <a href="#compare" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
-            Compare
           </a>
         </nav>
 
