@@ -1,4 +1,4 @@
-import { ExternalLink, ShoppingCart, Sparkles, Tag, TrendingDown } from "lucide-react";
+import { ExternalLink, Package, RotateCcw, ShoppingCart, Sparkles, Tag, CheckCircle } from "lucide-react";
 import { Button } from "./ui/button";
 import { useLanguage } from "@/hooks/useLanguage";
 
@@ -10,7 +10,7 @@ interface PriceComparisonCardProps {
     discountedPrice: number;
     shop: string;
     shopLogo: string;
-    discountType: "cart" | "returned" | "flash" | "hidden";
+    discountType: "cart" | "returned" | "used" | "new" | "openBox" | "refurbished";
     savings: number;
   };
 }
@@ -20,16 +20,20 @@ export const PriceComparisonCard = ({ product }: PriceComparisonCardProps) => {
 
   const discountLabels = {
     cart: { label: t('cartDiscount'), icon: ShoppingCart, color: "bg-primary/20 text-primary" },
-    returned: { label: t('returnedItem'), icon: Tag, color: "bg-accent/20 text-accent" },
-    flash: { label: t('flashSale'), icon: Sparkles, color: "bg-destructive/20 text-destructive" },
-    hidden: { label: t('hiddenPrice'), icon: TrendingDown, color: "bg-primary/20 text-primary" },
+    returned: { label: t('returnedItem'), icon: RotateCcw, color: "bg-amber-500/20 text-amber-600 dark:text-amber-400" },
+    used: { label: t('usedItem'), icon: Package, color: "bg-orange-500/20 text-orange-600 dark:text-orange-400" },
+    new: { label: t('newItem'), icon: CheckCircle, color: "bg-green-500/20 text-green-600 dark:text-green-400" },
+    openBox: { label: t('openBox'), icon: Tag, color: "bg-blue-500/20 text-blue-600 dark:text-blue-400" },
+    refurbished: { label: t('refurbished'), icon: Sparkles, color: "bg-purple-500/20 text-purple-600 dark:text-purple-400" },
   };
 
   const aiInsights = {
     cart: t('aiInsightCart'),
     returned: t('aiInsightReturned'),
-    flash: t('aiInsightFlash'),
-    hidden: t('aiInsightHidden'),
+    used: t('aiInsightUsed'),
+    new: t('aiInsightNew'),
+    openBox: t('aiInsightOpenBox'),
+    refurbished: t('aiInsightRefurbished'),
   };
 
   const discount = discountLabels[product.discountType];
@@ -44,9 +48,11 @@ export const PriceComparisonCard = ({ product }: PriceComparisonCardProps) => {
       </div>
 
       {/* Savings badge */}
-      <div className="absolute right-4 top-4 z-10 rounded-full bg-gradient-accent px-3 py-1.5 text-xs font-bold text-accent-foreground shadow-accent">
-        -{product.savings}%
-      </div>
+      {product.savings > 0 && (
+        <div className="absolute right-4 top-4 z-10 rounded-full bg-gradient-accent px-3 py-1.5 text-xs font-bold text-accent-foreground shadow-accent">
+          -{product.savings}%
+        </div>
+      )}
 
       {/* Product image */}
       <div className="relative aspect-square overflow-hidden bg-secondary/50 p-8">
@@ -73,11 +79,13 @@ export const PriceComparisonCard = ({ product }: PriceComparisonCardProps) => {
         {/* Prices */}
         <div className="mb-4 flex items-baseline gap-3">
           <span className="text-3xl font-bold text-gradient-accent">
-            €{product.discountedPrice.toFixed(2)}
+            {product.discountedPrice.toLocaleString('cs-CZ')} Kč
           </span>
-          <span className="text-lg text-muted-foreground line-through">
-            €{product.originalPrice.toFixed(2)}
-          </span>
+          {product.originalPrice !== product.discountedPrice && (
+            <span className="text-lg text-muted-foreground line-through">
+              {product.originalPrice.toLocaleString('cs-CZ')} Kč
+            </span>
+          )}
         </div>
 
         {/* AI insight */}
