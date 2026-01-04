@@ -2,3 +2,6 @@ project_id = "rohpkchldzlubctuenwn"
 
 [functions.check-price-alerts]
 verify_jwt = false
+
+[functions.analyze-product-page]
+verify_jwt = false
