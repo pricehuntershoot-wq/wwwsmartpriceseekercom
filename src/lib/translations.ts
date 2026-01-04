@@ -158,7 +158,8 @@ export const translations = {
     latestDeals: 'Latest',
     hiddenDeals: 'Hidden Deals',
     dealsSubtitle: 'Discounts discovered by our AI agents in the last 24 hours',
-    filter: 'Filter',
+    filterByCondition: 'Filter by Condition',
+    allConditions: 'All Conditions',
     sortBySavings: 'Sort by Savings',
     viewAllDeals: 'View All Deals',
     
@@ -356,7 +357,8 @@ export const translations = {
     latestDeals: 'Nejnovější',
     hiddenDeals: 'Skryté nabídky',
     dealsSubtitle: 'Slevy objevené našimi AI agenty za posledních 24 hodin',
-    filter: 'Filtr',
+    filterByCondition: 'Filtrovat podle stavu',
+    allConditions: 'Všechny stavy',
     sortBySavings: 'Seřadit podle úspory',
     viewAllDeals: 'Zobrazit všechny nabídky',
     
