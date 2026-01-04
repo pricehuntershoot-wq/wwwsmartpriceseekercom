@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { PriceHistoryChart } from "@/components/PriceHistoryChart";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -414,6 +415,11 @@ const ProductDetail = () => {
               )}
             </div>
           </div>
+        </div>
+
+        {/* Price History Chart */}
+        <div className="mb-8">
+          <PriceHistoryChart productId={id!} currentBestPrice={bestPrice?.current_price} />
         </div>
 
         {/* Price comparison table */}
