@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal, ArrowUpDown } from "lucide-react";
 import { PriceComparisonCard } from "./PriceComparisonCard";
 import { Button } from "./ui/button";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -15,7 +15,6 @@ type DiscountType = "cart" | "returned" | "used" | "new" | "openBox" | "refurbis
 
 // Same products available from both Alza.cz and Datart.cz with different conditions
 const mockProducts = [
-  // iPhone from Alza - new
   {
     name: "Apple iPhone 15 Pro Max 256GB Natural Titanium",
     image: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=400&h=400&fit=crop",
@@ -26,7 +25,6 @@ const mockProducts = [
     discountType: "new" as DiscountType,
     savings: 0,
   },
-  // iPhone from Datart - returned
   {
     name: "Apple iPhone 15 Pro Max 256GB Natural Titanium",
     image: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=400&h=400&fit=crop",
@@ -37,7 +35,6 @@ const mockProducts = [
     discountType: "returned" as DiscountType,
     savings: 14,
   },
-  // Samsung from Alza - open box
   {
     name: "Samsung Galaxy S24 Ultra 512GB Titanium Black",
     image: "https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=400&h=400&fit=crop",
@@ -48,7 +45,6 @@ const mockProducts = [
     discountType: "openBox" as DiscountType,
     savings: 14,
   },
-  // Samsung from Datart - cart discount
   {
     name: "Samsung Galaxy S24 Ultra 512GB Titanium Black",
     image: "https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=400&h=400&fit=crop",
@@ -59,7 +55,6 @@ const mockProducts = [
     discountType: "cart" as DiscountType,
     savings: 11,
   },
-  // Sony headphones from Alza - refurbished
   {
     name: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones",
     image: "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=400&h=400&fit=crop",
@@ -70,7 +65,6 @@ const mockProducts = [
     discountType: "refurbished" as DiscountType,
     savings: 30,
   },
-  // Sony headphones from Datart - used
   {
     name: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones",
     image: "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=400&h=400&fit=crop",
@@ -96,10 +90,25 @@ const conditionOptions: { value: DiscountType | "all"; labelKey: "allConditions"
 export const ComparisonSection = () => {
   const { t } = useLanguage();
   const [selectedCondition, setSelectedCondition] = useState<DiscountType | "all">("all");
+  const [sortBySavings, setSortBySavings] = useState<"desc" | "asc" | null>(null);
 
   const filteredProducts = selectedCondition === "all"
     ? mockProducts
     : mockProducts.filter((product) => product.discountType === selectedCondition);
+
+  const sortedProducts = sortBySavings
+    ? [...filteredProducts].sort((a, b) => 
+        sortBySavings === "desc" ? b.savings - a.savings : a.savings - b.savings
+      )
+    : filteredProducts;
+
+  const handleSortToggle = () => {
+    setSortBySavings((prev) => {
+      if (prev === null) return "desc";
+      if (prev === "desc") return "asc";
+      return null;
+    });
+  };
 
   return (
     <section id="compare" className="py-24">
@@ -127,15 +136,21 @@ export const ComparisonSection = () => {
                 ))}
               </SelectContent>
             </Select>
-            <Button variant="outline" size="sm">
-              <SlidersHorizontal className="h-4 w-4" />
+            <Button 
+              variant={sortBySavings ? "default" : "outline"} 
+              size="sm" 
+              onClick={handleSortToggle}
+              className="gap-1"
+            >
+              <ArrowUpDown className="h-4 w-4" />
               {t('sortBySavings')}
+              {sortBySavings && (sortBySavings === "desc" ? " ↓" : " ↑")}
             </Button>
           </div>
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredProducts.map((product, index) => (
+          {sortedProducts.map((product, index) => (
             <div
               key={`${product.name}-${product.shop}-${product.discountType}`}
               className="animate-fade-in"
@@ -146,7 +161,7 @@ export const ComparisonSection = () => {
           ))}
         </div>
 
-        {filteredProducts.length === 0 && (
+        {sortedProducts.length === 0 && (
           <div className="py-12 text-center text-muted-foreground">
             {t('noProductsFound')}
           </div>
