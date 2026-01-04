@@ -6,6 +6,7 @@ import { HowItWorksSection } from "@/components/HowItWorksSection";
 import { ComparisonSection } from "@/components/ComparisonSection";
 import { FeaturesSection } from "@/components/FeaturesSection";
 import { Footer } from "@/components/Footer";
+import { DiscountAnalyzer } from "@/components/DiscountAnalyzer";
 
 const Index = () => {
   const location = useLocation();
@@ -26,6 +27,11 @@ const Index = () => {
       <Header />
       <main>
         <HeroSection />
+        <section className="py-16 px-4 bg-muted/30">
+          <div className="container mx-auto">
+            <DiscountAnalyzer />
+          </div>
+        </section>
         <HowItWorksSection />
         <ComparisonSection />
         <FeaturesSection />
