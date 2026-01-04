@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings as SettingsIcon, User, Bell, ArrowLeft, Save, Globe } from "lucide-react";
+import { Settings as SettingsIcon, User, Bell, ArrowLeft, Save, Palette, Sun, Moon, Monitor } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ const Settings = () => {
   const { toast } = useToast();
   const { preferredCurrency, setPreferredCurrency } = useCurrencyPreference();
   const { language, setLanguage, t } = useLanguage();
+  const { theme, setTheme } = useTheme();
   
   const [displayName, setDisplayName] = useState("");
   const [emailAlerts, setEmailAlerts] = useState(true);
@@ -198,6 +200,50 @@ const Settings = () => {
                 <p className="text-xs text-muted-foreground">
                   {t('languageSyncNote')}
                 </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Appearance Settings */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Palette className="h-5 w-5 text-primary" />
+                <CardTitle>{t('appearance')}</CardTitle>
+              </div>
+              <CardDescription>
+                {t('appearanceDesc')}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>{t('theme')}</Label>
+                <div className="flex gap-2">
+                  <Button
+                    variant={theme === "light" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setTheme("light")}
+                  >
+                    <Sun className="h-4 w-4 mr-2" />
+                    {t('lightMode')}
+                  </Button>
+                  <Button
+                    variant={theme === "dark" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setTheme("dark")}
+                  >
+                    <Moon className="h-4 w-4 mr-2" />
+                    {t('darkMode')}
+                  </Button>
+                  <Button
+                    variant={theme === "system" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setTheme("system")}
+                  >
+                    <Monitor className="h-4 w-4 mr-2" />
+                    {t('systemMode')}
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
