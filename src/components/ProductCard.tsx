@@ -1,11 +1,13 @@
 import { Link } from "react-router-dom";
-import { Heart, ExternalLink, ShoppingCart, Package, Sparkles, Flame, Clock } from "lucide-react";
+import { Heart, ExternalLink, ShoppingCart, Package, Sparkles, Flame, Clock, Tag } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Card, CardContent } from "./ui/card";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { formatPrice, Currency } from "@/lib/currency";
 import { useCurrencyPreference } from "@/hooks/useCurrencyPreference";
+import { usePromoCodes, getPromoCodeForShop, calculatePriceWithPromo, PromoCode } from "@/hooks/usePromoCodes";
 import { cn } from "@/lib/utils";
 
 interface Price {
@@ -22,6 +24,13 @@ interface Price {
     name: string;
     logo_url: string | null;
   };
+}
+
+interface PriceWithPromo extends Price {
+  promoCode?: PromoCode | null;
+  finalPrice: number;
+  promoDiscount: number;
+  promoApplied: boolean;
 }
 
 interface Product {
@@ -71,31 +80,47 @@ const getDiscountColor = (type: string | null) => {
 
 export const ProductCard = ({ product, onFavorite, isFavorited = false }: ProductCardProps) => {
   const { preferredCurrency } = useCurrencyPreference();
+  const { data: promoCodes } = usePromoCodes();
   const prices = product.prices || [];
   
-  // Group prices by currency
-  const eurPrices = prices.filter(p => (p.currency || 'EUR') === 'EUR');
-  const czkPrices = prices.filter(p => p.currency === 'CZK');
+  // Apply promo codes to prices
+  const pricesWithPromo: PriceWithPromo[] = prices.map((price) => {
+    const promoCode = getPromoCodeForShop(promoCodes, price.shop.id);
+    const { finalPrice, discount, promoApplied } = calculatePriceWithPromo(price.current_price, promoCode);
+    return {
+      ...price,
+      promoCode,
+      finalPrice,
+      promoDiscount: discount,
+      promoApplied,
+    };
+  });
   
-  // Find best price for each currency
+  // Group prices by currency
+  const eurPrices = pricesWithPromo.filter(p => (p.currency || 'EUR') === 'EUR');
+  const czkPrices = pricesWithPromo.filter(p => p.currency === 'CZK');
+  
+  // Find best price for each currency (using final price after promo)
   const bestEurPrice = eurPrices.length > 0 
-    ? eurPrices.reduce((min, p) => p.current_price < min.current_price ? p : min, eurPrices[0])
+    ? eurPrices.reduce((min, p) => p.finalPrice < min.finalPrice ? p : min, eurPrices[0])
     : null;
   const bestCzkPrice = czkPrices.length > 0 
-    ? czkPrices.reduce((min, p) => p.current_price < min.current_price ? p : min, czkPrices[0])
+    ? czkPrices.reduce((min, p) => p.finalPrice < min.finalPrice ? p : min, czkPrices[0])
     : null;
   
   // Use EUR as primary, fallback to CZK
   const bestPrice = bestEurPrice || bestCzkPrice;
   const currency = (bestPrice?.currency as Currency) || 'EUR';
   
-  const priceRange = prices.length > 1 
-    ? { min: Math.min(...prices.map(p => p.current_price)), max: Math.max(...prices.map(p => p.current_price)) }
+  const priceRange = pricesWithPromo.length > 1 
+    ? { min: Math.min(...pricesWithPromo.map(p => p.finalPrice)), max: Math.max(...pricesWithPromo.map(p => p.finalPrice)) }
     : null;
 
-  const savings = bestPrice?.original_price 
+  // Calculate total savings including promo discount
+  const baseSavings = bestPrice?.original_price 
     ? bestPrice.original_price - bestPrice.current_price 
     : 0;
+  const totalSavings = baseSavings + (bestPrice?.promoDiscount || 0);
 
   return (
     <Card className="group overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm transition-all hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5">
@@ -137,9 +162,10 @@ export const ProductCard = ({ product, onFavorite, isFavorited = false }: Produc
           )}
 
           {/* Savings badge */}
-          {savings > 0 && (
+          {totalSavings > 0 && (
             <Badge className="absolute bottom-2 left-2 bg-green-500 text-white">
-              Save {formatPrice(savings, currency)}
+              Save {formatPrice(totalSavings, currency)}
+              {bestPrice?.promoApplied && " 🎟️"}
             </Badge>
           )}
         </div>
@@ -168,13 +194,31 @@ export const ProductCard = ({ product, onFavorite, isFavorited = false }: Produc
                     preferredCurrency === 'EUR' ? "text-primary font-medium" : "text-muted-foreground"
                   )}>EUR {preferredCurrency === 'EUR' && "★"}</span>
                   <div className="flex items-baseline gap-1.5">
-                    <span className={cn(
-                      "font-bold",
-                      preferredCurrency === 'EUR' ? "text-2xl text-primary" : "text-lg text-foreground"
-                    )}>{formatPrice(bestEurPrice.current_price, 'EUR')}</span>
-                    {bestEurPrice.original_price && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className={cn(
+                            "font-bold",
+                            preferredCurrency === 'EUR' ? "text-2xl text-primary" : "text-lg text-foreground",
+                            bestEurPrice.promoApplied && "text-green-500"
+                          )}>
+                            {formatPrice(bestEurPrice.finalPrice, 'EUR')}
+                            {bestEurPrice.promoApplied && <Tag className="inline h-3 w-3 ml-1" />}
+                          </span>
+                        </TooltipTrigger>
+                        {bestEurPrice.promoApplied && bestEurPrice.promoCode && (
+                          <TooltipContent>
+                            <p className="font-medium">Price after code: {bestEurPrice.promoCode.code}</p>
+                            <p className="text-xs text-muted-foreground">
+                              Original: {formatPrice(bestEurPrice.current_price, 'EUR')}
+                            </p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </TooltipProvider>
+                    {(bestEurPrice.original_price || bestEurPrice.promoApplied) && (
                       <span className="text-xs text-muted-foreground line-through">
-                        {formatPrice(bestEurPrice.original_price, 'EUR')}
+                        {formatPrice(bestEurPrice.original_price || bestEurPrice.current_price, 'EUR')}
                       </span>
                     )}
                   </div>
@@ -193,13 +237,31 @@ export const ProductCard = ({ product, onFavorite, isFavorited = false }: Produc
                     preferredCurrency === 'CZK' ? "text-primary font-medium" : "text-muted-foreground"
                   )}>CZK {preferredCurrency === 'CZK' && "★"}</span>
                   <div className="flex items-baseline gap-1.5">
-                    <span className={cn(
-                      "font-bold",
-                      preferredCurrency === 'CZK' ? "text-2xl text-primary" : "text-lg text-foreground"
-                    )}>{formatPrice(bestCzkPrice.current_price, 'CZK')}</span>
-                    {bestCzkPrice.original_price && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className={cn(
+                            "font-bold",
+                            preferredCurrency === 'CZK' ? "text-2xl text-primary" : "text-lg text-foreground",
+                            bestCzkPrice.promoApplied && "text-green-500"
+                          )}>
+                            {formatPrice(bestCzkPrice.finalPrice, 'CZK')}
+                            {bestCzkPrice.promoApplied && <Tag className="inline h-3 w-3 ml-1" />}
+                          </span>
+                        </TooltipTrigger>
+                        {bestCzkPrice.promoApplied && bestCzkPrice.promoCode && (
+                          <TooltipContent>
+                            <p className="font-medium">Price after code: {bestCzkPrice.promoCode.code}</p>
+                            <p className="text-xs text-muted-foreground">
+                              Original: {formatPrice(bestCzkPrice.current_price, 'CZK')}
+                            </p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </TooltipProvider>
+                    {(bestCzkPrice.original_price || bestCzkPrice.promoApplied) && (
                       <span className="text-xs text-muted-foreground line-through">
-                        {formatPrice(bestCzkPrice.original_price, 'CZK')}
+                        {formatPrice(bestCzkPrice.original_price || bestCzkPrice.current_price, 'CZK')}
                       </span>
                     )}
                   </div>
