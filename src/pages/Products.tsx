@@ -53,6 +53,7 @@ const Products = () => {
               discount_label,
               product_url,
               discovered_at,
+              currency,
               shop_id
             `)
             .eq('product_id', product.id)
