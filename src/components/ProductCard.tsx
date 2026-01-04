@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Heart, ExternalLink, ShoppingCart, Package, Sparkles, Flame, Clock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "./ui/button";
@@ -84,48 +85,56 @@ export const ProductCard = ({ product, onFavorite, isFavorited = false }: Produc
 
   return (
     <Card className="group overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm transition-all hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5">
-      <div className="relative aspect-square overflow-hidden bg-muted/30">
-        {product.image_url ? (
-          <img 
-            src={product.image_url} 
-            alt={product.name}
-            className="h-full w-full object-cover transition-transform group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center">
-            <Package className="h-12 w-12 text-muted-foreground/50" />
-          </div>
-        )}
-        
-        {/* Favorite button */}
-        {onFavorite && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-2 top-2 h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm"
-            onClick={() => onFavorite(product.id)}
-          >
-            <Heart className={`h-4 w-4 ${isFavorited ? 'fill-red-500 text-red-500' : ''}`} />
-          </Button>
-        )}
+      <Link to={`/products/${product.id}`} className="block">
+        <div className="relative aspect-square overflow-hidden bg-muted/30">
+          {product.image_url ? (
+            <img 
+              src={product.image_url} 
+              alt={product.name}
+              className="h-full w-full object-cover transition-transform group-hover:scale-105"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center">
+              <Package className="h-12 w-12 text-muted-foreground/50" />
+            </div>
+          )}
+          
+          {/* Favorite button */}
+          {onFavorite && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-2 top-2 h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onFavorite(product.id);
+              }}
+            >
+              <Heart className={`h-4 w-4 ${isFavorited ? 'fill-red-500 text-red-500' : ''}`} />
+            </Button>
+          )}
 
-        {/* Category badge */}
-        {product.category && (
-          <Badge variant="secondary" className="absolute left-2 top-2 bg-background/80 backdrop-blur-sm">
-            {product.category}
-          </Badge>
-        )}
+          {/* Category badge */}
+          {product.category && (
+            <Badge variant="secondary" className="absolute left-2 top-2 bg-background/80 backdrop-blur-sm">
+              {product.category}
+            </Badge>
+          )}
 
-        {/* Savings badge */}
-        {savings > 0 && (
-          <Badge className="absolute bottom-2 left-2 bg-green-500 text-white">
-            Save {formatPrice(savings)}
-          </Badge>
-        )}
-      </div>
+          {/* Savings badge */}
+          {savings > 0 && (
+            <Badge className="absolute bottom-2 left-2 bg-green-500 text-white">
+              Save {formatPrice(savings)}
+            </Badge>
+          )}
+        </div>
+      </Link>
 
       <CardContent className="p-4">
-        <h3 className="mb-1 line-clamp-2 font-semibold leading-tight">{product.name}</h3>
+        <Link to={`/products/${product.id}`}>
+          <h3 className="mb-1 line-clamp-2 font-semibold leading-tight hover:text-primary">{product.name}</h3>
+        </Link>
         
         {product.description && (
           <p className="mb-3 line-clamp-2 text-sm text-muted-foreground">{product.description}</p>
