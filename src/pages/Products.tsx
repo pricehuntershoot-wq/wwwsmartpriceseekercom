@@ -6,15 +6,18 @@ import { ProductCard } from "@/components/ProductCard";
 import { EarlyAccessBanner } from "@/components/EarlyAccessBanner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useCurrencyPreference } from "@/hooks/useCurrencyPreference";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, ShoppingCart, Package, Sparkles, Flame, X, ArrowUpDown } from "lucide-react";
+import { Search, Filter, ShoppingCart, Package, Sparkles, Flame, X, ArrowUpDown, Coins } from "lucide-react";
 import { toast } from "sonner";
+import { Currency } from "@/lib/currency";
 
 type SortOption = 'price_asc' | 'price_desc' | 'savings' | 'updated';
+type CurrencyFilter = 'all' | 'EUR' | 'CZK';
 
 const DISCOUNT_FILTERS = [
   { type: 'in_cart', label: 'In Cart', icon: ShoppingCart },
@@ -23,11 +26,19 @@ const DISCOUNT_FILTERS = [
   { type: 'clearance', label: 'Clearance', icon: Flame },
 ];
 
+const CURRENCY_FILTERS: { value: CurrencyFilter; label: string }[] = [
+  { value: 'all', label: 'All Currencies' },
+  { value: 'EUR', label: '€ EUR' },
+  { value: 'CZK', label: 'Kč CZK' },
+];
+
 const Products = () => {
   const { user } = useAuth();
+  const { preferredCurrency } = useCurrencyPreference();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedDiscountTypes, setSelectedDiscountTypes] = useState<string[]>([]);
+  const [selectedCurrency, setSelectedCurrency] = useState<CurrencyFilter>('all');
   const [sortOption, setSortOption] = useState<SortOption>('price_asc');
 
   // Fetch products with prices and shops
@@ -139,8 +150,20 @@ const Products = () => {
       const matchesDiscount = selectedDiscountTypes.length === 0 || 
         product.prices.some(p => selectedDiscountTypes.includes(p.discount_type || ''));
 
-      return matchesSearch && matchesCategory && matchesDiscount;
+      // Filter by currency - only show products that have prices in the selected currency
+      const matchesCurrency = selectedCurrency === 'all' || 
+        product.prices.some(p => (p.currency || 'EUR') === selectedCurrency);
+
+      return matchesSearch && matchesCategory && matchesDiscount && matchesCurrency;
     });
+
+    // If filtering by currency, also filter the prices within each product
+    if (result && selectedCurrency !== 'all') {
+      result = result.map(product => ({
+        ...product,
+        prices: product.prices.filter(p => (p.currency || 'EUR') === selectedCurrency)
+      }));
+    }
 
     if (result) {
       result = [...result].sort((a, b) => {
@@ -168,7 +191,7 @@ const Products = () => {
     }
 
     return result;
-  }, [products, searchQuery, selectedCategory, selectedDiscountTypes, sortOption]);
+  }, [products, searchQuery, selectedCategory, selectedDiscountTypes, selectedCurrency, sortOption]);
 
   const handleFavorite = async (productId: string) => {
     if (!user) {
@@ -217,10 +240,11 @@ const Products = () => {
     setSearchQuery("");
     setSelectedCategory(null);
     setSelectedDiscountTypes([]);
+    setSelectedCurrency('all');
     setSortOption('price_asc');
   };
 
-  const hasActiveFilters = searchQuery || selectedCategory || selectedDiscountTypes.length > 0;
+  const hasActiveFilters = searchQuery || selectedCategory || selectedDiscountTypes.length > 0 || selectedCurrency !== 'all';
 
   return (
     <div className="min-h-screen bg-background">
@@ -261,6 +285,17 @@ const Products = () => {
                 <SelectItem value="price_desc">Price: High to Low</SelectItem>
                 <SelectItem value="savings">Biggest Savings</SelectItem>
                 <SelectItem value="updated">Recently Updated</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={selectedCurrency} onValueChange={(value: CurrencyFilter) => setSelectedCurrency(value)}>
+              <SelectTrigger className="w-[150px]">
+                <Coins className="mr-2 h-4 w-4" />
+                <SelectValue placeholder="Currency" />
+              </SelectTrigger>
+              <SelectContent>
+                {CURRENCY_FILTERS.map(({ value, label }) => (
+                  <SelectItem key={value} value={value}>{label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
             {hasActiveFilters && (
