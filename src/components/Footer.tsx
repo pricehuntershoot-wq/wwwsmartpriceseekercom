@@ -1,6 +1,9 @@
 import { Bot, Github, Linkedin, Twitter } from "lucide-react";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export const Footer = () => {
+  const { t } = useLanguage();
+
   return (
     <footer className="border-t border-border bg-card py-16">
       <div className="container">
@@ -14,8 +17,7 @@ export const Footer = () => {
               <span className="text-xl font-bold">PriceHunter</span>
             </div>
             <p className="mb-6 max-w-md text-muted-foreground">
-              The AI-powered price comparison tool that discovers hidden discounts 
-              traditional comparators can't see.
+              {t('footerDesc')}
             </p>
             <div className="flex items-center gap-4">
               <a href="#" className="text-muted-foreground transition-colors hover:text-primary">
@@ -32,33 +34,33 @@ export const Footer = () => {
 
           {/* Links */}
           <div>
-            <h4 className="mb-4 font-semibold">Product</h4>
+            <h4 className="mb-4 font-semibold">{t('footerProduct')}</h4>
             <ul className="space-y-3 text-muted-foreground">
-              <li><a href="#" className="transition-colors hover:text-foreground">Features</a></li>
-              <li><a href="#" className="transition-colors hover:text-foreground">Pricing</a></li>
-              <li><a href="#" className="transition-colors hover:text-foreground">API</a></li>
-              <li><a href="#" className="transition-colors hover:text-foreground">Browser Extension</a></li>
+              <li><a href="#" className="transition-colors hover:text-foreground">{t('features')}</a></li>
+              <li><a href="#" className="transition-colors hover:text-foreground">{t('footerPricing')}</a></li>
+              <li><a href="#" className="transition-colors hover:text-foreground">{t('footerApi')}</a></li>
+              <li><a href="#" className="transition-colors hover:text-foreground">{t('footerExtension')}</a></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="mb-4 font-semibold">Company</h4>
+            <h4 className="mb-4 font-semibold">{t('footerCompany')}</h4>
             <ul className="space-y-3 text-muted-foreground">
-              <li><a href="#" className="transition-colors hover:text-foreground">About</a></li>
-              <li><a href="#" className="transition-colors hover:text-foreground">Blog</a></li>
-              <li><a href="#" className="transition-colors hover:text-foreground">Careers</a></li>
-              <li><a href="#" className="transition-colors hover:text-foreground">Contact</a></li>
+              <li><a href="#" className="transition-colors hover:text-foreground">{t('footerAbout')}</a></li>
+              <li><a href="#" className="transition-colors hover:text-foreground">{t('footerBlog')}</a></li>
+              <li><a href="#" className="transition-colors hover:text-foreground">{t('footerCareers')}</a></li>
+              <li><a href="#" className="transition-colors hover:text-foreground">{t('footerContact')}</a></li>
             </ul>
           </div>
         </div>
 
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 md:flex-row">
           <p className="text-sm text-muted-foreground">
-            © 2024 PriceHunter. All rights reserved.
+            {t('footerRights')}
           </p>
           <div className="flex items-center gap-6 text-sm text-muted-foreground">
-            <a href="#" className="transition-colors hover:text-foreground">Privacy Policy</a>
-            <a href="#" className="transition-colors hover:text-foreground">Terms of Service</a>
+            <a href="#" className="transition-colors hover:text-foreground">{t('footerPrivacy')}</a>
+            <a href="#" className="transition-colors hover:text-foreground">{t('footerTerms')}</a>
           </div>
         </div>
       </div>

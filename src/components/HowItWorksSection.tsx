@@ -1,33 +1,36 @@
 import { Bot, Brain, Eye, MousePointer, ShoppingCart, Sparkles } from "lucide-react";
-
-const steps = [
-  {
-    icon: Eye,
-    title: "AI Agent Visits Shop",
-    description: "Our intelligent agent opens the e-shop in a real browser, just like a human customer would.",
-    color: "primary",
-  },
-  {
-    icon: Brain,
-    title: "AI Brain Analyzes",
-    description: "Gemini AI understands the page structure, identifies products, prices, and hidden promotions.",
-    color: "accent",
-  },
-  {
-    icon: MousePointer,
-    title: "Simulates Actions",
-    description: "The agent clicks buttons, adds items to cart, and reveals discounts that only appear after interaction.",
-    color: "primary",
-  },
-  {
-    icon: ShoppingCart,
-    title: "Discovers Hidden Deals",
-    description: "Uncovers cart-only discounts, returned item prices, and special offers invisible to traditional comparators.",
-    color: "accent",
-  },
-];
+import { useLanguage } from "@/hooks/useLanguage";
 
 export const HowItWorksSection = () => {
+  const { t } = useLanguage();
+
+  const steps = [
+    {
+      icon: Eye,
+      title: t('step1Title'),
+      description: t('step1Desc'),
+      color: "primary",
+    },
+    {
+      icon: Brain,
+      title: t('step2Title'),
+      description: t('step2Desc'),
+      color: "accent",
+    },
+    {
+      icon: MousePointer,
+      title: t('step3Title'),
+      description: t('step3Desc'),
+      color: "primary",
+    },
+    {
+      icon: ShoppingCart,
+      title: t('step4Title'),
+      description: t('step4Desc'),
+      color: "accent",
+    },
+  ];
+
   return (
     <section id="how-it-works" className="relative py-24">
       <div className="absolute inset-0 bg-gradient-to-b from-background via-secondary/20 to-background" />
@@ -36,14 +39,13 @@ export const HowItWorksSection = () => {
         <div className="mb-16 text-center">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-2">
             <Bot className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Intelligent Automation</span>
+            <span className="text-sm font-medium text-primary">{t('howItWorksBadge')}</span>
           </div>
           <h2 className="mb-4 text-4xl font-bold md:text-5xl">
-            How Our <span className="text-gradient-primary">AI Agents</span> Work
+            {t('howItWorksTitle')} <span className="text-gradient-primary">{t('howItWorksTitleHighlight')}</span> {t('howItWorksTitleEnd')}
           </h2>
           <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
-            Unlike passive price comparators, our system actively explores e-shops 
-            to find deals that are hidden from traditional data feeds.
+            {t('howItWorksSubtitle')}
           </p>
         </div>
 

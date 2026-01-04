@@ -3,10 +3,12 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export const EarlyAccessBanner = () => {
   const { user } = useAuth();
   const { isPremium, loading } = useSubscription();
+  const { t } = useLanguage();
 
   if (loading) return null;
 
@@ -19,11 +21,11 @@ export const EarlyAccessBanner = () => {
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-amber-600 dark:text-amber-400">Early Access Active</span>
+              <span className="font-semibold text-amber-600 dark:text-amber-400">{t('earlyAccessActive')}</span>
               <Clock className="h-4 w-4 text-amber-500" />
             </div>
             <p className="text-sm text-muted-foreground">
-              You're seeing deals 1 hour before standard users
+              {t('earlyAccessDesc')}
             </p>
           </div>
         </div>
@@ -39,16 +41,16 @@ export const EarlyAccessBanner = () => {
             <Clock className="h-5 w-5 text-muted-foreground" />
           </div>
           <div>
-            <span className="font-medium">Want deals 1 hour earlier?</span>
+            <span className="font-medium">{t('earlyAccessPrompt')}</span>
             <p className="text-sm text-muted-foreground">
-              Upgrade to Premium for early access alerts
+              {t('earlyAccessUpgrade')}
             </p>
           </div>
         </div>
         <Button variant="hero" size="sm" asChild>
           <Link to={user ? "/premium" : "/auth"}>
             <Zap className="mr-1 h-4 w-4" />
-            {user ? "Get Premium" : "Sign In"}
+            {user ? t('getPremium') : t('signIn')}
           </Link>
         </Button>
       </div>

@@ -1,6 +1,7 @@
 import { Filter, SlidersHorizontal } from "lucide-react";
 import { PriceComparisonCard } from "./PriceComparisonCard";
 import { Button } from "./ui/button";
+import { useLanguage } from "@/hooks/useLanguage";
 
 const mockProducts = [
   {
@@ -66,27 +67,29 @@ const mockProducts = [
 ];
 
 export const ComparisonSection = () => {
+  const { t } = useLanguage();
+
   return (
     <section id="compare" className="py-24">
       <div className="container">
         <div className="mb-12 flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
           <div>
             <h2 className="mb-2 text-3xl font-bold md:text-4xl">
-              Latest <span className="text-gradient-accent">Hidden Deals</span>
+              {t('latestDeals')} <span className="text-gradient-accent">{t('hiddenDeals')}</span>
             </h2>
             <p className="text-muted-foreground">
-              Discounts discovered by our AI agents in the last 24 hours
+              {t('dealsSubtitle')}
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             <Button variant="outline" size="sm">
               <Filter className="h-4 w-4" />
-              Filter
+              {t('filter')}
             </Button>
             <Button variant="outline" size="sm">
               <SlidersHorizontal className="h-4 w-4" />
-              Sort by Savings
+              {t('sortBySavings')}
             </Button>
           </div>
         </div>
@@ -105,7 +108,7 @@ export const ComparisonSection = () => {
 
         <div className="mt-12 text-center">
           <Button variant="hero" size="lg">
-            View All Deals
+            {t('viewAllDeals')}
           </Button>
         </div>
       </div>
