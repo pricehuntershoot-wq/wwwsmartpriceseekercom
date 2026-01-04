@@ -69,15 +69,26 @@ const getDiscountColor = (type: string | null) => {
 
 export const ProductCard = ({ product, onFavorite, isFavorited = false }: ProductCardProps) => {
   const prices = product.prices || [];
-  const bestPrice = prices.length > 0 
-    ? prices.reduce((min, p) => p.current_price < min.current_price ? p : min, prices[0])
+  
+  // Group prices by currency
+  const eurPrices = prices.filter(p => (p.currency || 'EUR') === 'EUR');
+  const czkPrices = prices.filter(p => p.currency === 'CZK');
+  
+  // Find best price for each currency
+  const bestEurPrice = eurPrices.length > 0 
+    ? eurPrices.reduce((min, p) => p.current_price < min.current_price ? p : min, eurPrices[0])
     : null;
+  const bestCzkPrice = czkPrices.length > 0 
+    ? czkPrices.reduce((min, p) => p.current_price < min.current_price ? p : min, czkPrices[0])
+    : null;
+  
+  // Use EUR as primary, fallback to CZK
+  const bestPrice = bestEurPrice || bestCzkPrice;
+  const currency = (bestPrice?.currency as Currency) || 'EUR';
   
   const priceRange = prices.length > 1 
     ? { min: Math.min(...prices.map(p => p.current_price)), max: Math.max(...prices.map(p => p.current_price)) }
     : null;
-
-  const currency = (bestPrice?.currency as Currency) || 'EUR';
 
   const savings = bestPrice?.original_price 
     ? bestPrice.original_price - bestPrice.current_price 
@@ -140,22 +151,43 @@ export const ProductCard = ({ product, onFavorite, isFavorited = false }: Produc
           <p className="mb-3 line-clamp-2 text-sm text-muted-foreground">{product.description}</p>
         )}
 
-        {/* Best price */}
-        {bestPrice && (
+        {/* Dual currency prices */}
+        {(bestEurPrice || bestCzkPrice) && (
           <div className="mb-3">
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-primary">{formatPrice(bestPrice.current_price, currency)}</span>
-              {bestPrice.original_price && (
-                <span className="text-sm text-muted-foreground line-through">
-                  {formatPrice(bestPrice.original_price, currency)}
-                </span>
+            <div className="flex items-center gap-3">
+              {bestEurPrice && (
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted-foreground">EUR</span>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-xl font-bold text-primary">{formatPrice(bestEurPrice.current_price, 'EUR')}</span>
+                    {bestEurPrice.original_price && (
+                      <span className="text-xs text-muted-foreground line-through">
+                        {formatPrice(bestEurPrice.original_price, 'EUR')}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+              {bestEurPrice && bestCzkPrice && (
+                <div className="h-8 w-px bg-border" />
+              )}
+              {bestCzkPrice && (
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted-foreground">CZK</span>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-xl font-bold text-primary">{formatPrice(bestCzkPrice.current_price, 'CZK')}</span>
+                    {bestCzkPrice.original_price && (
+                      <span className="text-xs text-muted-foreground line-through">
+                        {formatPrice(bestCzkPrice.original_price, 'CZK')}
+                      </span>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
-            {priceRange && priceRange.min !== priceRange.max && (
-              <p className="text-xs text-muted-foreground">
-                {prices.length} shops • {formatPrice(priceRange.min, currency)} - {formatPrice(priceRange.max, currency)}
-              </p>
-            )}
+            <p className="mt-1 text-xs text-muted-foreground">
+              {prices.length} offer{prices.length !== 1 ? 's' : ''} across {new Set(prices.map(p => p.shop.id)).size} shop{new Set(prices.map(p => p.shop.id)).size !== 1 ? 's' : ''}
+            </p>
           </div>
         )}
 
