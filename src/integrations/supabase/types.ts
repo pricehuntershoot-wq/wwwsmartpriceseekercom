@@ -14,6 +14,118 @@ export type Database = {
   }
   public: {
     Tables: {
+      cart_discount_patterns: {
+        Row: {
+          confidence: Database["public"]["Enums"]["confidence_level"]
+          description: string
+          discovered_at: string
+          expected_discount: string | null
+          id: string
+          is_active: boolean | null
+          last_seen_at: string
+          pattern_type: Database["public"]["Enums"]["discovered_discount_type"]
+          shop_id: string | null
+          source_url: string
+          trigger_conditions: string | null
+        }
+        Insert: {
+          confidence?: Database["public"]["Enums"]["confidence_level"]
+          description: string
+          discovered_at?: string
+          expected_discount?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_seen_at?: string
+          pattern_type: Database["public"]["Enums"]["discovered_discount_type"]
+          shop_id?: string | null
+          source_url: string
+          trigger_conditions?: string | null
+        }
+        Update: {
+          confidence?: Database["public"]["Enums"]["confidence_level"]
+          description?: string
+          discovered_at?: string
+          expected_discount?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_seen_at?: string
+          pattern_type?: Database["public"]["Enums"]["discovered_discount_type"]
+          shop_id?: string | null
+          source_url?: string
+          trigger_conditions?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cart_discount_patterns_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discovered_promo_codes: {
+        Row: {
+          code: string | null
+          confidence: Database["public"]["Enums"]["confidence_level"]
+          description: string | null
+          discount_percentage: number | null
+          discount_value: string | null
+          discovered_at: string
+          expiry_date: string | null
+          id: string
+          is_active: boolean | null
+          is_verified: boolean | null
+          last_seen_at: string
+          min_order_value: number | null
+          shop_id: string | null
+          source_url: string
+          verified_at: string | null
+        }
+        Insert: {
+          code?: string | null
+          confidence?: Database["public"]["Enums"]["confidence_level"]
+          description?: string | null
+          discount_percentage?: number | null
+          discount_value?: string | null
+          discovered_at?: string
+          expiry_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          last_seen_at?: string
+          min_order_value?: number | null
+          shop_id?: string | null
+          source_url: string
+          verified_at?: string | null
+        }
+        Update: {
+          code?: string | null
+          confidence?: Database["public"]["Enums"]["confidence_level"]
+          description?: string | null
+          discount_percentage?: number | null
+          discount_value?: string | null
+          discovered_at?: string
+          expiry_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          last_seen_at?: string
+          min_order_value?: number | null
+          shop_id?: string | null
+          source_url?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discovered_promo_codes_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       favorites: {
         Row: {
           created_at: string
@@ -39,6 +151,63 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      page_analysis_logs: {
+        Row: {
+          analyzed_at: string
+          cart_discount_found: boolean | null
+          hidden_discounts_count: number | null
+          id: string
+          product_condition: string | null
+          product_id: string | null
+          promo_code_found: boolean | null
+          raw_analysis: Json | null
+          shop_id: string | null
+          url: string
+          user_id: string | null
+        }
+        Insert: {
+          analyzed_at?: string
+          cart_discount_found?: boolean | null
+          hidden_discounts_count?: number | null
+          id?: string
+          product_condition?: string | null
+          product_id?: string | null
+          promo_code_found?: boolean | null
+          raw_analysis?: Json | null
+          shop_id?: string | null
+          url: string
+          user_id?: string | null
+        }
+        Update: {
+          analyzed_at?: string
+          cart_discount_found?: boolean | null
+          hidden_discounts_count?: number | null
+          id?: string
+          product_condition?: string | null
+          product_id?: string | null
+          promo_code_found?: boolean | null
+          raw_analysis?: Json | null
+          shop_id?: string | null
+          url?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "page_analysis_logs_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "page_analysis_logs_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
             referencedColumns: ["id"]
           },
         ]
@@ -272,7 +441,19 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      confidence_level: "low" | "medium" | "high"
+      discovered_discount_type:
+        | "promo_code"
+        | "cart_discount"
+        | "open_box"
+        | "returned"
+        | "refurbished"
+        | "bundle"
+        | "loyalty"
+        | "first_purchase"
+        | "newsletter"
+        | "seasonal"
+        | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -399,6 +580,21 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      confidence_level: ["low", "medium", "high"],
+      discovered_discount_type: [
+        "promo_code",
+        "cart_discount",
+        "open_box",
+        "returned",
+        "refurbished",
+        "bundle",
+        "loyalty",
+        "first_purchase",
+        "newsletter",
+        "seasonal",
+        "other",
+      ],
+    },
   },
 } as const
