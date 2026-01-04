@@ -1,5 +1,5 @@
 import { Bot, Zap, LogOut, Heart, ShoppingBag, Bell, Crown, Settings } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -13,10 +13,22 @@ export const Header = () => {
   const { isPremium } = useSubscription();
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
+  };
+
+  const scrollToSection = (sectionId: string) => {
+    if (location.pathname !== '/') {
+      navigate('/', { state: { scrollTo: sectionId } });
+    } else {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
   };
 
   return (
@@ -37,12 +49,18 @@ export const Header = () => {
             <ShoppingBag className="mr-1 inline h-4 w-4" />
             {t('products')}
           </Link>
-          <a href="#how-it-works" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+          <button 
+            onClick={() => scrollToSection('how-it-works')} 
+            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
             {t('howItWorks')}
-          </a>
-          <a href="#features" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+          </button>
+          <button 
+            onClick={() => scrollToSection('features')} 
+            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
             {t('features')}
-          </a>
+          </button>
         </nav>
 
         <div className="flex items-center gap-2">
