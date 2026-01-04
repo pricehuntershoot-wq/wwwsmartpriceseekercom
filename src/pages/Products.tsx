@@ -7,6 +7,7 @@ import { EarlyAccessBanner } from "@/components/EarlyAccessBanner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useCurrencyPreference } from "@/hooks/useCurrencyPreference";
+import { usePromoCodes, getPromoCodeForShop, calculatePriceWithPromo } from "@/hooks/usePromoCodes";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ const CURRENCY_FILTERS: { value: CurrencyFilter; label: string }[] = [
 const Products = () => {
   const { user } = useAuth();
   const { preferredCurrency } = useCurrencyPreference();
+  const { data: promoCodes } = usePromoCodes();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedDiscountTypes, setSelectedDiscountTypes] = useState<string[]>([]);
@@ -118,19 +120,28 @@ const Products = () => {
     ? [...new Set(products.map(p => p.category).filter(Boolean))]
     : [];
 
-  // Helper to get best price for a product
+  // Helper to get the final price after promo for a price entry
+  const getFinalPrice = (price: { current_price: number; shop: { id: string } }) => {
+    const promoCode = getPromoCodeForShop(promoCodes, price.shop.id);
+    const { finalPrice } = calculatePriceWithPromo(price.current_price, promoCode);
+    return finalPrice;
+  };
+
+  // Helper to get best price for a product (lowest final price after promos)
   const getBestPrice = (product: typeof products[0]) => {
     if (!product.prices?.length) return null;
     return product.prices.reduce((best, price) => 
-      price.current_price < best.current_price ? price : best
+      getFinalPrice(price) < getFinalPrice(best) ? price : best
     , product.prices[0]);
   };
 
-  // Helper to get savings for a product
+  // Helper to get savings for a product (including promo discounts)
   const getSavings = (product: typeof products[0]) => {
     const best = getBestPrice(product);
-    if (!best?.original_price) return 0;
-    return best.original_price - best.current_price;
+    if (!best) return 0;
+    const originalPrice = best.original_price || best.current_price;
+    const finalPrice = getFinalPrice(best);
+    return originalPrice - finalPrice;
   };
 
   // Helper to get most recent update
@@ -169,13 +180,17 @@ const Products = () => {
       result = [...result].sort((a, b) => {
         switch (sortOption) {
           case 'price_asc': {
-            const priceA = getBestPrice(a)?.current_price ?? Infinity;
-            const priceB = getBestPrice(b)?.current_price ?? Infinity;
+            const bestA = getBestPrice(a);
+            const bestB = getBestPrice(b);
+            const priceA = bestA ? getFinalPrice(bestA) : Infinity;
+            const priceB = bestB ? getFinalPrice(bestB) : Infinity;
             return priceA - priceB;
           }
           case 'price_desc': {
-            const priceA = getBestPrice(a)?.current_price ?? 0;
-            const priceB = getBestPrice(b)?.current_price ?? 0;
+            const bestA = getBestPrice(a);
+            const bestB = getBestPrice(b);
+            const priceA = bestA ? getFinalPrice(bestA) : 0;
+            const priceB = bestB ? getFinalPrice(bestB) : 0;
             return priceB - priceA;
           }
           case 'savings': {
@@ -191,7 +206,7 @@ const Products = () => {
     }
 
     return result;
-  }, [products, searchQuery, selectedCategory, selectedDiscountTypes, selectedCurrency, sortOption]);
+  }, [products, promoCodes, searchQuery, selectedCategory, selectedDiscountTypes, selectedCurrency, sortOption]);
 
   const handleFavorite = async (productId: string) => {
     if (!user) {
