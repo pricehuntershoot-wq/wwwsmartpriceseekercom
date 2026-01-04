@@ -1,4 +1,5 @@
-import { Heart, ExternalLink, ShoppingCart, Package, Sparkles, Flame } from "lucide-react";
+import { Heart, ExternalLink, ShoppingCart, Package, Sparkles, Flame, Clock } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Card, CardContent } from "./ui/card";
@@ -10,6 +11,7 @@ interface Price {
   discount_type: string | null;
   discount_label: string | null;
   product_url: string | null;
+  discovered_at: string;
   shop: {
     id: string;
     name: string;
@@ -150,15 +152,21 @@ export const ProductCard = ({ product, onFavorite, isFavorited = false }: Produc
 
         {/* Best deal info */}
         {bestPrice && (
-          <div className="mb-3 flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Best at</span>
-            <span className="font-medium">{bestPrice.shop.name}</span>
-            {bestPrice.discount_type && (
-              <Badge variant="outline" className={`text-xs ${getDiscountColor(bestPrice.discount_type)}`}>
-                {getDiscountIcon(bestPrice.discount_type)}
-                <span className="ml-1">{bestPrice.discount_type.replace('_', ' ')}</span>
-              </Badge>
-            )}
+          <div className="mb-3 flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Best at</span>
+              <span className="font-medium">{bestPrice.shop.name}</span>
+              {bestPrice.discount_type && (
+                <Badge variant="outline" className={`text-xs ${getDiscountColor(bestPrice.discount_type)}`}>
+                  {getDiscountIcon(bestPrice.discount_type)}
+                  <span className="ml-1">{bestPrice.discount_type.replace('_', ' ')}</span>
+                </Badge>
+              )}
+            </div>
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Clock className="h-3 w-3" />
+              <span>Updated {formatDistanceToNow(new Date(bestPrice.discovered_at), { addSuffix: true })}</span>
+            </div>
           </div>
         )}
 
