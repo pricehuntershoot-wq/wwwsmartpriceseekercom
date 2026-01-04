@@ -15,7 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Heart, ExternalLink, ShoppingCart, Package, Sparkles, Flame, Clock, ArrowLeft, Store, Bell, BellOff, Trash2 } from "lucide-react";
+import { Heart, ExternalLink, ShoppingCart, Package, Sparkles, Flame, Clock, ArrowLeft, Store, Bell, BellOff, Trash2, ArrowUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice, Currency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
@@ -57,6 +57,8 @@ const ProductDetail = () => {
   const queryClient = useQueryClient();
   const [alertPrice, setAlertPrice] = useState("");
   const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false);
+  const [tableSortField, setTableSortField] = useState<'price' | 'currency' | 'updated'>('price');
+  const [tableSortDirection, setTableSortDirection] = useState<'asc' | 'desc'>('asc');
 
   // Fetch product with prices and shops
   const { data: product, isLoading } = useQuery({
@@ -251,6 +253,41 @@ const ProductDetail = () => {
   const savings = preferredBestPrice?.original_price 
     ? preferredBestPrice.original_price - preferredBestPrice.current_price 
     : 0;
+
+  // Sort prices for table
+  const sortedPrices = [...(product?.prices || [])].sort((a, b) => {
+    const direction = tableSortDirection === 'asc' ? 1 : -1;
+    switch (tableSortField) {
+      case 'price':
+        return (a.current_price - b.current_price) * direction;
+      case 'currency':
+        const currA = a.currency || 'EUR';
+        const currB = b.currency || 'EUR';
+        return currA.localeCompare(currB) * direction;
+      case 'updated':
+        return (new Date(a.discovered_at).getTime() - new Date(b.discovered_at).getTime()) * direction;
+      default:
+        return 0;
+    }
+  });
+
+  const handleTableSort = (field: 'price' | 'currency' | 'updated') => {
+    if (tableSortField === field) {
+      setTableSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setTableSortField(field);
+      setTableSortDirection('asc');
+    }
+  };
+
+  const SortIcon = ({ field }: { field: 'price' | 'currency' | 'updated' }) => {
+    if (tableSortField !== field) {
+      return <ArrowUpDown className="ml-1 h-3 w-3 text-muted-foreground" />;
+    }
+    return tableSortDirection === 'asc' 
+      ? <ChevronUp className="ml-1 h-3 w-3" /> 
+      : <ChevronDown className="ml-1 h-3 w-3" />;
+  };
 
   if (isLoading) {
     return (
@@ -503,16 +540,44 @@ const ProductDetail = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Shop</TableHead>
-                      <TableHead>Price</TableHead>
+                      <TableHead 
+                        className="cursor-pointer hover:text-foreground"
+                        onClick={() => handleTableSort('price')}
+                      >
+                        <span className="flex items-center">
+                          Price
+                          <SortIcon field="price" />
+                        </span>
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer hover:text-foreground"
+                        onClick={() => handleTableSort('currency')}
+                      >
+                        <span className="flex items-center">
+                          Currency
+                          <SortIcon field="currency" />
+                        </span>
+                      </TableHead>
                       <TableHead>Original</TableHead>
                       <TableHead>Discount</TableHead>
-                      <TableHead>Updated</TableHead>
+                      <TableHead 
+                        className="cursor-pointer hover:text-foreground"
+                        onClick={() => handleTableSort('updated')}
+                      >
+                        <span className="flex items-center">
+                          Updated
+                          <SortIcon field="updated" />
+                        </span>
+                      </TableHead>
                       <TableHead className="text-right">Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {product.prices.map((price, index) => (
-                      <TableRow key={price.id} className={index === 0 ? 'bg-primary/5' : ''}>
+                    {sortedPrices.map((price, index) => {
+                      const priceCurrency = (price.currency as Currency) || 'EUR';
+                      const isPreferred = priceCurrency === preferredCurrency;
+                      return (
+                        <TableRow key={price.id} className={isPreferred ? 'bg-primary/5' : ''}>
                         <TableCell>
                           <div className="flex items-center gap-2">
                             {price.shop.logo_url ? (
@@ -525,20 +590,28 @@ const ProductDetail = () => {
                               <Store className="h-5 w-5 text-muted-foreground" />
                             )}
                             <span className="font-medium">{price.shop.name}</span>
-                            {index === 0 && (
-                              <Badge variant="default" className="ml-2">Best</Badge>
-                            )}
                           </div>
                         </TableCell>
                         <TableCell>
-                          <span className={`font-bold ${index === 0 ? 'text-primary' : ''}`}>
-                            {formatPrice(price.current_price, (price.currency as Currency) || 'EUR')}
+                          <span className={cn("font-bold", isPreferred && "text-primary")}>
+                            {formatPrice(price.current_price, priceCurrency)}
                           </span>
+                        </TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant={isPreferred ? "default" : "outline"} 
+                            className={cn(
+                              "font-medium",
+                              isPreferred && "bg-primary"
+                            )}
+                          >
+                            {priceCurrency === 'EUR' ? '€ EUR' : 'Kč CZK'}
+                          </Badge>
                         </TableCell>
                         <TableCell>
                           {price.original_price ? (
                             <span className="text-muted-foreground line-through">
-                              {formatPrice(price.original_price, (price.currency as Currency) || 'EUR')}
+                              {formatPrice(price.original_price, priceCurrency)}
                             </span>
                           ) : (
                             <span className="text-muted-foreground">—</span>
@@ -567,7 +640,7 @@ const ProductDetail = () => {
                         </TableCell>
                         <TableCell className="text-right">
                           {price.product_url ? (
-                            <Button size="sm" variant={index === 0 ? "default" : "outline"} asChild>
+                            <Button size="sm" variant={isPreferred ? "default" : "outline"} asChild>
                               <a href={price.product_url} target="_blank" rel="noopener noreferrer">
                                 Buy
                                 <ExternalLink className="ml-1 h-3 w-3" />
@@ -578,7 +651,8 @@ const ProductDetail = () => {
                           )}
                         </TableCell>
                       </TableRow>
-                    ))}
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
