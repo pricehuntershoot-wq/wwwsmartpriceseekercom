@@ -10,6 +10,7 @@ import Favorites from "./pages/Favorites";
 import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
 import MyAlerts from "./pages/MyAlerts";
+import Premium from "./pages/Premium";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/products/:id" element={<ProductDetail />} />
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/alerts" element={<MyAlerts />} />
+            <Route path="/premium" element={<Premium />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
