@@ -5,10 +5,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { PremiumBadge } from "./PremiumBadge";
 import { CurrencySelector } from "./CurrencySelector";
+import { LanguageSelector } from "./LanguageSelector";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export const Header = () => {
   const { user, signOut } = useAuth();
   const { isPremium } = useSubscription();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -32,17 +35,18 @@ export const Header = () => {
         <nav className="hidden items-center gap-8 md:flex">
           <Link to="/products" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
             <ShoppingBag className="mr-1 inline h-4 w-4" />
-            Products
+            {t('products')}
           </Link>
           <a href="#how-it-works" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
-            How it Works
+            {t('howItWorks')}
           </a>
           <a href="#features" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
-            Features
+            {t('features')}
           </a>
         </nav>
 
         <div className="flex items-center gap-2">
+          <LanguageSelector />
           <CurrencySelector />
           {user ? (
             <>
@@ -50,13 +54,13 @@ export const Header = () => {
               <Button variant="ghost" size="sm" asChild>
                 <Link to="/favorites">
                   <Heart className="h-4 w-4 mr-1" />
-                  Favorites
+                  {t('favorites')}
                 </Link>
               </Button>
               <Button variant="ghost" size="sm" asChild>
                 <Link to="/alerts">
                   <Bell className="h-4 w-4 mr-1" />
-                  Alerts
+                  {t('alerts')}
                 </Link>
               </Button>
               <Button variant="ghost" size="icon" asChild>
@@ -68,24 +72,24 @@ export const Header = () => {
                 <Button variant="accent" size="sm" asChild>
                   <Link to="/premium">
                     <Crown className="h-4 w-4 mr-1" />
-                    Premium
+                    {t('premium')}
                   </Link>
                 </Button>
               )}
               <Button variant="ghost" size="sm" onClick={handleSignOut}>
                 <LogOut className="h-4 w-4 mr-1" />
-                Sign Out
+                {t('signOut')}
               </Button>
             </>
           ) : (
             <>
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/auth">Sign In</Link>
+                <Link to="/auth">{t('signIn')}</Link>
               </Button>
               <Button variant="hero" size="sm" asChild>
                 <Link to="/auth">
                   <Zap className="h-4 w-4" />
-                  Get Started
+                  {t('getStarted')}
                 </Link>
               </Button>
             </>

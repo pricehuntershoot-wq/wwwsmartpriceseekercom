@@ -1,0 +1,212 @@
+export type Language = 'en' | 'cs';
+
+export const translations = {
+  en: {
+    // Header
+    products: 'Products',
+    howItWorks: 'How it Works',
+    features: 'Features',
+    favorites: 'Favorites',
+    alerts: 'Alerts',
+    premium: 'Premium',
+    signIn: 'Sign In',
+    signOut: 'Sign Out',
+    getStarted: 'Get Started',
+    
+    // Settings
+    settings: 'Settings',
+    managePreferences: 'Manage your account preferences',
+    profile: 'Profile',
+    updatePersonalInfo: 'Update your personal information',
+    email: 'Email',
+    emailCannotChange: 'Email cannot be changed',
+    displayName: 'Display Name',
+    enterDisplayName: 'Enter your display name',
+    preferredCurrency: 'Preferred Currency',
+    currencySyncNote: 'This preference syncs across all your devices',
+    preferredLanguage: 'Preferred Language',
+    languageSyncNote: 'Language preference syncs across devices',
+    notifications: 'Notifications',
+    configureAlerts: 'Configure how you receive alerts',
+    emailNotifications: 'Email Notifications',
+    receiveAlertsEmail: 'Receive alerts via email',
+    priceDropAlerts: 'Price Drop Alerts',
+    priceDropAlertsDesc: 'Get notified when prices drop on your tracked products',
+    saveChanges: 'Save Changes',
+    saving: 'Saving...',
+    back: 'Back',
+    
+    // Auth
+    welcomeBack: 'Welcome back',
+    signInContinue: 'Sign in to continue to your account',
+    createAccount: 'Create account',
+    joinToday: 'Join today and start saving',
+    password: 'Password',
+    dontHaveAccount: "Don't have an account?",
+    alreadyHaveAccount: 'Already have an account?',
+    signUp: 'Sign up',
+    
+    // Favorites
+    myFavorites: 'My Favorites',
+    trackFavoriteProducts: 'Track your favorite products and their prices',
+    noFavorites: 'No favorites yet',
+    startBrowsing: 'Start browsing products to add favorites',
+    browseProducts: 'Browse Products',
+    viewDetails: 'View Details',
+    
+    // Alerts
+    myAlerts: 'My Alerts',
+    priceAlertsDashboard: 'Manage your price alerts and get notified when prices drop',
+    searchAlerts: 'Search alerts...',
+    allAlerts: 'All Alerts',
+    activeAlerts: 'Active',
+    triggeredAlerts: 'Triggered',
+    noAlertsFound: 'No alerts found',
+    createFirstAlert: 'Create your first price alert',
+    targetPrice: 'Target Price',
+    currentPrice: 'Current Price',
+    
+    // Products
+    allProducts: 'All Products',
+    searchProducts: 'Search products...',
+    allCategories: 'All Categories',
+    noProductsFound: 'No products found',
+    
+    // Product Detail
+    priceComparison: 'Price Comparison',
+    priceHistory: 'Price History',
+    shop: 'Shop',
+    price: 'Price',
+    currency: 'Currency',
+    updated: 'Updated',
+    visitShop: 'Visit Shop',
+    addToFavorites: 'Add to Favorites',
+    removeFromFavorites: 'Remove from Favorites',
+    setPriceAlert: 'Set Price Alert',
+    
+    // Common
+    loading: 'Loading...',
+    error: 'Error',
+    success: 'Success',
+    cancel: 'Cancel',
+    save: 'Save',
+    delete: 'Delete',
+    edit: 'Edit',
+    close: 'Close',
+    
+    // Toast messages
+    settingsSaved: 'Settings saved',
+    settingsSavedDesc: 'Your preferences have been updated successfully.',
+    errorSaving: 'Error',
+    errorSavingDesc: 'Failed to save settings. Please try again.',
+    addedToFavorites: 'Added to favorites',
+    removedFromFavorites: 'Removed from favorites',
+    alertCreated: 'Price alert created',
+    alertDeleted: 'Alert deleted',
+  },
+  cs: {
+    // Header
+    products: 'Produkty',
+    howItWorks: 'Jak to funguje',
+    features: 'Funkce',
+    favorites: 'Oblíbené',
+    alerts: 'Upozornění',
+    premium: 'Premium',
+    signIn: 'Přihlásit se',
+    signOut: 'Odhlásit se',
+    getStarted: 'Začít',
+    
+    // Settings
+    settings: 'Nastavení',
+    managePreferences: 'Spravujte své předvolby účtu',
+    profile: 'Profil',
+    updatePersonalInfo: 'Aktualizujte své osobní údaje',
+    email: 'E-mail',
+    emailCannotChange: 'E-mail nelze změnit',
+    displayName: 'Zobrazované jméno',
+    enterDisplayName: 'Zadejte své zobrazované jméno',
+    preferredCurrency: 'Preferovaná měna',
+    currencySyncNote: 'Tato předvolba se synchronizuje na všech vašich zařízeních',
+    preferredLanguage: 'Preferovaný jazyk',
+    languageSyncNote: 'Jazyková předvolba se synchronizuje mezi zařízeními',
+    notifications: 'Oznámení',
+    configureAlerts: 'Nastavte, jak přijímáte upozornění',
+    emailNotifications: 'E-mailová oznámení',
+    receiveAlertsEmail: 'Přijímat upozornění e-mailem',
+    priceDropAlerts: 'Upozornění na pokles ceny',
+    priceDropAlertsDesc: 'Buďte upozorněni, když ceny sledovaných produktů klesnou',
+    saveChanges: 'Uložit změny',
+    saving: 'Ukládání...',
+    back: 'Zpět',
+    
+    // Auth
+    welcomeBack: 'Vítejte zpět',
+    signInContinue: 'Přihlaste se ke svému účtu',
+    createAccount: 'Vytvořit účet',
+    joinToday: 'Připojte se ještě dnes a začněte šetřit',
+    password: 'Heslo',
+    dontHaveAccount: 'Nemáte účet?',
+    alreadyHaveAccount: 'Již máte účet?',
+    signUp: 'Registrovat se',
+    
+    // Favorites
+    myFavorites: 'Moje oblíbené',
+    trackFavoriteProducts: 'Sledujte své oblíbené produkty a jejich ceny',
+    noFavorites: 'Zatím žádné oblíbené',
+    startBrowsing: 'Začněte procházet produkty a přidávat oblíbené',
+    browseProducts: 'Procházet produkty',
+    viewDetails: 'Zobrazit detaily',
+    
+    // Alerts
+    myAlerts: 'Moje upozornění',
+    priceAlertsDashboard: 'Spravujte svá cenová upozornění',
+    searchAlerts: 'Hledat upozornění...',
+    allAlerts: 'Všechna upozornění',
+    activeAlerts: 'Aktivní',
+    triggeredAlerts: 'Spuštěná',
+    noAlertsFound: 'Žádná upozornění nenalezena',
+    createFirstAlert: 'Vytvořte své první cenové upozornění',
+    targetPrice: 'Cílová cena',
+    currentPrice: 'Aktuální cena',
+    
+    // Products
+    allProducts: 'Všechny produkty',
+    searchProducts: 'Hledat produkty...',
+    allCategories: 'Všechny kategorie',
+    noProductsFound: 'Žádné produkty nenalezeny',
+    
+    // Product Detail
+    priceComparison: 'Srovnání cen',
+    priceHistory: 'Historie cen',
+    shop: 'Obchod',
+    price: 'Cena',
+    currency: 'Měna',
+    updated: 'Aktualizováno',
+    visitShop: 'Navštívit obchod',
+    addToFavorites: 'Přidat do oblíbených',
+    removeFromFavorites: 'Odebrat z oblíbených',
+    setPriceAlert: 'Nastavit upozornění na cenu',
+    
+    // Common
+    loading: 'Načítání...',
+    error: 'Chyba',
+    success: 'Úspěch',
+    cancel: 'Zrušit',
+    save: 'Uložit',
+    delete: 'Smazat',
+    edit: 'Upravit',
+    close: 'Zavřít',
+    
+    // Toast messages
+    settingsSaved: 'Nastavení uloženo',
+    settingsSavedDesc: 'Vaše předvolby byly úspěšně aktualizovány.',
+    errorSaving: 'Chyba',
+    errorSavingDesc: 'Nepodařilo se uložit nastavení. Zkuste to prosím znovu.',
+    addedToFavorites: 'Přidáno do oblíbených',
+    removedFromFavorites: 'Odebráno z oblíbených',
+    alertCreated: 'Cenové upozornění vytvořeno',
+    alertDeleted: 'Upozornění smazáno',
+  },
+} as const;
+
+export type TranslationKey = keyof typeof translations.en;

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings as SettingsIcon, User, Bell, ArrowLeft, Save } from "lucide-react";
+import { Settings as SettingsIcon, User, Bell, ArrowLeft, Save, Globe } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -11,15 +11,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
 import { useCurrencyPreference } from "@/hooks/useCurrencyPreference";
+import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Currency } from "@/lib/currency";
 
 const Settings = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { preferredCurrency, setPreferredCurrency } = useCurrencyPreference();
+  const { language, setLanguage, t } = useLanguage();
   
   const [displayName, setDisplayName] = useState("");
   const [emailAlerts, setEmailAlerts] = useState(true);
@@ -65,13 +66,13 @@ const Settings = () => {
       if (error) throw error;
 
       toast({
-        title: "Settings saved",
-        description: "Your preferences have been updated successfully.",
+        title: t('settingsSaved'),
+        description: t('settingsSavedDesc'),
       });
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to save settings. Please try again.",
+        title: t('errorSaving'),
+        description: t('errorSavingDesc'),
         variant: "destructive",
       });
     } finally {
@@ -98,7 +99,7 @@ const Settings = () => {
           className="mb-6"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
+          {t('back')}
         </Button>
 
         <div className="flex items-center gap-3 mb-8">
@@ -106,8 +107,8 @@ const Settings = () => {
             <SettingsIcon className="h-6 w-6 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold">Settings</h1>
-            <p className="text-muted-foreground">Manage your account preferences</p>
+            <h1 className="text-3xl font-bold">{t('settings')}</h1>
+            <p className="text-muted-foreground">{t('managePreferences')}</p>
           </div>
         </div>
 
@@ -117,15 +118,15 @@ const Settings = () => {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <User className="h-5 w-5 text-primary" />
-                <CardTitle>Profile</CardTitle>
+                <CardTitle>{t('profile')}</CardTitle>
               </div>
               <CardDescription>
-                Update your personal information
+                {t('updatePersonalInfo')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t('email')}</Label>
                 <Input
                   id="email"
                   type="email"
@@ -134,15 +135,15 @@ const Settings = () => {
                   className="bg-muted"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Email cannot be changed
+                  {t('emailCannotChange')}
                 </p>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="displayName">Display Name</Label>
+                <Label htmlFor="displayName">{t('displayName')}</Label>
                 <Input
                   id="displayName"
-                  placeholder="Enter your display name"
+                  placeholder={t('enterDisplayName')}
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   maxLength={50}
@@ -152,7 +153,7 @@ const Settings = () => {
               <Separator />
 
               <div className="space-y-2">
-                <Label>Preferred Currency</Label>
+                <Label>{t('preferredCurrency')}</Label>
                 <div className="flex gap-2">
                   <Button
                     variant={preferredCurrency === "EUR" ? "default" : "outline"}
@@ -170,7 +171,32 @@ const Settings = () => {
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  This preference syncs across all your devices
+                  {t('currencySyncNote')}
+                </p>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-2">
+                <Label>{t('preferredLanguage')}</Label>
+                <div className="flex gap-2">
+                  <Button
+                    variant={language === "en" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setLanguage("en")}
+                  >
+                    🇬🇧 English
+                  </Button>
+                  <Button
+                    variant={language === "cs" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setLanguage("cs")}
+                  >
+                    🇨🇿 Čeština
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {t('languageSyncNote')}
                 </p>
               </div>
             </CardContent>
@@ -181,18 +207,18 @@ const Settings = () => {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Bell className="h-5 w-5 text-primary" />
-                <CardTitle>Notifications</CardTitle>
+                <CardTitle>{t('notifications')}</CardTitle>
               </div>
               <CardDescription>
-                Configure how you receive alerts
+                {t('configureAlerts')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Email Notifications</Label>
+                  <Label>{t('emailNotifications')}</Label>
                   <p className="text-sm text-muted-foreground">
-                    Receive alerts via email
+                    {t('receiveAlertsEmail')}
                   </p>
                 </div>
                 <Switch
@@ -205,9 +231,9 @@ const Settings = () => {
               
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Price Drop Alerts</Label>
+                  <Label>{t('priceDropAlerts')}</Label>
                   <p className="text-sm text-muted-foreground">
-                    Get notified when prices drop on your tracked products
+                    {t('priceDropAlertsDesc')}
                   </p>
                 </div>
                 <Switch
@@ -220,7 +246,7 @@ const Settings = () => {
 
           <Button onClick={handleSave} disabled={saving} className="w-full">
             <Save className="h-4 w-4 mr-2" />
-            {saving ? "Saving..." : "Save Changes"}
+            {saving ? t('saving') : t('saveChanges')}
           </Button>
         </div>
       </main>
