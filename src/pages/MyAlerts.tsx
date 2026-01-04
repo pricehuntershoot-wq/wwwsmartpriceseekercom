@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useCurrencyPreference } from "@/hooks/useCurrencyPreference";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +16,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Bell, BellOff, Trash2, ExternalLink, TrendingDown, Check, AlertCircle, Pencil, Search, ArrowUpDown, X, CheckSquare } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
+import { formatPrice as formatCurrencyPrice, Currency } from "@/lib/currency";
+import { cn } from "@/lib/utils";
 
 interface PriceAlert {
   id: string;
@@ -52,16 +55,10 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: 'target_desc', label: 'Target: High to Low' },
 ];
 
-const formatPrice = (price: number) => {
-  return new Intl.NumberFormat('cs-CZ', {
-    style: 'currency',
-    currency: 'CZK',
-    minimumFractionDigits: 0,
-  }).format(price);
-};
-
+// Use the imported formatCurrencyPrice with preferred currency
 const MyAlerts = () => {
   const { user, loading: authLoading } = useAuth();
+  const { preferredCurrency } = useCurrencyPreference();
   const navigate = useNavigate();
   const [alerts, setAlerts] = useState<PriceAlert[]>([]);
   const [loading, setLoading] = useState(true);
@@ -639,8 +636,11 @@ const MyAlerts = () => {
                               className="flex items-center gap-1 hover:text-primary transition-colors group"
                             >
                               <span className="text-muted-foreground">Target: </span>
-                              <span className="font-medium text-primary">
-                                {formatPrice(Number(alert.target_price))}
+                              <span className={cn(
+                                "font-medium",
+                                preferredCurrency === 'EUR' ? "text-primary" : "text-accent"
+                              )}>
+                                {formatCurrencyPrice(Number(alert.target_price), preferredCurrency)}
                               </span>
                               <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                             </button>
@@ -648,11 +648,11 @@ const MyAlerts = () => {
                               <div className="flex items-center gap-1">
                                 <span className="text-muted-foreground">Current: </span>
                                 <span className="font-medium">
-                                  {formatPrice(alert.current_best_price)}
+                                  {formatCurrencyPrice(alert.current_best_price, preferredCurrency)}
                                 </span>
                                 {priceDiff !== null && priceDiff > 0 && (
                                   <span className="text-xs text-muted-foreground">
-                                    ({formatPrice(priceDiff)} above)
+                                    ({formatCurrencyPrice(priceDiff, preferredCurrency)} above)
                                   </span>
                                 )}
                                 {priceDiff !== null && priceDiff <= 0 && (
@@ -739,13 +739,13 @@ const MyAlerts = () => {
                 )}
                 {editingAlert?.current_best_price && (
                   <span className="block mt-1 text-sm">
-                    Current best price: {formatPrice(editingAlert.current_best_price)}
+                    Current best price: {formatCurrencyPrice(editingAlert.current_best_price, preferredCurrency)}
                   </span>
                 )}
               </DialogDescription>
             </DialogHeader>
             <div className="py-4">
-              <label className="mb-2 block text-sm font-medium">New Target Price (CZK)</label>
+              <label className="mb-2 block text-sm font-medium">New Target Price ({preferredCurrency})</label>
               <Input
                 type="number"
                 placeholder="Enter target price"

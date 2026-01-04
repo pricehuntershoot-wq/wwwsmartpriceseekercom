@@ -1,13 +1,22 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useCurrencyPreference } from '@/hooks/useCurrencyPreference';
 import { supabase } from '@/integrations/supabase/client';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Heart, Bell, Trash2, Loader2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Heart, Bell, Trash2, Loader2, ExternalLink, TrendingDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { formatPrice, Currency } from '@/lib/currency';
+import { cn } from '@/lib/utils';
+
+interface FavoritePrice {
+  current_price: number;
+  currency: string;
+}
 
 interface Favorite {
   id: string;
@@ -19,6 +28,8 @@ interface Favorite {
     category: string | null;
     image_url: string | null;
   };
+  best_eur_price?: number;
+  best_czk_price?: number;
 }
 
 interface PriceAlert {
@@ -26,14 +37,17 @@ interface PriceAlert {
   product_id: string;
   target_price: number;
   is_active: boolean;
+  currency?: string;
   products: {
     id: string;
     name: string;
   };
+  current_best_price?: number;
 }
 
 const Favorites = () => {
   const { user, loading: authLoading } = useAuth();
+  const { preferredCurrency } = useCurrencyPreference();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [favorites, setFavorites] = useState<Favorite[]>([]);
@@ -67,10 +81,47 @@ const Favorites = () => {
     ]);
 
     if (favResult.data) {
-      setFavorites(favResult.data as unknown as Favorite[]);
+      // Fetch prices for each favorite to show best prices
+      const favsWithPrices = await Promise.all(
+        (favResult.data as unknown as Favorite[]).map(async (fav) => {
+          const { data: pricesData } = await supabase
+            .from('prices')
+            .select('current_price, currency')
+            .eq('product_id', fav.product_id)
+            .eq('is_active', true);
+          
+          const eurPrices = (pricesData || []).filter(p => (p.currency || 'EUR') === 'EUR');
+          const czkPrices = (pricesData || []).filter(p => p.currency === 'CZK');
+          
+          return {
+            ...fav,
+            best_eur_price: eurPrices.length > 0 ? Math.min(...eurPrices.map(p => p.current_price)) : undefined,
+            best_czk_price: czkPrices.length > 0 ? Math.min(...czkPrices.map(p => p.current_price)) : undefined,
+          };
+        })
+      );
+      setFavorites(favsWithPrices);
     }
+    
     if (alertResult.data) {
-      setAlerts(alertResult.data as unknown as PriceAlert[]);
+      // Fetch current prices for alerts
+      const alertsWithPrices = await Promise.all(
+        (alertResult.data as unknown as PriceAlert[]).map(async (alert) => {
+          const { data: pricesData } = await supabase
+            .from('prices')
+            .select('current_price')
+            .eq('product_id', alert.product_id)
+            .eq('is_active', true)
+            .order('current_price', { ascending: true })
+            .limit(1);
+          
+          return {
+            ...alert,
+            current_best_price: pricesData?.[0]?.current_price,
+          };
+        })
+      );
+      setAlerts(alertsWithPrices);
     }
     
     setLoading(false);
@@ -150,20 +201,52 @@ const Favorites = () => {
                 <div className="space-y-3">
                   {favorites.map((fav) => (
                     <div key={fav.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                      <div>
+                      <Link to={`/products/${fav.product_id}`} className="flex-1 hover:text-primary transition-colors">
                         <p className="font-medium">{fav.products.name}</p>
+                        <div className="flex items-center gap-3 mt-1">
+                          {fav.best_eur_price !== undefined && (
+                            <span className={cn(
+                              "text-sm",
+                              preferredCurrency === 'EUR' ? "text-primary font-semibold" : "text-muted-foreground"
+                            )}>
+                              {preferredCurrency === 'EUR' && "★ "}{formatPrice(fav.best_eur_price, 'EUR')}
+                            </span>
+                          )}
+                          {fav.best_eur_price !== undefined && fav.best_czk_price !== undefined && (
+                            <span className="text-muted-foreground">|</span>
+                          )}
+                          {fav.best_czk_price !== undefined && (
+                            <span className={cn(
+                              "text-sm",
+                              preferredCurrency === 'CZK' ? "text-primary font-semibold" : "text-muted-foreground"
+                            )}>
+                              {preferredCurrency === 'CZK' && "★ "}{formatPrice(fav.best_czk_price, 'CZK')}
+                            </span>
+                          )}
+                        </div>
                         {fav.products.category && (
-                          <p className="text-sm text-muted-foreground">{fav.products.category}</p>
+                          <Badge variant="outline" className="mt-1 text-xs">{fav.products.category}</Badge>
                         )}
+                      </Link>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          asChild
+                        >
+                          <Link to={`/products/${fav.product_id}`}>
+                            <ExternalLink className="h-4 w-4" />
+                          </Link>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeFavorite(fav.id)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeFavorite(fav.id)}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
                     </div>
                   ))}
                 </div>
@@ -186,24 +269,57 @@ const Favorites = () => {
                 </p>
               ) : (
                 <div className="space-y-3">
-                  {alerts.map((alert) => (
-                    <div key={alert.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                      <div>
-                        <p className="font-medium">{alert.products.name}</p>
-                        <p className="text-sm text-accent font-semibold">
-                          Target: ${alert.target_price.toFixed(2)}
-                        </p>
+                  {alerts.map((alert) => {
+                    const isTargetReached = alert.current_best_price && alert.current_best_price <= alert.target_price;
+                    return (
+                      <div key={alert.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                        <Link to={`/products/${alert.product_id}`} className="flex-1 hover:text-primary transition-colors">
+                          <p className="font-medium">{alert.products.name}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className={cn(
+                              "text-sm font-semibold",
+                              preferredCurrency === 'EUR' ? "text-primary" : "text-accent"
+                            )}>
+                              Target: {formatPrice(alert.target_price, preferredCurrency)}
+                            </span>
+                            {alert.current_best_price && (
+                              <>
+                                <span className="text-muted-foreground">|</span>
+                                <span className="text-sm text-muted-foreground">
+                                  Current: {formatPrice(alert.current_best_price, preferredCurrency)}
+                                </span>
+                                {isTargetReached && (
+                                  <TrendingDown className="h-4 w-4 text-green-500" />
+                                )}
+                              </>
+                            )}
+                          </div>
+                          {!alert.is_active && (
+                            <Badge variant="outline" className="mt-1 text-xs">Paused</Badge>
+                          )}
+                        </Link>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            asChild
+                          >
+                            <Link to={`/products/${alert.product_id}`}>
+                              <ExternalLink className="h-4 w-4" />
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => deleteAlert(alert.id)}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => deleteAlert(alert.id)}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </CardContent>
