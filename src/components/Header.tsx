@@ -1,4 +1,4 @@
-import { Bot, Zap, LogOut, Heart, ShoppingBag } from "lucide-react";
+import { Bot, Zap, LogOut, Heart, ShoppingBag, Bell } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -45,6 +45,12 @@ export const Header = () => {
                 <Link to="/favorites">
                   <Heart className="h-4 w-4 mr-1" />
                   Favorites
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/alerts">
+                  <Bell className="h-4 w-4 mr-1" />
+                  Alerts
                 </Link>
               </Button>
               <Button variant="ghost" size="sm" onClick={handleSignOut}>
