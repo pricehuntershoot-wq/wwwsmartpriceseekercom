@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
+import { EarlyAccessBanner } from "@/components/EarlyAccessBanner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -224,6 +225,9 @@ const Products = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <main className="container pb-16 pt-24">
+        {/* Early Access Banner */}
+        <EarlyAccessBanner />
+        
         {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold md:text-4xl">
