@@ -1,4 +1,4 @@
-import { Bot, Zap, LogOut, Heart, ShoppingBag, Bell, Crown } from "lucide-react";
+import { Bot, Zap, LogOut, Heart, ShoppingBag, Bell, Crown, Settings } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -57,6 +57,11 @@ export const Header = () => {
                 <Link to="/alerts">
                   <Bell className="h-4 w-4 mr-1" />
                   Alerts
+                </Link>
+              </Button>
+              <Button variant="ghost" size="icon" asChild>
+                <Link to="/settings">
+                  <Settings className="h-4 w-4" />
                 </Link>
               </Button>
               {!isPremium && (
