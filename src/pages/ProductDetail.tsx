@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -10,7 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Heart, ExternalLink, ShoppingCart, Package, Sparkles, Flame, Clock, ArrowLeft, Store } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Heart, ExternalLink, ShoppingCart, Package, Sparkles, Flame, Clock, ArrowLeft, Store, Bell, BellOff, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 const getDiscountIcon = (type: string | null) => {
@@ -50,6 +53,9 @@ const formatPrice = (price: number) => {
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [alertPrice, setAlertPrice] = useState("");
+  const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false);
 
   // Fetch product with prices and shops
   const { data: product, isLoading } = useQuery({
@@ -123,6 +129,25 @@ const ProductDetail = () => {
     enabled: !!user && !!id
   });
 
+  // Fetch price alert for this product
+  const { data: priceAlert, refetch: refetchAlert } = useQuery({
+    queryKey: ['price-alert', user?.id, id],
+    queryFn: async () => {
+      if (!user || !id) return null;
+      const { data, error } = await supabase
+        .from('price_alerts')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('product_id', id)
+        .eq('is_active', true)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user && !!id
+  });
+
   const handleFavorite = async () => {
     if (!user || !id) {
       toast.error("Please sign in to save favorites");
@@ -154,6 +179,54 @@ const ProductDetail = () => {
     }
     
     refetchFavorite();
+  };
+
+  const handleCreateAlert = async () => {
+    if (!user || !id) {
+      toast.error("Please sign in to set price alerts");
+      return;
+    }
+
+    const targetPrice = parseFloat(alertPrice);
+    if (isNaN(targetPrice) || targetPrice <= 0) {
+      toast.error("Please enter a valid price");
+      return;
+    }
+
+    const { error } = await supabase
+      .from('price_alerts')
+      .insert({ 
+        user_id: user.id, 
+        product_id: id,
+        target_price: targetPrice
+      });
+    
+    if (error) {
+      toast.error("Failed to create price alert");
+      return;
+    }
+    
+    toast.success(`Alert set for ${formatPrice(targetPrice)}`);
+    setAlertPrice("");
+    setIsAlertDialogOpen(false);
+    refetchAlert();
+  };
+
+  const handleDeleteAlert = async () => {
+    if (!user || !id || !priceAlert) return;
+
+    const { error } = await supabase
+      .from('price_alerts')
+      .delete()
+      .eq('id', priceAlert.id);
+    
+    if (error) {
+      toast.error("Failed to delete price alert");
+      return;
+    }
+    
+    toast.success("Price alert removed");
+    refetchAlert();
   };
 
   const bestPrice = product?.prices?.[0];
@@ -280,6 +353,65 @@ const ProductDetail = () => {
                 <Heart className={`mr-2 h-4 w-4 ${isFavorited ? 'fill-red-500 text-red-500' : ''}`} />
                 {isFavorited ? 'Saved' : 'Save'}
               </Button>
+              
+              {/* Price Alert Button */}
+              {priceAlert ? (
+                <Button 
+                  size="lg" 
+                  variant="outline"
+                  className="border-amber-500/50 text-amber-500 hover:bg-amber-500/10"
+                  onClick={handleDeleteAlert}
+                >
+                  <BellOff className="mr-2 h-4 w-4" />
+                  Alert at {formatPrice(priceAlert.target_price)}
+                </Button>
+              ) : (
+                <Dialog open={isAlertDialogOpen} onOpenChange={setIsAlertDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="lg" variant="outline">
+                      <Bell className="mr-2 h-4 w-4" />
+                      Set Price Alert
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Set Price Alert</DialogTitle>
+                      <DialogDescription>
+                        Get notified when the price drops below your target price.
+                        {bestPrice && (
+                          <span className="mt-2 block text-sm">
+                            Current best price: <strong className="text-primary">{formatPrice(bestPrice.current_price)}</strong>
+                          </span>
+                        )}
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                      <label className="mb-2 block text-sm font-medium">Target Price (CZK)</label>
+                      <Input
+                        type="number"
+                        placeholder={bestPrice ? String(Math.floor(bestPrice.current_price * 0.9)) : "Enter target price"}
+                        value={alertPrice}
+                        onChange={(e) => setAlertPrice(e.target.value)}
+                        min="1"
+                      />
+                      {bestPrice && alertPrice && parseFloat(alertPrice) >= bestPrice.current_price && (
+                        <p className="mt-2 text-sm text-amber-500">
+                          Tip: Set a price lower than the current best price to get meaningful alerts.
+                        </p>
+                      )}
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setIsAlertDialogOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button onClick={handleCreateAlert}>
+                        <Bell className="mr-2 h-4 w-4" />
+                        Create Alert
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              )}
             </div>
           </div>
         </div>
