@@ -2,9 +2,12 @@ import { Bot, Zap, LogOut, Heart, ShoppingBag, Bell, Crown } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
+import { PremiumBadge } from "./PremiumBadge";
 
 export const Header = () => {
   const { user, signOut } = useAuth();
+  const { isPremium } = useSubscription();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -41,6 +44,7 @@ export const Header = () => {
         <div className="flex items-center gap-3">
           {user ? (
             <>
+              {isPremium && <PremiumBadge size="sm" />}
               <Button variant="ghost" size="sm" asChild>
                 <Link to="/favorites">
                   <Heart className="h-4 w-4 mr-1" />
@@ -53,12 +57,14 @@ export const Header = () => {
                   Alerts
                 </Link>
               </Button>
-              <Button variant="accent" size="sm" asChild>
-                <Link to="/premium">
-                  <Crown className="h-4 w-4 mr-1" />
-                  Premium
-                </Link>
-              </Button>
+              {!isPremium && (
+                <Button variant="accent" size="sm" asChild>
+                  <Link to="/premium">
+                    <Crown className="h-4 w-4 mr-1" />
+                    Premium
+                  </Link>
+                </Button>
+              )}
               <Button variant="ghost" size="sm" onClick={handleSignOut}>
                 <LogOut className="h-4 w-4 mr-1" />
                 Sign Out
