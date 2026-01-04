@@ -5,10 +5,12 @@ import { Footer } from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Bell, BellOff, Trash2, ExternalLink, TrendingDown, Check, AlertCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Bell, BellOff, Trash2, ExternalLink, TrendingDown, Check, AlertCircle, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 
@@ -41,6 +43,9 @@ const MyAlerts = () => {
   const navigate = useNavigate();
   const [alerts, setAlerts] = useState<PriceAlert[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingAlert, setEditingAlert] = useState<PriceAlert | null>(null);
+  const [editTargetPrice, setEditTargetPrice] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -57,7 +62,6 @@ const MyAlerts = () => {
   const fetchAlerts = async () => {
     setLoading(true);
     try {
-      // Fetch alerts with product info
       const { data: alertsData, error: alertsError } = await supabase
         .from('price_alerts')
         .select('*')
@@ -66,7 +70,6 @@ const MyAlerts = () => {
 
       if (alertsError) throw alertsError;
 
-      // Fetch product info and current prices for each alert
       const alertsWithDetails = await Promise.all(
         (alertsData || []).map(async (alert) => {
           const { data: productData } = await supabase
@@ -75,7 +78,6 @@ const MyAlerts = () => {
             .eq('id', alert.product_id)
             .maybeSingle();
 
-          // Get current best price
           const { data: pricesData } = await supabase
             .from('prices')
             .select('current_price')
@@ -137,6 +139,55 @@ const MyAlerts = () => {
     } catch (error) {
       console.error('Error deleting alert:', error);
       toast.error("Failed to delete alert");
+    }
+  };
+
+  const openEditDialog = (alert: PriceAlert) => {
+    setEditingAlert(alert);
+    setEditTargetPrice(String(alert.target_price));
+  };
+
+  const closeEditDialog = () => {
+    setEditingAlert(null);
+    setEditTargetPrice("");
+  };
+
+  const handleUpdateTargetPrice = async () => {
+    if (!editingAlert) return;
+
+    const newPrice = parseFloat(editTargetPrice);
+    if (isNaN(newPrice) || newPrice <= 0) {
+      toast.error("Please enter a valid price");
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      const { error } = await supabase
+        .from('price_alerts')
+        .update({ 
+          target_price: newPrice,
+          triggered_at: null // Reset triggered status when price changes
+        })
+        .eq('id', editingAlert.id);
+
+      if (error) throw error;
+
+      setAlerts(prev =>
+        prev.map(alert =>
+          alert.id === editingAlert.id 
+            ? { ...alert, target_price: newPrice, triggered_at: null } 
+            : alert
+        )
+      );
+
+      toast.success("Target price updated");
+      closeEditDialog();
+    } catch (error) {
+      console.error('Error updating target price:', error);
+      toast.error("Failed to update target price");
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -253,12 +304,16 @@ const MyAlerts = () => {
                           </Link>
 
                           <div className="mt-2 flex flex-wrap items-center gap-4 text-sm">
-                            <div>
+                            <button
+                              onClick={() => openEditDialog(alert)}
+                              className="flex items-center gap-1 hover:text-primary transition-colors group"
+                            >
                               <span className="text-muted-foreground">Target: </span>
                               <span className="font-medium text-primary">
                                 {formatPrice(Number(alert.target_price))}
                               </span>
-                            </div>
+                              <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </button>
                             {alert.current_best_price && (
                               <div className="flex items-center gap-1">
                                 <span className="text-muted-foreground">Current: </span>
@@ -287,6 +342,14 @@ const MyAlerts = () => {
 
                         {/* Actions */}
                         <div className="flex sm:flex-col gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openEditDialog(alert)}
+                          >
+                            <Pencil className="h-4 w-4 mr-1" />
+                            Edit
+                          </Button>
                           <Button
                             variant="outline"
                             size="sm"
@@ -332,6 +395,46 @@ const MyAlerts = () => {
             })}
           </div>
         )}
+
+        {/* Edit Target Price Dialog */}
+        <Dialog open={!!editingAlert} onOpenChange={(open) => !open && closeEditDialog()}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Target Price</DialogTitle>
+              <DialogDescription>
+                {editingAlert?.product?.name && (
+                  <span className="block mt-1">
+                    Update your target price for <strong>{editingAlert.product.name}</strong>
+                  </span>
+                )}
+                {editingAlert?.current_best_price && (
+                  <span className="block mt-1 text-sm">
+                    Current best price: {formatPrice(editingAlert.current_best_price)}
+                  </span>
+                )}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <label className="mb-2 block text-sm font-medium">New Target Price (CZK)</label>
+              <Input
+                type="number"
+                placeholder="Enter target price"
+                value={editTargetPrice}
+                onChange={(e) => setEditTargetPrice(e.target.value)}
+                min="1"
+                step="1"
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={closeEditDialog}>
+                Cancel
+              </Button>
+              <Button onClick={handleUpdateTargetPrice} disabled={isUpdating}>
+                {isUpdating ? "Updating..." : "Update Price"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </main>
       <Footer />
     </div>
