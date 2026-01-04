@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -10,7 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Bell, BellOff, Trash2, ExternalLink, TrendingDown, Check, AlertCircle, Pencil } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Bell, BellOff, Trash2, ExternalLink, TrendingDown, Check, AlertCircle, Pencil, Search, ArrowUpDown, X } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 
@@ -30,6 +31,26 @@ interface PriceAlert {
   current_best_price?: number;
 }
 
+type StatusFilter = 'all' | 'active' | 'paused' | 'triggered' | 'reached';
+type SortOption = 'date_desc' | 'date_asc' | 'product_asc' | 'product_desc' | 'target_asc' | 'target_desc';
+
+const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
+  { value: 'all', label: 'All Alerts' },
+  { value: 'active', label: 'Active' },
+  { value: 'paused', label: 'Paused' },
+  { value: 'triggered', label: 'Triggered' },
+  { value: 'reached', label: 'Target Reached' },
+];
+
+const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+  { value: 'date_desc', label: 'Newest First' },
+  { value: 'date_asc', label: 'Oldest First' },
+  { value: 'product_asc', label: 'Product A-Z' },
+  { value: 'product_desc', label: 'Product Z-A' },
+  { value: 'target_asc', label: 'Target: Low to High' },
+  { value: 'target_desc', label: 'Target: High to Low' },
+];
+
 const formatPrice = (price: number) => {
   return new Intl.NumberFormat('cs-CZ', {
     style: 'currency',
@@ -46,6 +67,11 @@ const MyAlerts = () => {
   const [editingAlert, setEditingAlert] = useState<PriceAlert | null>(null);
   const [editTargetPrice, setEditTargetPrice] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
+  
+  // Filter & Sort state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [sortOption, setSortOption] = useState<SortOption>('date_desc');
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -101,6 +127,73 @@ const MyAlerts = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const getAlertStatusType = (alert: PriceAlert): StatusFilter => {
+    if (alert.triggered_at) return 'triggered';
+    if (!alert.is_active) return 'paused';
+    if (alert.current_best_price && alert.current_best_price <= Number(alert.target_price)) return 'reached';
+    return 'active';
+  };
+
+  const getAlertStatus = (alert: PriceAlert) => {
+    const type = getAlertStatusType(alert);
+    switch (type) {
+      case 'triggered':
+        return { type, label: 'Triggered', color: 'bg-green-500/20 text-green-400' };
+      case 'paused':
+        return { type, label: 'Paused', color: 'bg-muted text-muted-foreground' };
+      case 'reached':
+        return { type, label: 'Target Reached!', color: 'bg-accent/20 text-accent' };
+      default:
+        return { type, label: 'Active', color: 'bg-primary/20 text-primary' };
+    }
+  };
+
+  // Filter and sort alerts
+  const filteredAlerts = useMemo(() => {
+    let result = alerts.filter(alert => {
+      // Search filter
+      const matchesSearch = !searchQuery || 
+        alert.product?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        alert.product?.category?.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      // Status filter
+      const alertStatus = getAlertStatusType(alert);
+      const matchesStatus = statusFilter === 'all' || alertStatus === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+
+    // Sort
+    result = [...result].sort((a, b) => {
+      switch (sortOption) {
+        case 'date_desc':
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case 'date_asc':
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        case 'product_asc':
+          return (a.product?.name || '').localeCompare(b.product?.name || '');
+        case 'product_desc':
+          return (b.product?.name || '').localeCompare(a.product?.name || '');
+        case 'target_asc':
+          return Number(a.target_price) - Number(b.target_price);
+        case 'target_desc':
+          return Number(b.target_price) - Number(a.target_price);
+        default:
+          return 0;
+      }
+    });
+
+    return result;
+  }, [alerts, searchQuery, statusFilter, sortOption]);
+
+  const hasActiveFilters = searchQuery || statusFilter !== 'all' || sortOption !== 'date_desc';
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setStatusFilter('all');
+    setSortOption('date_desc');
   };
 
   const toggleAlert = async (alertId: string, currentStatus: boolean) => {
@@ -167,7 +260,7 @@ const MyAlerts = () => {
         .from('price_alerts')
         .update({ 
           target_price: newPrice,
-          triggered_at: null // Reset triggered status when price changes
+          triggered_at: null
         })
         .eq('id', editingAlert.id);
 
@@ -189,19 +282,6 @@ const MyAlerts = () => {
     } finally {
       setIsUpdating(false);
     }
-  };
-
-  const getAlertStatus = (alert: PriceAlert) => {
-    if (alert.triggered_at) {
-      return { type: 'triggered', label: 'Triggered', color: 'bg-green-500/20 text-green-400' };
-    }
-    if (!alert.is_active) {
-      return { type: 'paused', label: 'Paused', color: 'bg-muted text-muted-foreground' };
-    }
-    if (alert.current_best_price && alert.current_best_price <= Number(alert.target_price)) {
-      return { type: 'reached', label: 'Target Reached!', color: 'bg-accent/20 text-accent' };
-    }
-    return { type: 'active', label: 'Active', color: 'bg-primary/20 text-primary' };
   };
 
   if (authLoading) {
@@ -234,6 +314,61 @@ const MyAlerts = () => {
           </p>
         </div>
 
+        {/* Search, Filter & Sort Controls */}
+        {alerts.length > 0 && (
+          <div className="mb-6 space-y-4">
+            <div className="flex flex-wrap gap-3">
+              {/* Search */}
+              <div className="relative flex-1 min-w-[200px]">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Search by product name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+
+              {/* Status Filter */}
+              <Select value={statusFilter} onValueChange={(value: StatusFilter) => setStatusFilter(value)}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {STATUS_FILTERS.map(({ value, label }) => (
+                    <SelectItem key={value} value={value}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Sort */}
+              <Select value={sortOption} onValueChange={(value: SortOption) => setSortOption(value)}>
+                <SelectTrigger className="w-[180px]">
+                  <ArrowUpDown className="mr-2 h-4 w-4" />
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  {SORT_OPTIONS.map(({ value, label }) => (
+                    <SelectItem key={value} value={value}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {hasActiveFilters && (
+                <Button variant="ghost" onClick={clearFilters}>
+                  <X className="mr-1 h-4 w-4" />
+                  Clear
+                </Button>
+              )}
+            </div>
+
+            {/* Results count */}
+            <p className="text-sm text-muted-foreground">
+              Showing {filteredAlerts.length} of {alerts.length} alert{alerts.length !== 1 ? 's' : ''}
+            </p>
+          </div>
+        )}
+
         {loading ? (
           <div className="space-y-4">
             {Array.from({ length: 3 }).map((_, i) => (
@@ -253,9 +388,22 @@ const MyAlerts = () => {
               </Button>
             </CardContent>
           </Card>
+        ) : filteredAlerts.length === 0 ? (
+          <Card className="border-dashed">
+            <CardContent className="flex flex-col items-center justify-center py-16">
+              <Search className="h-12 w-12 text-muted-foreground/50 mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No matching alerts</h3>
+              <p className="text-muted-foreground text-center mb-4">
+                Try adjusting your search or filters
+              </p>
+              <Button variant="outline" onClick={clearFilters}>
+                Clear Filters
+              </Button>
+            </CardContent>
+          </Card>
         ) : (
           <div className="space-y-4">
-            {alerts.map((alert) => {
+            {filteredAlerts.map((alert) => {
               const status = getAlertStatus(alert);
               const priceDiff = alert.current_best_price 
                 ? alert.current_best_price - Number(alert.target_price)
