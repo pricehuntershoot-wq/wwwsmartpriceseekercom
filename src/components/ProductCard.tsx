@@ -4,6 +4,7 @@ import { formatDistanceToNow } from "date-fns";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Card, CardContent } from "./ui/card";
+import { formatPrice, Currency } from "@/lib/currency";
 
 interface Price {
   id: string;
@@ -13,6 +14,7 @@ interface Price {
   discount_label: string | null;
   product_url: string | null;
   discovered_at: string;
+  currency?: string;
   shop: {
     id: string;
     name: string;
@@ -75,9 +77,7 @@ export const ProductCard = ({ product, onFavorite, isFavorited = false }: Produc
     ? { min: Math.min(...prices.map(p => p.current_price)), max: Math.max(...prices.map(p => p.current_price)) }
     : null;
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('cs-CZ', { style: 'currency', currency: 'CZK', maximumFractionDigits: 0 }).format(price);
-  };
+  const currency = (bestPrice?.currency as Currency) || 'EUR';
 
   const savings = bestPrice?.original_price 
     ? bestPrice.original_price - bestPrice.current_price 
@@ -125,7 +125,7 @@ export const ProductCard = ({ product, onFavorite, isFavorited = false }: Produc
           {/* Savings badge */}
           {savings > 0 && (
             <Badge className="absolute bottom-2 left-2 bg-green-500 text-white">
-              Save {formatPrice(savings)}
+              Save {formatPrice(savings, currency)}
             </Badge>
           )}
         </div>
@@ -144,16 +144,16 @@ export const ProductCard = ({ product, onFavorite, isFavorited = false }: Produc
         {bestPrice && (
           <div className="mb-3">
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-primary">{formatPrice(bestPrice.current_price)}</span>
+              <span className="text-2xl font-bold text-primary">{formatPrice(bestPrice.current_price, currency)}</span>
               {bestPrice.original_price && (
                 <span className="text-sm text-muted-foreground line-through">
-                  {formatPrice(bestPrice.original_price)}
+                  {formatPrice(bestPrice.original_price, currency)}
                 </span>
               )}
             </div>
             {priceRange && priceRange.min !== priceRange.max && (
               <p className="text-xs text-muted-foreground">
-                {prices.length} shops • {formatPrice(priceRange.min)} - {formatPrice(priceRange.max)}
+                {prices.length} shops • {formatPrice(priceRange.min, currency)} - {formatPrice(priceRange.max, currency)}
               </p>
             )}
           </div>

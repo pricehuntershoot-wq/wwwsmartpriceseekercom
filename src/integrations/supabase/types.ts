@@ -83,6 +83,7 @@ export type Database = {
       }
       price_history: {
         Row: {
+          currency: string
           id: string
           price: number
           product_id: string
@@ -90,6 +91,7 @@ export type Database = {
           shop_id: string
         }
         Insert: {
+          currency?: string
           id?: string
           price: number
           product_id: string
@@ -97,6 +99,7 @@ export type Database = {
           shop_id: string
         }
         Update: {
+          currency?: string
           id?: string
           price?: number
           product_id?: string
@@ -122,6 +125,7 @@ export type Database = {
       }
       prices: {
         Row: {
+          currency: string
           current_price: number
           discount_label: string | null
           discount_type: string | null
@@ -134,6 +138,7 @@ export type Database = {
           shop_id: string
         }
         Insert: {
+          currency?: string
           current_price: number
           discount_label?: string | null
           discount_type?: string | null
@@ -146,6 +151,7 @@ export type Database = {
           shop_id: string
         }
         Update: {
+          currency?: string
           current_price?: number
           discount_label?: string | null
           discount_type?: string | null

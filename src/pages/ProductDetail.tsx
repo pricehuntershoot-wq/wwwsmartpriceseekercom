@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Heart, ExternalLink, ShoppingCart, Package, Sparkles, Flame, Clock, ArrowLeft, Store, Bell, BellOff, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { formatPrice, Currency } from "@/lib/currency";
 
 const getDiscountIcon = (type: string | null) => {
   switch (type) {
@@ -45,10 +46,6 @@ const getDiscountColor = (type: string | null) => {
     default:
       return 'bg-muted text-muted-foreground';
   }
-};
-
-const formatPrice = (price: number) => {
-  return new Intl.NumberFormat('cs-CZ', { style: 'currency', currency: 'CZK', maximumFractionDigits: 0 }).format(price);
 };
 
 const ProductDetail = () => {
@@ -82,6 +79,7 @@ const ProductDetail = () => {
           discount_label,
           product_url,
           discovered_at,
+          currency,
           shop_id
         `)
         .eq('product_id', id)
@@ -207,7 +205,7 @@ const ProductDetail = () => {
       return;
     }
     
-    toast.success(`Alert set for ${formatPrice(targetPrice)}`);
+    toast.success("Alert created");
     setAlertPrice("");
     setIsAlertDialogOpen(false);
     refetchAlert();
@@ -231,6 +229,7 @@ const ProductDetail = () => {
   };
 
   const bestPrice = product?.prices?.[0];
+  const currency: Currency = (bestPrice?.currency as Currency) || 'EUR';
   const savings = bestPrice?.original_price 
     ? bestPrice.original_price - bestPrice.current_price 
     : 0;
@@ -304,7 +303,7 @@ const ProductDetail = () => {
             )}
             {savings > 0 && (
               <Badge className="absolute bottom-4 left-4 bg-green-500 px-3 py-1 text-lg text-white">
-                Save {formatPrice(savings)}
+                Save {formatPrice(savings, currency)}
               </Badge>
             )}
           </div>
@@ -324,10 +323,10 @@ const ProductDetail = () => {
             {bestPrice && (
               <div className="mb-6">
                 <div className="flex items-baseline gap-3">
-                  <span className="text-4xl font-bold text-primary">{formatPrice(bestPrice.current_price)}</span>
+                  <span className="text-4xl font-bold text-primary">{formatPrice(bestPrice.current_price, currency)}</span>
                   {bestPrice.original_price && (
                     <span className="text-xl text-muted-foreground line-through">
-                      {formatPrice(bestPrice.original_price)}
+                      {formatPrice(bestPrice.original_price, currency)}
                     </span>
                   )}
                 </div>
@@ -364,7 +363,7 @@ const ProductDetail = () => {
                   onClick={handleDeleteAlert}
                 >
                   <BellOff className="mr-2 h-4 w-4" />
-                  Alert at {formatPrice(priceAlert.target_price)}
+                  Alert at {formatPrice(priceAlert.target_price, currency)}
                 </Button>
               ) : (
                 <Dialog open={isAlertDialogOpen} onOpenChange={setIsAlertDialogOpen}>
@@ -381,13 +380,13 @@ const ProductDetail = () => {
                         Get notified when the price drops below your target price.
                         {bestPrice && (
                           <span className="mt-2 block text-sm">
-                            Current best price: <strong className="text-primary">{formatPrice(bestPrice.current_price)}</strong>
+                            Current best price: <strong className="text-primary">{formatPrice(bestPrice.current_price, currency)}</strong>
                           </span>
                         )}
                       </DialogDescription>
                     </DialogHeader>
                     <div className="py-4">
-                      <label className="mb-2 block text-sm font-medium">Target Price (CZK)</label>
+                      <label className="mb-2 block text-sm font-medium">Target Price ({currency})</label>
                       <Input
                         type="number"
                         placeholder={bestPrice ? String(Math.floor(bestPrice.current_price * 0.9)) : "Enter target price"}
@@ -466,13 +465,13 @@ const ProductDetail = () => {
                         </TableCell>
                         <TableCell>
                           <span className={`font-bold ${index === 0 ? 'text-primary' : ''}`}>
-                            {formatPrice(price.current_price)}
+                            {formatPrice(price.current_price, (price.currency as Currency) || 'EUR')}
                           </span>
                         </TableCell>
                         <TableCell>
                           {price.original_price ? (
                             <span className="text-muted-foreground line-through">
-                              {formatPrice(price.original_price)}
+                              {formatPrice(price.original_price, (price.currency as Currency) || 'EUR')}
                             </span>
                           ) : (
                             <span className="text-muted-foreground">—</span>
