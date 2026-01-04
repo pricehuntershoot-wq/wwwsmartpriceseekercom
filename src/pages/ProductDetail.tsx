@@ -8,6 +8,7 @@ import { PriceHistoryChart } from "@/components/PriceHistoryChart";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useCurrencyPreference } from "@/hooks/useCurrencyPreference";
+import { usePromoCodes, getPromoCodeForShop, calculatePriceWithPromo } from "@/hooks/usePromoCodes";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +16,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Heart, ExternalLink, ShoppingCart, Package, Sparkles, Flame, Clock, ArrowLeft, Store, Bell, BellOff, Trash2, ArrowUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Heart, ExternalLink, ShoppingCart, Package, Sparkles, Flame, Clock, ArrowLeft, Store, Bell, BellOff, Trash2, ArrowUpDown, ChevronUp, ChevronDown, Tag, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice, Currency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
@@ -54,6 +56,7 @@ const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const { preferredCurrency, setPreferredCurrency } = useCurrencyPreference();
+  const { data: promoCodes } = usePromoCodes();
   const queryClient = useQueryClient();
   const [alertPrice, setAlertPrice] = useState("");
   const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false);
@@ -233,33 +236,40 @@ const ProductDetail = () => {
     refetchAlert();
   };
 
+  // Helper to get final price after promo
+  const getFinalPrice = (price: { current_price: number; shop: { id: string } }) => {
+    const promoCode = getPromoCodeForShop(promoCodes, price.shop.id);
+    const { finalPrice } = calculatePriceWithPromo(price.current_price, promoCode);
+    return finalPrice;
+  };
+
   // Group prices by currency
   const eurPrices = product?.prices?.filter(p => (p.currency || 'EUR') === 'EUR') || [];
   const czkPrices = product?.prices?.filter(p => p.currency === 'CZK') || [];
   
-  // Find best price for each currency
+  // Find best price for each currency (using final price after promo)
   const bestEurPrice = eurPrices.length > 0 
-    ? eurPrices.reduce((min, p) => p.current_price < min.current_price ? p : min, eurPrices[0])
+    ? eurPrices.reduce((min, p) => getFinalPrice(p) < getFinalPrice(min) ? p : min, eurPrices[0])
     : null;
   const bestCzkPrice = czkPrices.length > 0 
-    ? czkPrices.reduce((min, p) => p.current_price < min.current_price ? p : min, czkPrices[0])
+    ? czkPrices.reduce((min, p) => getFinalPrice(p) < getFinalPrice(min) ? p : min, czkPrices[0])
     : null;
 
-  const bestPrice = product?.prices?.[0];
+  const bestPrice = bestEurPrice || bestCzkPrice;
   const currency: Currency = (bestPrice?.currency as Currency) || 'EUR';
   
-  // Calculate savings for preferred currency
+  // Calculate savings for preferred currency (including promo discounts)
   const preferredBestPrice = preferredCurrency === 'EUR' ? bestEurPrice : bestCzkPrice;
-  const savings = preferredBestPrice?.original_price 
-    ? preferredBestPrice.original_price - preferredBestPrice.current_price 
+  const savings = preferredBestPrice
+    ? (preferredBestPrice.original_price || preferredBestPrice.current_price) - getFinalPrice(preferredBestPrice)
     : 0;
 
-  // Sort prices for table
+  // Sort prices for table (using final price after promo)
   const sortedPrices = [...(product?.prices || [])].sort((a, b) => {
     const direction = tableSortDirection === 'asc' ? 1 : -1;
     switch (tableSortField) {
       case 'price':
-        return (a.current_price - b.current_price) * direction;
+        return (getFinalPrice(a) - getFinalPrice(b)) * direction;
       case 'currency':
         const currA = a.currency || 'EUR';
         const currB = b.currency || 'EUR';
@@ -379,63 +389,113 @@ const ProductDetail = () => {
             {(bestEurPrice || bestCzkPrice) && (
               <div className="mb-6">
                 <div className="flex flex-wrap items-start gap-4">
-                  {bestEurPrice && (
-                    <div className={cn(
-                      "flex flex-col rounded-lg px-4 py-2 transition-colors",
-                      preferredCurrency === 'EUR' 
-                        ? "bg-primary/10 ring-2 ring-primary/40" 
-                        : "bg-muted/50"
-                    )}>
-                      <span className={cn(
-                        "text-sm font-medium",
-                        preferredCurrency === 'EUR' ? "text-primary" : "text-muted-foreground"
-                      )}>EUR {preferredCurrency === 'EUR' && "★"}</span>
-                      <div className="flex items-baseline gap-2">
+                  {bestEurPrice && (() => {
+                    const promoCode = getPromoCodeForShop(promoCodes, bestEurPrice.shop.id);
+                    const { finalPrice, promoApplied } = calculatePriceWithPromo(bestEurPrice.current_price, promoCode);
+                    return (
+                      <div className={cn(
+                        "flex flex-col rounded-lg px-4 py-2 transition-colors",
+                        preferredCurrency === 'EUR' 
+                          ? "bg-primary/10 ring-2 ring-primary/40" 
+                          : "bg-muted/50"
+                      )}>
                         <span className={cn(
-                          "font-bold",
-                          preferredCurrency === 'EUR' ? "text-4xl text-primary" : "text-2xl text-foreground"
-                        )}>{formatPrice(bestEurPrice.current_price, 'EUR')}</span>
-                        {bestEurPrice.original_price && (
-                          <span className="text-lg text-muted-foreground line-through">
-                            {formatPrice(bestEurPrice.original_price, 'EUR')}
-                          </span>
-                        )}
+                          "text-sm font-medium",
+                          preferredCurrency === 'EUR' ? "text-primary" : "text-muted-foreground"
+                        )}>EUR {preferredCurrency === 'EUR' && "★"}</span>
+                        <div className="flex items-baseline gap-2">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className={cn(
+                                  "font-bold",
+                                  preferredCurrency === 'EUR' ? "text-4xl" : "text-2xl",
+                                  promoApplied ? "text-green-500" : preferredCurrency === 'EUR' ? "text-primary" : "text-foreground"
+                                )}>
+                                  {formatPrice(finalPrice, 'EUR')}
+                                  {promoApplied && <Tag className="inline h-4 w-4 ml-1" />}
+                                </span>
+                              </TooltipTrigger>
+                              {promoApplied && promoCode && (
+                                <TooltipContent>
+                                  <p className="font-medium">Price after code: {promoCode.code}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    Original: {formatPrice(bestEurPrice.current_price, 'EUR')}
+                                  </p>
+                                </TooltipContent>
+                              )}
+                            </Tooltip>
+                          </TooltipProvider>
+                          {(bestEurPrice.original_price || promoApplied) && (
+                            <span className="text-lg text-muted-foreground line-through">
+                              {formatPrice(bestEurPrice.original_price || bestEurPrice.current_price, 'EUR')}
+                            </span>
+                          )}
+                        </div>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Best at {bestEurPrice.shop.name}
+                          {promoApplied && promoCode?.code && (
+                            <span className="ml-1 text-green-500">with code {promoCode.code}</span>
+                          )}
+                        </p>
                       </div>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Best at {bestEurPrice.shop.name}
-                      </p>
-                    </div>
-                  )}
+                    );
+                  })()}
                   {bestEurPrice && bestCzkPrice && (
                     <div className="hidden h-16 w-px self-center bg-border sm:block" />
                   )}
-                  {bestCzkPrice && (
-                    <div className={cn(
-                      "flex flex-col rounded-lg px-4 py-2 transition-colors",
-                      preferredCurrency === 'CZK' 
-                        ? "bg-primary/10 ring-2 ring-primary/40" 
-                        : "bg-muted/50"
-                    )}>
-                      <span className={cn(
-                        "text-sm font-medium",
-                        preferredCurrency === 'CZK' ? "text-primary" : "text-muted-foreground"
-                      )}>CZK {preferredCurrency === 'CZK' && "★"}</span>
-                      <div className="flex items-baseline gap-2">
+                  {bestCzkPrice && (() => {
+                    const promoCode = getPromoCodeForShop(promoCodes, bestCzkPrice.shop.id);
+                    const { finalPrice, promoApplied } = calculatePriceWithPromo(bestCzkPrice.current_price, promoCode);
+                    return (
+                      <div className={cn(
+                        "flex flex-col rounded-lg px-4 py-2 transition-colors",
+                        preferredCurrency === 'CZK' 
+                          ? "bg-primary/10 ring-2 ring-primary/40" 
+                          : "bg-muted/50"
+                      )}>
                         <span className={cn(
-                          "font-bold",
-                          preferredCurrency === 'CZK' ? "text-4xl text-primary" : "text-2xl text-foreground"
-                        )}>{formatPrice(bestCzkPrice.current_price, 'CZK')}</span>
-                        {bestCzkPrice.original_price && (
-                          <span className="text-lg text-muted-foreground line-through">
-                            {formatPrice(bestCzkPrice.original_price, 'CZK')}
-                          </span>
-                        )}
+                          "text-sm font-medium",
+                          preferredCurrency === 'CZK' ? "text-primary" : "text-muted-foreground"
+                        )}>CZK {preferredCurrency === 'CZK' && "★"}</span>
+                        <div className="flex items-baseline gap-2">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className={cn(
+                                  "font-bold",
+                                  preferredCurrency === 'CZK' ? "text-4xl" : "text-2xl",
+                                  promoApplied ? "text-green-500" : preferredCurrency === 'CZK' ? "text-primary" : "text-foreground"
+                                )}>
+                                  {formatPrice(finalPrice, 'CZK')}
+                                  {promoApplied && <Tag className="inline h-4 w-4 ml-1" />}
+                                </span>
+                              </TooltipTrigger>
+                              {promoApplied && promoCode && (
+                                <TooltipContent>
+                                  <p className="font-medium">Price after code: {promoCode.code}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    Original: {formatPrice(bestCzkPrice.current_price, 'CZK')}
+                                  </p>
+                                </TooltipContent>
+                              )}
+                            </Tooltip>
+                          </TooltipProvider>
+                          {(bestCzkPrice.original_price || promoApplied) && (
+                            <span className="text-lg text-muted-foreground line-through">
+                              {formatPrice(bestCzkPrice.original_price || bestCzkPrice.current_price, 'CZK')}
+                            </span>
+                          )}
+                        </div>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Best at {bestCzkPrice.shop.name}
+                          {promoApplied && promoCode?.code && (
+                            <span className="ml-1 text-green-500">with code {promoCode.code}</span>
+                          )}
+                        </p>
                       </div>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Best at {bestCzkPrice.shop.name}
-                      </p>
-                    </div>
-                  )}
+                    );
+                  })()}
                 </div>
               </div>
             )}
@@ -594,6 +654,14 @@ const ProductDetail = () => {
                     {sortedPrices.map((price, index) => {
                       const priceCurrency = (price.currency as Currency) || 'EUR';
                       const isPreferred = priceCurrency === preferredCurrency;
+                      const promoCode = getPromoCodeForShop(promoCodes, price.shop.id);
+                      const { finalPrice, promoApplied } = calculatePriceWithPromo(price.current_price, promoCode);
+                      
+                      const handleCopyCode = (code: string) => {
+                        navigator.clipboard.writeText(code);
+                        toast.success(`Code "${code}" copied!`);
+                      };
+                      
                       return (
                         <TableRow key={price.id} className={isPreferred ? 'bg-primary/5' : ''}>
                         <TableCell>
@@ -611,9 +679,27 @@ const ProductDetail = () => {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <span className={cn("font-bold", isPreferred && "text-primary")}>
-                            {formatPrice(price.current_price, priceCurrency)}
-                          </span>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className={cn(
+                                  "font-bold",
+                                  promoApplied ? "text-green-500" : isPreferred && "text-primary"
+                                )}>
+                                  {formatPrice(finalPrice, priceCurrency)}
+                                  {promoApplied && <Tag className="inline h-3 w-3 ml-1" />}
+                                </span>
+                              </TooltipTrigger>
+                              {promoApplied && promoCode && (
+                                <TooltipContent>
+                                  <p className="font-medium">Price after code: {promoCode.code}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    Original: {formatPrice(price.current_price, priceCurrency)}
+                                  </p>
+                                </TooltipContent>
+                              )}
+                            </Tooltip>
+                          </TooltipProvider>
                         </TableCell>
                         <TableCell>
                           <Badge 
@@ -627,9 +713,9 @@ const ProductDetail = () => {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          {price.original_price ? (
+                          {(price.original_price || promoApplied) ? (
                             <span className="text-muted-foreground line-through">
-                              {formatPrice(price.original_price, priceCurrency)}
+                              {formatPrice(price.original_price || price.current_price, priceCurrency)}
                             </span>
                           ) : (
                             <span className="text-muted-foreground">—</span>
@@ -637,6 +723,17 @@ const ProductDetail = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-1">
+                            {promoApplied && promoCode?.code && (
+                              <Badge 
+                                variant="outline" 
+                                className="cursor-pointer bg-green-500/20 text-green-400 border-green-500/30 text-xs hover:bg-green-500/30"
+                                onClick={() => handleCopyCode(promoCode.code!)}
+                              >
+                                <Tag className="h-3 w-3 mr-1" />
+                                {promoCode.code}
+                                <Copy className="h-3 w-3 ml-1" />
+                              </Badge>
+                            )}
                             {price.discount_type && (
                               <Badge variant="outline" className={`text-xs ${getDiscountColor(price.discount_type)}`}>
                                 {getDiscountIcon(price.discount_type)}
