@@ -1,39 +1,42 @@
 import { Bot, Clock, Eye, LineChart, Lock, Zap } from "lucide-react";
-
-const features = [
-  {
-    icon: Eye,
-    title: "See What Others Can't",
-    description: "Our AI agents discover cart-only discounts and returned item deals invisible to traditional comparators.",
-  },
-  {
-    icon: Bot,
-    title: "500+ Shop Agents",
-    description: "Dedicated AI agents for each e-shop, each trained to understand that shop's unique discount patterns.",
-  },
-  {
-    icon: Clock,
-    title: "Real-Time Discovery",
-    description: "Prices are checked continuously, so you never miss a flash sale or limited-time offer.",
-  },
-  {
-    icon: LineChart,
-    title: "Price History",
-    description: "Track price trends over time to know if you're really getting the best deal.",
-  },
-  {
-    icon: Zap,
-    title: "Instant Alerts",
-    description: "Get notified immediately when our agents find a hidden discount on products you're watching.",
-  },
-  {
-    icon: Lock,
-    title: "Privacy First",
-    description: "We never store your browsing data. Our agents do the hunting, not tracking.",
-  },
-];
+import { useLanguage } from "@/hooks/useLanguage";
 
 export const FeaturesSection = () => {
+  const { t } = useLanguage();
+
+  const features = [
+    {
+      icon: Eye,
+      title: t('feature1Title'),
+      description: t('feature1Desc'),
+    },
+    {
+      icon: Bot,
+      title: t('feature2Title'),
+      description: t('feature2Desc'),
+    },
+    {
+      icon: Clock,
+      title: t('feature3Title'),
+      description: t('feature3Desc'),
+    },
+    {
+      icon: LineChart,
+      title: t('feature4Title'),
+      description: t('feature4Desc'),
+    },
+    {
+      icon: Zap,
+      title: t('feature5Title'),
+      description: t('feature5Desc'),
+    },
+    {
+      icon: Lock,
+      title: t('feature6Title'),
+      description: t('feature6Desc'),
+    },
+  ];
+
   return (
     <section id="features" className="relative py-24">
       <div className="absolute inset-0 bg-gradient-to-b from-background via-secondary/10 to-background" />
@@ -41,10 +44,10 @@ export const FeaturesSection = () => {
       <div className="container relative z-10">
         <div className="mb-16 text-center">
           <h2 className="mb-4 text-4xl font-bold md:text-5xl">
-            Why Choose <span className="text-gradient-primary">PriceHunter</span>?
+            {t('featuresTitle')} <span className="text-gradient-primary">{t('featuresTitleHighlight')}</span>?
           </h2>
           <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
-            We don't just compare prices—we actively hunt for the best deals using cutting-edge AI technology.
+            {t('featuresSubtitle')}
           </p>
         </div>
 

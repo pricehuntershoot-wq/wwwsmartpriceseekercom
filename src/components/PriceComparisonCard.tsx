@@ -1,5 +1,6 @@
 import { ExternalLink, ShoppingCart, Sparkles, Tag, TrendingDown } from "lucide-react";
 import { Button } from "./ui/button";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface PriceComparisonCardProps {
   product: {
@@ -14,14 +15,23 @@ interface PriceComparisonCardProps {
   };
 }
 
-const discountLabels = {
-  cart: { label: "Cart Discount", icon: ShoppingCart, color: "bg-primary/20 text-primary" },
-  returned: { label: "Returned Item", icon: Tag, color: "bg-accent/20 text-accent" },
-  flash: { label: "Flash Sale", icon: Sparkles, color: "bg-destructive/20 text-destructive" },
-  hidden: { label: "Hidden Deal", icon: TrendingDown, color: "bg-primary/20 text-primary" },
-};
-
 export const PriceComparisonCard = ({ product }: PriceComparisonCardProps) => {
+  const { t } = useLanguage();
+
+  const discountLabels = {
+    cart: { label: t('cartDiscount'), icon: ShoppingCart, color: "bg-primary/20 text-primary" },
+    returned: { label: t('returnedItem'), icon: Tag, color: "bg-accent/20 text-accent" },
+    flash: { label: t('flashSale'), icon: Sparkles, color: "bg-destructive/20 text-destructive" },
+    hidden: { label: t('hiddenPrice'), icon: TrendingDown, color: "bg-primary/20 text-primary" },
+  };
+
+  const aiInsights = {
+    cart: t('aiInsightCart'),
+    returned: t('aiInsightReturned'),
+    flash: t('aiInsightFlash'),
+    hidden: t('aiInsightHidden'),
+  };
+
   const discount = discountLabels[product.discountType];
   const DiscountIcon = discount.icon;
 
@@ -35,7 +45,7 @@ export const PriceComparisonCard = ({ product }: PriceComparisonCardProps) => {
 
       {/* Savings badge */}
       <div className="absolute right-4 top-4 z-10 rounded-full bg-gradient-accent px-3 py-1.5 text-xs font-bold text-accent-foreground shadow-accent">
-        Save {product.savings}%
+        -{product.savings}%
       </div>
 
       {/* Product image */}
@@ -74,17 +84,14 @@ export const PriceComparisonCard = ({ product }: PriceComparisonCardProps) => {
         <div className="mb-4 flex items-start gap-2 rounded-lg bg-secondary/50 p-3">
           <Sparkles className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
           <p className="text-xs text-muted-foreground">
-            <span className="font-medium text-foreground">AI found: </span>
-            {product.discountType === "cart" && "Price drops after adding to cart"}
-            {product.discountType === "returned" && "14-day return, like-new condition"}
-            {product.discountType === "flash" && "Limited time offer, ends soon"}
-            {product.discountType === "hidden" && "Unlisted promotion discovered"}
+            <span className="font-medium text-foreground">AI: </span>
+            {aiInsights[product.discountType]}
           </p>
         </div>
 
         {/* Action button */}
         <Button variant="hero" className="w-full">
-          View Deal
+          {t('viewDeal')}
           <ExternalLink className="h-4 w-4" />
         </Button>
       </div>

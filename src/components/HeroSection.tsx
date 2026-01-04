@@ -1,9 +1,11 @@
 import { ArrowRight, Bot, Search, Sparkles } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState } from "react";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export const HeroSection = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const { t } = useLanguage();
 
   return (
     <section className="relative min-h-screen overflow-hidden pt-32 pb-20">
@@ -26,22 +28,21 @@ export const HeroSection = () => {
           <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-2">
             <Sparkles className="h-4 w-4 text-primary" />
             <span className="text-sm font-medium text-primary">
-              AI-Powered Price Discovery
+              {t('heroBadge')}
             </span>
           </div>
 
           {/* Headline */}
           <h1 className="mb-6 text-5xl font-bold leading-tight tracking-tight md:text-6xl lg:text-7xl">
-            Find{" "}
-            <span className="text-gradient-primary">Hidden Discounts</span>
+            {t('heroTitlePart1')}{" "}
+            <span className="text-gradient-primary">{t('heroTitleHighlight')}</span>
             <br />
-            Others Can't See
+            {t('heroTitlePart2')}
           </h1>
 
           {/* Subheadline */}
           <p className="mx-auto mb-10 max-w-2xl text-lg text-muted-foreground md:text-xl">
-            Our AI agents actively explore e-shops to uncover secret cart discounts, 
-            returned items deals, and prices that never appear in traditional comparators.
+            {t('heroSubtitle')}
           </p>
 
           {/* Search Bar */}
@@ -54,11 +55,11 @@ export const HeroSection = () => {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search for any product... (e.g., iPhone 15, Samsung TV, Nike Air Max)"
+                  placeholder={t('heroSearchPlaceholder')}
                   className="flex-1 bg-transparent px-2 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none"
                 />
                 <Button variant="hero" size="lg">
-                  Hunt Prices
+                  {t('heroSearchButton')}
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>
@@ -69,15 +70,15 @@ export const HeroSection = () => {
           <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-primary" />
-              <span>500+ E-shops Monitored</span>
+              <span>{t('heroStat1')}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-accent" />
-              <span>Average 23% More Savings</span>
+              <span>{t('heroStat2')}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-primary" />
-              <span>Real-time Discovery</span>
+              <span>{t('heroStat3')}</span>
             </div>
           </div>
         </div>
