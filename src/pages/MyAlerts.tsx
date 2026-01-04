@@ -9,9 +9,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Bell, BellOff, Trash2, ExternalLink, TrendingDown, Check, AlertCircle, Pencil, Search, ArrowUpDown, X } from "lucide-react";
+import { Bell, BellOff, Trash2, ExternalLink, TrendingDown, Check, AlertCircle, Pencil, Search, ArrowUpDown, X, CheckSquare } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 
@@ -73,6 +74,10 @@ const MyAlerts = () => {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [sortOption, setSortOption] = useState<SortOption>('date_desc');
 
+  // Bulk selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBulkProcessing, setIsBulkProcessing] = useState(false);
+
   useEffect(() => {
     if (!authLoading && !user) {
       navigate('/auth');
@@ -121,6 +126,7 @@ const MyAlerts = () => {
       );
 
       setAlerts(alertsWithDetails);
+      setSelectedIds(new Set()); // Clear selection on refresh
     } catch (error) {
       console.error('Error fetching alerts:', error);
       toast.error("Failed to load alerts");
@@ -153,19 +159,16 @@ const MyAlerts = () => {
   // Filter and sort alerts
   const filteredAlerts = useMemo(() => {
     let result = alerts.filter(alert => {
-      // Search filter
       const matchesSearch = !searchQuery || 
         alert.product?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         alert.product?.category?.toLowerCase().includes(searchQuery.toLowerCase());
       
-      // Status filter
       const alertStatus = getAlertStatusType(alert);
       const matchesStatus = statusFilter === 'all' || alertStatus === statusFilter;
 
       return matchesSearch && matchesStatus;
     });
 
-    // Sort
     result = [...result].sort((a, b) => {
       switch (sortOption) {
         case 'date_desc':
@@ -194,6 +197,107 @@ const MyAlerts = () => {
     setSearchQuery("");
     setStatusFilter('all');
     setSortOption('date_desc');
+  };
+
+  // Selection handlers
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredAlerts.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredAlerts.map(a => a.id)));
+    }
+  };
+
+  const toggleSelectOne = (id: string) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  const clearSelection = () => {
+    setSelectedIds(new Set());
+  };
+
+  // Bulk actions
+  const bulkPause = async () => {
+    if (selectedIds.size === 0) return;
+    setIsBulkProcessing(true);
+    try {
+      const idsToUpdate = Array.from(selectedIds);
+      const { error } = await supabase
+        .from('price_alerts')
+        .update({ is_active: false })
+        .in('id', idsToUpdate);
+
+      if (error) throw error;
+
+      setAlerts(prev =>
+        prev.map(alert =>
+          selectedIds.has(alert.id) ? { ...alert, is_active: false } : alert
+        )
+      );
+      toast.success(`Paused ${idsToUpdate.length} alert${idsToUpdate.length > 1 ? 's' : ''}`);
+      clearSelection();
+    } catch (error) {
+      console.error('Error pausing alerts:', error);
+      toast.error("Failed to pause alerts");
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  };
+
+  const bulkActivate = async () => {
+    if (selectedIds.size === 0) return;
+    setIsBulkProcessing(true);
+    try {
+      const idsToUpdate = Array.from(selectedIds);
+      const { error } = await supabase
+        .from('price_alerts')
+        .update({ is_active: true })
+        .in('id', idsToUpdate);
+
+      if (error) throw error;
+
+      setAlerts(prev =>
+        prev.map(alert =>
+          selectedIds.has(alert.id) ? { ...alert, is_active: true } : alert
+        )
+      );
+      toast.success(`Activated ${idsToUpdate.length} alert${idsToUpdate.length > 1 ? 's' : ''}`);
+      clearSelection();
+    } catch (error) {
+      console.error('Error activating alerts:', error);
+      toast.error("Failed to activate alerts");
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  };
+
+  const bulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    setIsBulkProcessing(true);
+    try {
+      const idsToDelete = Array.from(selectedIds);
+      const { error } = await supabase
+        .from('price_alerts')
+        .delete()
+        .in('id', idsToDelete);
+
+      if (error) throw error;
+
+      setAlerts(prev => prev.filter(alert => !selectedIds.has(alert.id)));
+      toast.success(`Deleted ${idsToDelete.length} alert${idsToDelete.length > 1 ? 's' : ''}`);
+      clearSelection();
+    } catch (error) {
+      console.error('Error deleting alerts:', error);
+      toast.error("Failed to delete alerts");
+    } finally {
+      setIsBulkProcessing(false);
+    }
   };
 
   const toggleAlert = async (alertId: string, currentStatus: boolean) => {
@@ -284,6 +388,9 @@ const MyAlerts = () => {
     }
   };
 
+  const isAllSelected = filteredAlerts.length > 0 && selectedIds.size === filteredAlerts.length;
+  const isSomeSelected = selectedIds.size > 0 && selectedIds.size < filteredAlerts.length;
+
   if (authLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -362,6 +469,68 @@ const MyAlerts = () => {
               )}
             </div>
 
+            {/* Bulk selection bar */}
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="select-all"
+                  checked={isAllSelected}
+                  onCheckedChange={toggleSelectAll}
+                  className="data-[state=indeterminate]:bg-primary"
+                  {...(isSomeSelected ? { "data-state": "indeterminate" } : {})}
+                />
+                <label htmlFor="select-all" className="text-sm cursor-pointer">
+                  {isAllSelected ? 'Deselect all' : 'Select all'}
+                </label>
+              </div>
+
+              {selectedIds.size > 0 && (
+                <>
+                  <span className="text-sm text-muted-foreground">
+                    {selectedIds.size} selected
+                  </span>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={bulkActivate}
+                      disabled={isBulkProcessing}
+                    >
+                      <Bell className="h-4 w-4 mr-1" />
+                      Activate
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={bulkPause}
+                      disabled={isBulkProcessing}
+                    >
+                      <BellOff className="h-4 w-4 mr-1" />
+                      Pause
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={bulkDelete}
+                      disabled={isBulkProcessing}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Delete
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearSelection}
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      Clear
+                    </Button>
+                  </div>
+                </>
+              )}
+            </div>
+
             {/* Results count */}
             <p className="text-sm text-muted-foreground">
               Showing {filteredAlerts.length} of {alerts.length} alert{alerts.length !== 1 ? 's' : ''}
@@ -408,10 +577,23 @@ const MyAlerts = () => {
               const priceDiff = alert.current_best_price 
                 ? alert.current_best_price - Number(alert.target_price)
                 : null;
+              const isSelected = selectedIds.has(alert.id);
 
               return (
-                <Card key={alert.id} className="overflow-hidden">
+                <Card 
+                  key={alert.id} 
+                  className={`overflow-hidden transition-colors ${isSelected ? 'ring-2 ring-primary' : ''}`}
+                >
                   <div className="flex flex-col sm:flex-row">
+                    {/* Checkbox */}
+                    <div className="flex items-center justify-center p-3 sm:pl-4 sm:pr-0">
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => toggleSelectOne(alert.id)}
+                        aria-label={`Select ${alert.product?.name || 'alert'}`}
+                      />
+                    </div>
+
                     {/* Product Image */}
                     <Link 
                       to={`/products/${alert.product_id}`}
