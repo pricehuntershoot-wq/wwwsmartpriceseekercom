@@ -194,20 +194,28 @@ export const PriceDropsDashboard = () => {
                 </CardHeader>
 
                 <CardContent className="pt-2">
-                  {/* Price Display */}
-                  <div className="flex items-center gap-3 mb-3">
+                  {/* Cheapest Price - Prominent Display */}
+                  <div className="flex items-center justify-between mb-3">
                     <div className="flex flex-col">
-                      <span className="text-xs text-muted-foreground line-through">
-                        {formatPriceDisplay(drop.old_price, priceCurrency)}
+                      <span className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">
+                        Cheapest Price
                       </span>
-                      <span className="text-lg font-bold text-primary">
+                      <span className="text-2xl font-bold text-gradient-accent">
                         {formatPriceDisplay(drop.new_price, priceCurrency)}
                       </span>
+                      <span className="text-xs text-muted-foreground line-through">
+                        was {formatPriceDisplay(drop.old_price, priceCurrency)}
+                      </span>
                     </div>
-                    <Badge variant="destructive" className="gap-1">
-                      <Percent className="h-3 w-3" />
-                      -{Math.round(drop.drop_percentage)}%
-                    </Badge>
+                    <div className="flex flex-col items-end gap-1">
+                      <Badge variant="destructive" className="gap-1 text-sm font-bold px-2 py-1">
+                        <Percent className="h-3.5 w-3.5" />
+                        -{Math.round(drop.drop_percentage)}%
+                      </Badge>
+                      <span className="text-xs text-green-600 dark:text-green-400 font-medium">
+                        Save {formatPriceDisplay(drop.old_price - drop.new_price, priceCurrency)}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Footer */}
