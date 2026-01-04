@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -9,8 +9,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, Filter, ShoppingCart, Package, Sparkles, Flame, X } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, Filter, ShoppingCart, Package, Sparkles, Flame, X, ArrowUpDown } from "lucide-react";
 import { toast } from "sonner";
+
+type SortOption = 'price_asc' | 'price_desc' | 'savings' | 'updated';
 
 const DISCOUNT_FILTERS = [
   { type: 'in_cart', label: 'In Cart', icon: ShoppingCart },
@@ -24,6 +27,7 @@ const Products = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedDiscountTypes, setSelectedDiscountTypes] = useState<string[]>([]);
+  const [sortOption, setSortOption] = useState<SortOption>('price_asc');
 
   // Fetch products with prices and shops
   const { data: products, isLoading: productsLoading } = useQuery({
@@ -101,18 +105,68 @@ const Products = () => {
     ? [...new Set(products.map(p => p.category).filter(Boolean))]
     : [];
 
-  // Filter products
-  const filteredProducts = products?.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.description?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesCategory = !selectedCategory || product.category === selectedCategory;
-    
-    const matchesDiscount = selectedDiscountTypes.length === 0 || 
-      product.prices.some(p => selectedDiscountTypes.includes(p.discount_type || ''));
+  // Helper to get best price for a product
+  const getBestPrice = (product: typeof products[0]) => {
+    if (!product.prices?.length) return null;
+    return product.prices.reduce((best, price) => 
+      price.current_price < best.current_price ? price : best
+    , product.prices[0]);
+  };
 
-    return matchesSearch && matchesCategory && matchesDiscount;
-  });
+  // Helper to get savings for a product
+  const getSavings = (product: typeof products[0]) => {
+    const best = getBestPrice(product);
+    if (!best?.original_price) return 0;
+    return best.original_price - best.current_price;
+  };
+
+  // Helper to get most recent update
+  const getLatestUpdate = (product: typeof products[0]) => {
+    if (!product.prices?.length) return new Date(0);
+    return new Date(Math.max(...product.prices.map(p => new Date(p.discovered_at).getTime())));
+  };
+
+  // Filter and sort products
+  const filteredProducts = useMemo(() => {
+    let result = products?.filter(product => {
+      const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesCategory = !selectedCategory || product.category === selectedCategory;
+      
+      const matchesDiscount = selectedDiscountTypes.length === 0 || 
+        product.prices.some(p => selectedDiscountTypes.includes(p.discount_type || ''));
+
+      return matchesSearch && matchesCategory && matchesDiscount;
+    });
+
+    if (result) {
+      result = [...result].sort((a, b) => {
+        switch (sortOption) {
+          case 'price_asc': {
+            const priceA = getBestPrice(a)?.current_price ?? Infinity;
+            const priceB = getBestPrice(b)?.current_price ?? Infinity;
+            return priceA - priceB;
+          }
+          case 'price_desc': {
+            const priceA = getBestPrice(a)?.current_price ?? 0;
+            const priceB = getBestPrice(b)?.current_price ?? 0;
+            return priceB - priceA;
+          }
+          case 'savings': {
+            return getSavings(b) - getSavings(a);
+          }
+          case 'updated': {
+            return getLatestUpdate(b).getTime() - getLatestUpdate(a).getTime();
+          }
+          default:
+            return 0;
+        }
+      });
+    }
+
+    return result;
+  }, [products, searchQuery, selectedCategory, selectedDiscountTypes, sortOption]);
 
   const handleFavorite = async (productId: string) => {
     if (!user) {
@@ -161,6 +215,7 @@ const Products = () => {
     setSearchQuery("");
     setSelectedCategory(null);
     setSelectedDiscountTypes([]);
+    setSortOption('price_asc');
   };
 
   const hasActiveFilters = searchQuery || selectedCategory || selectedDiscountTypes.length > 0;
@@ -181,8 +236,8 @@ const Products = () => {
 
         {/* Search & Filters */}
         <div className="mb-8 space-y-4">
-          <div className="flex gap-3">
-            <div className="relative flex-1">
+          <div className="flex flex-wrap gap-3">
+            <div className="relative flex-1 min-w-[200px]">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search products..."
@@ -191,6 +246,18 @@ const Products = () => {
                 className="pl-10"
               />
             </div>
+            <Select value={sortOption} onValueChange={(value: SortOption) => setSortOption(value)}>
+              <SelectTrigger className="w-[180px]">
+                <ArrowUpDown className="mr-2 h-4 w-4" />
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="price_asc">Price: Low to High</SelectItem>
+                <SelectItem value="price_desc">Price: High to Low</SelectItem>
+                <SelectItem value="savings">Biggest Savings</SelectItem>
+                <SelectItem value="updated">Recently Updated</SelectItem>
+              </SelectContent>
+            </Select>
             {hasActiveFilters && (
               <Button variant="ghost" onClick={clearFilters}>
                 <X className="mr-1 h-4 w-4" />
