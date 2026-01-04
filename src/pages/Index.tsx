@@ -7,6 +7,7 @@ import { ComparisonSection } from "@/components/ComparisonSection";
 import { FeaturesSection } from "@/components/FeaturesSection";
 import { Footer } from "@/components/Footer";
 import { DiscountAnalyzer } from "@/components/DiscountAnalyzer";
+import { PriceDropsDashboard } from "@/components/PriceDropsDashboard";
 
 const Index = () => {
   const location = useLocation();
@@ -32,6 +33,7 @@ const Index = () => {
             <DiscountAnalyzer />
           </div>
         </section>
+        <PriceDropsDashboard />
         <HowItWorksSection />
         <ComparisonSection />
         <FeaturesSection />
