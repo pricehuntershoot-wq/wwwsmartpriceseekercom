@@ -250,6 +250,57 @@ export type Database = {
           },
         ]
       }
+      price_drop_notifications: {
+        Row: {
+          detected_at: string
+          drop_percentage: number
+          id: string
+          new_price: number
+          old_price: number
+          premium_notified_at: string | null
+          price_id: string
+          product_id: string
+          standard_notified_at: string | null
+        }
+        Insert: {
+          detected_at?: string
+          drop_percentage: number
+          id?: string
+          new_price: number
+          old_price: number
+          premium_notified_at?: string | null
+          price_id: string
+          product_id: string
+          standard_notified_at?: string | null
+        }
+        Update: {
+          detected_at?: string
+          drop_percentage?: number
+          id?: string
+          new_price?: number
+          old_price?: number
+          premium_notified_at?: string | null
+          price_id?: string
+          product_id?: string
+          standard_notified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "price_drop_notifications_price_id_fkey"
+            columns: ["price_id"]
+            isOneToOne: false
+            referencedRelation: "prices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "price_drop_notifications_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       price_history: {
         Row: {
           currency: string

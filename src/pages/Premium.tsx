@@ -77,9 +77,9 @@ const Premium = () => {
   };
 
   const features = [
-    { icon: Clock, text: "Early deal alerts - 1 hour before others" },
+    { icon: Clock, text: "Early deal alerts - 1 hour before others", highlight: true },
+    { icon: Zap, text: "Instant 20%+ price drop notifications", highlight: true },
     { icon: Bell, text: "Priority email notifications" },
-    { icon: Zap, text: "Exclusive hidden discount access" },
     { icon: Crown, text: "Premium member badge" },
   ];
 
@@ -126,10 +126,13 @@ const Premium = () => {
               <ul className="space-y-3">
                 {features.map((feature, index) => (
                   <li key={index} className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-                      <feature.icon className="h-4 w-4 text-primary" />
+                    <div className={`flex h-8 w-8 items-center justify-center rounded-full ${feature.highlight ? 'bg-gradient-primary' : 'bg-primary/10'}`}>
+                      <feature.icon className={`h-4 w-4 ${feature.highlight ? 'text-primary-foreground' : 'text-primary'}`} />
                     </div>
-                    <span className="text-sm">{feature.text}</span>
+                    <span className={`text-sm ${feature.highlight ? 'font-medium' : ''}`}>{feature.text}</span>
+                    {feature.highlight && (
+                      <Badge variant="secondary" className="ml-auto text-xs">New</Badge>
+                    )}
                   </li>
                 ))}
               </ul>
