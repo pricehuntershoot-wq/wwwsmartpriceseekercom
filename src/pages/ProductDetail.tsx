@@ -7,6 +7,7 @@ import { Footer } from "@/components/Footer";
 import { PriceHistoryChart } from "@/components/PriceHistoryChart";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useCurrencyPreference } from "@/hooks/useCurrencyPreference";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +18,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Heart, ExternalLink, ShoppingCart, Package, Sparkles, Flame, Clock, ArrowLeft, Store, Bell, BellOff, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice, Currency } from "@/lib/currency";
+import { cn } from "@/lib/utils";
 
 const getDiscountIcon = (type: string | null) => {
   switch (type) {
@@ -51,6 +53,7 @@ const getDiscountColor = (type: string | null) => {
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const { preferredCurrency } = useCurrencyPreference();
   const queryClient = useQueryClient();
   const [alertPrice, setAlertPrice] = useState("");
   const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false);
@@ -228,10 +231,25 @@ const ProductDetail = () => {
     refetchAlert();
   };
 
+  // Group prices by currency
+  const eurPrices = product?.prices?.filter(p => (p.currency || 'EUR') === 'EUR') || [];
+  const czkPrices = product?.prices?.filter(p => p.currency === 'CZK') || [];
+  
+  // Find best price for each currency
+  const bestEurPrice = eurPrices.length > 0 
+    ? eurPrices.reduce((min, p) => p.current_price < min.current_price ? p : min, eurPrices[0])
+    : null;
+  const bestCzkPrice = czkPrices.length > 0 
+    ? czkPrices.reduce((min, p) => p.current_price < min.current_price ? p : min, czkPrices[0])
+    : null;
+
   const bestPrice = product?.prices?.[0];
   const currency: Currency = (bestPrice?.currency as Currency) || 'EUR';
-  const savings = bestPrice?.original_price 
-    ? bestPrice.original_price - bestPrice.current_price 
+  
+  // Calculate savings for preferred currency
+  const preferredBestPrice = preferredCurrency === 'EUR' ? bestEurPrice : bestCzkPrice;
+  const savings = preferredBestPrice?.original_price 
+    ? preferredBestPrice.original_price - preferredBestPrice.current_price 
     : 0;
 
   if (isLoading) {
@@ -303,7 +321,7 @@ const ProductDetail = () => {
             )}
             {savings > 0 && (
               <Badge className="absolute bottom-4 left-4 bg-green-500 px-3 py-1 text-lg text-white">
-                Save {formatPrice(savings, currency)}
+                Save {formatPrice(savings, preferredCurrency)}
               </Badge>
             )}
           </div>
@@ -320,19 +338,68 @@ const ProductDetail = () => {
               <p className="mb-4 text-muted-foreground">{product.description}</p>
             )}
 
-            {bestPrice && (
+            {/* Dual currency price display */}
+            {(bestEurPrice || bestCzkPrice) && (
               <div className="mb-6">
-                <div className="flex items-baseline gap-3">
-                  <span className="text-4xl font-bold text-primary">{formatPrice(bestPrice.current_price, currency)}</span>
-                  {bestPrice.original_price && (
-                    <span className="text-xl text-muted-foreground line-through">
-                      {formatPrice(bestPrice.original_price, currency)}
-                    </span>
+                <div className="flex flex-wrap items-start gap-4">
+                  {bestEurPrice && (
+                    <div className={cn(
+                      "flex flex-col rounded-lg px-4 py-2 transition-colors",
+                      preferredCurrency === 'EUR' 
+                        ? "bg-primary/10 ring-2 ring-primary/40" 
+                        : "bg-muted/50"
+                    )}>
+                      <span className={cn(
+                        "text-sm font-medium",
+                        preferredCurrency === 'EUR' ? "text-primary" : "text-muted-foreground"
+                      )}>EUR {preferredCurrency === 'EUR' && "★"}</span>
+                      <div className="flex items-baseline gap-2">
+                        <span className={cn(
+                          "font-bold",
+                          preferredCurrency === 'EUR' ? "text-4xl text-primary" : "text-2xl text-foreground"
+                        )}>{formatPrice(bestEurPrice.current_price, 'EUR')}</span>
+                        {bestEurPrice.original_price && (
+                          <span className="text-lg text-muted-foreground line-through">
+                            {formatPrice(bestEurPrice.original_price, 'EUR')}
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Best at {bestEurPrice.shop.name}
+                      </p>
+                    </div>
+                  )}
+                  {bestEurPrice && bestCzkPrice && (
+                    <div className="hidden h-16 w-px self-center bg-border sm:block" />
+                  )}
+                  {bestCzkPrice && (
+                    <div className={cn(
+                      "flex flex-col rounded-lg px-4 py-2 transition-colors",
+                      preferredCurrency === 'CZK' 
+                        ? "bg-primary/10 ring-2 ring-primary/40" 
+                        : "bg-muted/50"
+                    )}>
+                      <span className={cn(
+                        "text-sm font-medium",
+                        preferredCurrency === 'CZK' ? "text-primary" : "text-muted-foreground"
+                      )}>CZK {preferredCurrency === 'CZK' && "★"}</span>
+                      <div className="flex items-baseline gap-2">
+                        <span className={cn(
+                          "font-bold",
+                          preferredCurrency === 'CZK' ? "text-4xl text-primary" : "text-2xl text-foreground"
+                        )}>{formatPrice(bestCzkPrice.current_price, 'CZK')}</span>
+                        {bestCzkPrice.original_price && (
+                          <span className="text-lg text-muted-foreground line-through">
+                            {formatPrice(bestCzkPrice.original_price, 'CZK')}
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Best at {bestCzkPrice.shop.name}
+                      </p>
+                    </div>
                   )}
                 </div>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Best price at {bestPrice.shop.name}
-                </p>
               </div>
             )}
 
