@@ -1,7 +1,17 @@
-import { Filter, SlidersHorizontal } from "lucide-react";
+import { useState } from "react";
+import { SlidersHorizontal } from "lucide-react";
 import { PriceComparisonCard } from "./PriceComparisonCard";
 import { Button } from "./ui/button";
 import { useLanguage } from "@/hooks/useLanguage";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+
+type DiscountType = "cart" | "returned" | "used" | "new" | "openBox" | "refurbished";
 
 // Same products available from both Alza.cz and Datart.cz with different conditions
 const mockProducts = [
@@ -13,7 +23,7 @@ const mockProducts = [
     discountedPrice: 34990,
     shop: "Alza.cz",
     shopLogo: "https://cdn.alza.cz/Foto/favicon/android-chrome-192x192.png",
-    discountType: "new" as const,
+    discountType: "new" as DiscountType,
     savings: 0,
   },
   // iPhone from Datart - returned
@@ -24,7 +34,7 @@ const mockProducts = [
     discountedPrice: 29990,
     shop: "Datart.cz",
     shopLogo: "https://www.datart.cz/favicon.ico",
-    discountType: "returned" as const,
+    discountType: "returned" as DiscountType,
     savings: 14,
   },
   // Samsung from Alza - open box
@@ -35,7 +45,7 @@ const mockProducts = [
     discountedPrice: 31990,
     shop: "Alza.cz",
     shopLogo: "https://cdn.alza.cz/Foto/favicon/android-chrome-192x192.png",
-    discountType: "openBox" as const,
+    discountType: "openBox" as DiscountType,
     savings: 14,
   },
   // Samsung from Datart - cart discount
@@ -46,7 +56,7 @@ const mockProducts = [
     discountedPrice: 32990,
     shop: "Datart.cz",
     shopLogo: "https://www.datart.cz/favicon.ico",
-    discountType: "cart" as const,
+    discountType: "cart" as DiscountType,
     savings: 11,
   },
   // Sony headphones from Alza - refurbished
@@ -57,7 +67,7 @@ const mockProducts = [
     discountedPrice: 6990,
     shop: "Alza.cz",
     shopLogo: "https://cdn.alza.cz/Foto/favicon/android-chrome-192x192.png",
-    discountType: "refurbished" as const,
+    discountType: "refurbished" as DiscountType,
     savings: 30,
   },
   // Sony headphones from Datart - used
@@ -68,13 +78,28 @@ const mockProducts = [
     discountedPrice: 5990,
     shop: "Datart.cz",
     shopLogo: "https://www.datart.cz/favicon.ico",
-    discountType: "used" as const,
+    discountType: "used" as DiscountType,
     savings: 40,
   },
 ];
 
+const conditionOptions: { value: DiscountType | "all"; labelKey: "allConditions" | "newItem" | "returnedItem" | "usedItem" | "openBox" | "refurbished" | "cartDiscount" }[] = [
+  { value: "all", labelKey: "allConditions" },
+  { value: "new", labelKey: "newItem" },
+  { value: "returned", labelKey: "returnedItem" },
+  { value: "used", labelKey: "usedItem" },
+  { value: "openBox", labelKey: "openBox" },
+  { value: "refurbished", labelKey: "refurbished" },
+  { value: "cart", labelKey: "cartDiscount" },
+];
+
 export const ComparisonSection = () => {
   const { t } = useLanguage();
+  const [selectedCondition, setSelectedCondition] = useState<DiscountType | "all">("all");
+
+  const filteredProducts = selectedCondition === "all"
+    ? mockProducts
+    : mockProducts.filter((product) => product.discountType === selectedCondition);
 
   return (
     <section id="compare" className="py-24">
@@ -90,10 +115,18 @@ export const ComparisonSection = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm">
-              <Filter className="h-4 w-4" />
-              {t('filter')}
-            </Button>
+            <Select value={selectedCondition} onValueChange={(value) => setSelectedCondition(value as DiscountType | "all")}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder={t('filterByCondition')} />
+              </SelectTrigger>
+              <SelectContent>
+                {conditionOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {t(option.labelKey)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Button variant="outline" size="sm">
               <SlidersHorizontal className="h-4 w-4" />
               {t('sortBySavings')}
@@ -102,7 +135,7 @@ export const ComparisonSection = () => {
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {mockProducts.map((product, index) => (
+          {filteredProducts.map((product, index) => (
             <div
               key={`${product.name}-${product.shop}-${product.discountType}`}
               className="animate-fade-in"
@@ -112,6 +145,12 @@ export const ComparisonSection = () => {
             </div>
           ))}
         </div>
+
+        {filteredProducts.length === 0 && (
+          <div className="py-12 text-center text-muted-foreground">
+            {t('noProductsFound')}
+          </div>
+        )}
 
         <div className="mt-12 text-center">
           <Button variant="hero" size="lg">
