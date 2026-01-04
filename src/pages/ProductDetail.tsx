@@ -53,7 +53,7 @@ const getDiscountColor = (type: string | null) => {
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
-  const { preferredCurrency } = useCurrencyPreference();
+  const { preferredCurrency, setPreferredCurrency } = useCurrencyPreference();
   const queryClient = useQueryClient();
   const [alertPrice, setAlertPrice] = useState("");
   const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false);
@@ -527,11 +527,29 @@ const ProductDetail = () => {
 
         {/* Price comparison table */}
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <CardTitle className="flex items-center gap-2">
               <Store className="h-5 w-5" />
-              Price Comparison ({product.prices?.length || 0} shops)
+              Price Comparison ({product.prices?.length || 0} offers)
             </CardTitle>
+            <div className="flex items-center gap-1 rounded-lg border bg-muted/50 p-1">
+              <Button
+                variant={preferredCurrency === 'EUR' ? 'default' : 'ghost'}
+                size="sm"
+                className="h-7 px-3"
+                onClick={() => setPreferredCurrency('EUR')}
+              >
+                € EUR
+              </Button>
+              <Button
+                variant={preferredCurrency === 'CZK' ? 'default' : 'ghost'}
+                size="sm"
+                className="h-7 px-3"
+                onClick={() => setPreferredCurrency('CZK')}
+              >
+                Kč CZK
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             {product.prices && product.prices.length > 0 ? (
