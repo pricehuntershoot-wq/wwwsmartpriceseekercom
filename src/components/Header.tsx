@@ -4,6 +4,7 @@ import { Button } from "./ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { PremiumBadge } from "./PremiumBadge";
+import { CurrencySelector } from "./CurrencySelector";
 
 export const Header = () => {
   const { user, signOut } = useAuth();
@@ -41,7 +42,8 @@ export const Header = () => {
           </a>
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <CurrencySelector />
           {user ? (
             <>
               {isPremium && <PremiumBadge size="sm" />}

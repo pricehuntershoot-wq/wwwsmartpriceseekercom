@@ -5,6 +5,8 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Card, CardContent } from "./ui/card";
 import { formatPrice, Currency } from "@/lib/currency";
+import { useCurrencyPreference } from "@/hooks/useCurrencyPreference";
+import { cn } from "@/lib/utils";
 
 interface Price {
   id: string;
@@ -68,6 +70,7 @@ const getDiscountColor = (type: string | null) => {
 };
 
 export const ProductCard = ({ product, onFavorite, isFavorited = false }: ProductCardProps) => {
+  const { preferredCurrency } = useCurrencyPreference();
   const prices = product.prices || [];
   
   // Group prices by currency
@@ -156,10 +159,19 @@ export const ProductCard = ({ product, onFavorite, isFavorited = false }: Produc
           <div className="mb-3">
             <div className="flex items-center gap-3">
               {bestEurPrice && (
-                <div className="flex flex-col">
-                  <span className="text-xs text-muted-foreground">EUR</span>
+                <div className={cn(
+                  "flex flex-col rounded-md px-2 py-1 -mx-2 transition-colors",
+                  preferredCurrency === 'EUR' && "bg-primary/10 ring-1 ring-primary/30"
+                )}>
+                  <span className={cn(
+                    "text-xs",
+                    preferredCurrency === 'EUR' ? "text-primary font-medium" : "text-muted-foreground"
+                  )}>EUR {preferredCurrency === 'EUR' && "★"}</span>
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-xl font-bold text-primary">{formatPrice(bestEurPrice.current_price, 'EUR')}</span>
+                    <span className={cn(
+                      "font-bold",
+                      preferredCurrency === 'EUR' ? "text-2xl text-primary" : "text-lg text-foreground"
+                    )}>{formatPrice(bestEurPrice.current_price, 'EUR')}</span>
                     {bestEurPrice.original_price && (
                       <span className="text-xs text-muted-foreground line-through">
                         {formatPrice(bestEurPrice.original_price, 'EUR')}
@@ -169,13 +181,22 @@ export const ProductCard = ({ product, onFavorite, isFavorited = false }: Produc
                 </div>
               )}
               {bestEurPrice && bestCzkPrice && (
-                <div className="h-8 w-px bg-border" />
+                <div className="h-10 w-px bg-border" />
               )}
               {bestCzkPrice && (
-                <div className="flex flex-col">
-                  <span className="text-xs text-muted-foreground">CZK</span>
+                <div className={cn(
+                  "flex flex-col rounded-md px-2 py-1 -mx-2 transition-colors",
+                  preferredCurrency === 'CZK' && "bg-primary/10 ring-1 ring-primary/30"
+                )}>
+                  <span className={cn(
+                    "text-xs",
+                    preferredCurrency === 'CZK' ? "text-primary font-medium" : "text-muted-foreground"
+                  )}>CZK {preferredCurrency === 'CZK' && "★"}</span>
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-xl font-bold text-primary">{formatPrice(bestCzkPrice.current_price, 'CZK')}</span>
+                    <span className={cn(
+                      "font-bold",
+                      preferredCurrency === 'CZK' ? "text-2xl text-primary" : "text-lg text-foreground"
+                    )}>{formatPrice(bestCzkPrice.current_price, 'CZK')}</span>
                     {bestCzkPrice.original_price && (
                       <span className="text-xs text-muted-foreground line-through">
                         {formatPrice(bestCzkPrice.original_price, 'CZK')}
