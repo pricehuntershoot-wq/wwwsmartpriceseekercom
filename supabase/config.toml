@@ -5,3 +5,15 @@ verify_jwt = false
 
 [functions.analyze-product-page]
 verify_jwt = false
+
+[functions.check-price-drops]
+verify_jwt = false
+
+[functions.create-checkout]
+verify_jwt = true
+
+[functions.customer-portal]
+verify_jwt = true
+
+[functions.check-subscription]
+verify_jwt = true
