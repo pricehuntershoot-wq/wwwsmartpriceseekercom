@@ -6,20 +6,23 @@ import { useCurrencyPreference } from "@/hooks/useCurrencyPreference";
 import { useLanguage } from "@/hooks/useLanguage";
 import { formatPrice } from "@/lib/currency";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TrendingDown, Clock, Crown, ArrowRight, Percent, Zap, Lock, Store } from "lucide-react";
+import { TrendingDown, Clock, Crown, ArrowRight, Percent, Zap, Lock, Store, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 
 interface ShopPrice {
   id: string;
   current_price: number;
+  discovered_at: string;
   shop: {
     id: string;
     name: string;
     logo_url: string | null;
+    website_url: string | null;
   } | null;
 }
 
@@ -76,7 +79,7 @@ export const PriceDropsDashboard = () => {
       const productIds = [...new Set(drops.map(d => d.product_id))];
       const { data: allPrices } = await supabase
         .from('prices')
-        .select('id, product_id, current_price, shop:shops(id, name, logo_url)')
+        .select('id, product_id, current_price, discovered_at, shop:shops(id, name, logo_url, website_url)')
         .in('product_id', productIds)
         .eq('is_active', true);
       
@@ -257,32 +260,68 @@ export const PriceDropsDashboard = () => {
                         </span>
                       </div>
                       <div className="flex flex-wrap items-center gap-2 text-xs">
-                        {drop.allPrices.slice(0, 3).map((shopPrice, idx) => {
-                          const isCurrentShop = shopPrice.shop?.id === drop.price?.shop_id;
-                          const isCheapest = idx === 0;
-                          return (
-                            <div 
-                              key={shopPrice.id}
-                              className={`flex items-center gap-1.5 px-2 py-1 rounded-md ${
-                                isCheapest 
-                                  ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 font-semibold' 
-                                  : 'bg-background text-muted-foreground'
-                              }`}
-                            >
-                              {shopPrice.shop?.logo_url ? (
-                                <img 
-                                  src={shopPrice.shop.logo_url} 
-                                  alt={shopPrice.shop.name} 
-                                  className="w-4 h-4 object-contain rounded-sm"
-                                />
-                              ) : (
-                                <Store className="w-3.5 h-3.5" />
-                              )}
-                              <span className="font-medium">{shopPrice.shop?.name}</span>
-                              <span>{formatPriceDisplay(shopPrice.current_price, priceCurrency)}</span>
-                            </div>
-                          );
-                        })}
+                        <TooltipProvider delayDuration={200}>
+                          {drop.allPrices.slice(0, 3).map((shopPrice, idx) => {
+                            const isCurrentShop = shopPrice.shop?.id === drop.price?.shop_id;
+                            const isCheapest = idx === 0;
+                            return (
+                              <Tooltip key={shopPrice.id}>
+                                <TooltipTrigger asChild>
+                                  <div 
+                                    className={`flex items-center gap-1.5 px-2 py-1 rounded-md cursor-pointer transition-colors hover:opacity-80 ${
+                                      isCheapest 
+                                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 font-semibold' 
+                                        : 'bg-background text-muted-foreground'
+                                    }`}
+                                  >
+                                    {shopPrice.shop?.logo_url ? (
+                                      <img 
+                                        src={shopPrice.shop.logo_url} 
+                                        alt={shopPrice.shop.name} 
+                                        className="w-4 h-4 object-contain rounded-sm"
+                                      />
+                                    ) : (
+                                      <Store className="w-3.5 h-3.5" />
+                                    )}
+                                    <span className="font-medium">{shopPrice.shop?.name}</span>
+                                    <span>{formatPriceDisplay(shopPrice.current_price, priceCurrency)}</span>
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="max-w-xs">
+                                  <div className="space-y-1.5">
+                                    <div className="flex items-center gap-2">
+                                      {shopPrice.shop?.logo_url && (
+                                        <img 
+                                          src={shopPrice.shop.logo_url} 
+                                          alt={shopPrice.shop.name}
+                                          className="w-5 h-5 object-contain"
+                                        />
+                                      )}
+                                      <span className="font-semibold">{shopPrice.shop?.name}</span>
+                                    </div>
+                                    {shopPrice.shop?.website_url && (
+                                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                        <ExternalLink className="h-3 w-3" />
+                                        <span className="truncate">{shopPrice.shop.website_url}</span>
+                                      </div>
+                                    )}
+                                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                      <Clock className="h-3 w-3" />
+                                      <span>Updated {formatDistanceToNow(new Date(shopPrice.discovered_at), { addSuffix: true })}</span>
+                                    </div>
+                                    <div className="pt-1 border-t text-xs">
+                                      <span className="font-medium">Price: </span>
+                                      <span className={isCheapest ? 'text-green-600 font-semibold' : ''}>
+                                        {formatPriceDisplay(shopPrice.current_price, priceCurrency)}
+                                      </span>
+                                      {isCheapest && <span className="ml-1 text-green-600">(Best)</span>}
+                                    </div>
+                                  </div>
+                                </TooltipContent>
+                              </Tooltip>
+                            );
+                          })}
+                        </TooltipProvider>
                       </div>
                     </div>
                   )}
