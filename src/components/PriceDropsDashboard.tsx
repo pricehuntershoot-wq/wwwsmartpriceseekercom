@@ -9,9 +9,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TrendingDown, Clock, Crown, ArrowRight, Percent, Zap, Lock } from "lucide-react";
+import { TrendingDown, Clock, Crown, ArrowRight, Percent, Zap, Lock, Store } from "lucide-react";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
+
+interface ShopPrice {
+  id: string;
+  current_price: number;
+  shop: {
+    id: string;
+    name: string;
+  } | null;
+}
 
 interface PriceDropWithDetails {
   id: string;
@@ -30,10 +39,12 @@ interface PriceDropWithDetails {
   } | null;
   price: {
     currency: string;
+    shop_id: string;
     shop: {
       name: string;
     } | null;
   } | null;
+  allPrices?: ShopPrice[];
 }
 
 export const PriceDropsDashboard = () => {
@@ -50,14 +61,31 @@ export const PriceDropsDashboard = () => {
         .select(`
           *,
           product:products(id, name, image_url, category),
-          price:prices(currency, shop:shops(name))
+          price:prices(currency, shop_id, shop:shops(name))
         `)
         .gte('drop_percentage', 20)
         .order('detected_at', { ascending: false })
         .limit(6);
 
       if (error) throw error;
-      return data as unknown as PriceDropWithDetails[];
+      
+      const drops = data as unknown as PriceDropWithDetails[];
+      
+      // Fetch all prices for each product to show shop comparison
+      const productIds = [...new Set(drops.map(d => d.product_id))];
+      const { data: allPrices } = await supabase
+        .from('prices')
+        .select('id, product_id, current_price, shop:shops(id, name)')
+        .in('product_id', productIds)
+        .eq('is_active', true);
+      
+      // Attach all prices to each drop
+      return drops.map(drop => ({
+        ...drop,
+        allPrices: (allPrices || [])
+          .filter(p => p.product_id === drop.product_id)
+          .sort((a, b) => a.current_price - b.current_price) as ShopPrice[]
+      }));
     },
   });
 
@@ -217,6 +245,37 @@ export const PriceDropsDashboard = () => {
                       </span>
                     </div>
                   </div>
+
+                  {/* Shop Price Comparison */}
+                  {drop.allPrices && drop.allPrices.length > 1 && (
+                    <div className="mb-3 p-2 bg-muted/50 rounded-lg">
+                      <div className="flex items-center gap-1.5 mb-1.5">
+                        <Store className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">
+                          Compare Shops
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2 text-xs">
+                        {drop.allPrices.slice(0, 3).map((shopPrice, idx) => {
+                          const isCurrentShop = shopPrice.shop?.id === drop.price?.shop_id;
+                          const isCheapest = idx === 0;
+                          return (
+                            <div 
+                              key={shopPrice.id}
+                              className={`flex items-center gap-1 px-2 py-1 rounded-md ${
+                                isCheapest 
+                                  ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 font-semibold' 
+                                  : 'bg-background text-muted-foreground'
+                              }`}
+                            >
+                              <span className="font-medium">{shopPrice.shop?.name}</span>
+                              <span>{formatPriceDisplay(shopPrice.current_price, priceCurrency)}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Footer */}
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
