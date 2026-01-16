@@ -19,6 +19,7 @@ interface ShopPrice {
   shop: {
     id: string;
     name: string;
+    logo_url: string | null;
   } | null;
 }
 
@@ -75,7 +76,7 @@ export const PriceDropsDashboard = () => {
       const productIds = [...new Set(drops.map(d => d.product_id))];
       const { data: allPrices } = await supabase
         .from('prices')
-        .select('id, product_id, current_price, shop:shops(id, name)')
+        .select('id, product_id, current_price, shop:shops(id, name, logo_url)')
         .in('product_id', productIds)
         .eq('is_active', true);
       
@@ -262,12 +263,21 @@ export const PriceDropsDashboard = () => {
                           return (
                             <div 
                               key={shopPrice.id}
-                              className={`flex items-center gap-1 px-2 py-1 rounded-md ${
+                              className={`flex items-center gap-1.5 px-2 py-1 rounded-md ${
                                 isCheapest 
                                   ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 font-semibold' 
                                   : 'bg-background text-muted-foreground'
                               }`}
                             >
+                              {shopPrice.shop?.logo_url ? (
+                                <img 
+                                  src={shopPrice.shop.logo_url} 
+                                  alt={shopPrice.shop.name} 
+                                  className="w-4 h-4 object-contain rounded-sm"
+                                />
+                              ) : (
+                                <Store className="w-3.5 h-3.5" />
+                              )}
                               <span className="font-medium">{shopPrice.shop?.name}</span>
                               <span>{formatPriceDisplay(shopPrice.current_price, priceCurrency)}</span>
                             </div>
