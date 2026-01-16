@@ -297,11 +297,22 @@ export const PriceDropsDashboard = () => {
                                           className="w-5 h-5 object-contain"
                                         />
                                       )}
-                                      <span className="font-semibold">{shopPrice.shop?.name}</span>
+                                      {shopPrice.shop?.website_url ? (
+                                        <a 
+                                          href={shopPrice.shop.website_url} 
+                                          target="_blank" 
+                                          rel="noopener noreferrer"
+                                          className="font-semibold text-primary hover:underline flex items-center gap-1"
+                                        >
+                                          {shopPrice.shop?.name}
+                                          <ExternalLink className="h-3 w-3" />
+                                        </a>
+                                      ) : (
+                                        <span className="font-semibold">{shopPrice.shop?.name}</span>
+                                      )}
                                     </div>
                                     {shopPrice.shop?.website_url && (
                                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                        <ExternalLink className="h-3 w-3" />
                                         <span className="truncate">{shopPrice.shop.website_url}</span>
                                       </div>
                                     )}
