@@ -285,6 +285,11 @@ export const PriceDropsDashboard = () => {
                                     )}
                                     <span className="font-medium">{shopPrice.shop?.name}</span>
                                     <span>{formatPriceDisplay(shopPrice.current_price, priceCurrency)}</span>
+                                    {!isCheapest && drop.allPrices && drop.allPrices[0] && (
+                                      <span className="text-[10px] text-destructive font-medium">
+                                        +{formatPriceDisplay(shopPrice.current_price - drop.allPrices[0].current_price, priceCurrency)}
+                                      </span>
+                                    )}
                                   </div>
                                 </TooltipTrigger>
                                 <TooltipContent side="top" className="max-w-xs">
