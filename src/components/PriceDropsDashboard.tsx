@@ -326,6 +326,11 @@ export const PriceDropsDashboard = () => {
                                         {formatPriceDisplay(shopPrice.current_price, priceCurrency)}
                                       </span>
                                       {isCheapest && <span className="ml-1 text-green-600">(Best)</span>}
+                                      {!isCheapest && drop.allPrices && drop.allPrices[0] && (
+                                        <span className="ml-1 text-destructive">
+                                          (+{formatPriceDisplay(shopPrice.current_price - drop.allPrices[0].current_price, priceCurrency)} vs {drop.allPrices[0].shop?.name})
+                                        </span>
+                                      )}
                                     </div>
                                   </div>
                                 </TooltipContent>
