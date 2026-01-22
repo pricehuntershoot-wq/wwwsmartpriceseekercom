@@ -143,21 +143,21 @@ export const PriceDropsDashboard = () => {
               <TrendingDown className="h-6 w-6 text-destructive" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold">Price Drops Alert</h2>
-              <p className="text-muted-foreground text-sm">Products with 20%+ price reductions</p>
+              <h2 className="text-2xl font-bold">{t('priceDropsAlert')}</h2>
+              <p className="text-muted-foreground text-sm">{t('priceDropsDesc')}</p>
             </div>
           </div>
           
           {isPremium ? (
             <Badge variant="outline" className="gap-1 border-amber-500 text-amber-600 bg-amber-50 dark:bg-amber-950/20">
               <Crown className="h-3 w-3" />
-              Early Access Active
+              {t('earlyAccessActiveBadge')}
             </Badge>
           ) : (
             <Link to="/premium">
               <Button variant="outline" size="sm" className="gap-2">
                 <Zap className="h-4 w-4" />
-                Get 1-Hour Early Access
+                {t('getEarlyAccess')}
               </Button>
             </Link>
           )}
@@ -180,7 +180,7 @@ export const PriceDropsDashboard = () => {
                 {status.isEarlyAccess && isPremium && (
                   <div className="absolute top-0 right-0 bg-gradient-to-l from-amber-500 to-amber-400 text-white text-xs font-medium px-3 py-1 rounded-bl-lg flex items-center gap-1">
                     <Crown className="h-3 w-3" />
-                    Early Access
+                    {t('earlyAccessActiveBadge')}
                   </div>
                 )}
                 
@@ -188,14 +188,14 @@ export const PriceDropsDashboard = () => {
                 {!status.hasAccess && (
                   <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center gap-2">
                     <Lock className="h-8 w-8 text-muted-foreground" />
-                    <p className="text-sm font-medium text-muted-foreground">Premium Only</p>
+                    <p className="text-sm font-medium text-muted-foreground">{t('premiumOnly')}</p>
                     <p className="text-xs text-muted-foreground">
-                      Available in {formatDistanceToNow(new Date(new Date(drop.detected_at).getTime() + 60 * 60 * 1000))}
+                      {t('availableIn')} {formatDistanceToNow(new Date(new Date(drop.detected_at).getTime() + 60 * 60 * 1000))}
                     </p>
                     <Link to="/premium">
                       <Button size="sm" variant="default" className="mt-2 gap-1">
                         <Crown className="h-3 w-3" />
-                        Unlock Now
+                        {t('unlockNow')}
                       </Button>
                     </Link>
                   </div>
@@ -230,13 +230,13 @@ export const PriceDropsDashboard = () => {
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex flex-col">
                       <span className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">
-                        Cheapest Price
+                        {t('cheapestPrice')}
                       </span>
                       <span className="text-2xl font-bold text-gradient-accent">
                         {formatPriceDisplay(drop.new_price, priceCurrency)}
                       </span>
                       <span className="text-xs text-muted-foreground line-through">
-                        was {formatPriceDisplay(drop.old_price, priceCurrency)}
+                        {t('was')} {formatPriceDisplay(drop.old_price, priceCurrency)}
                       </span>
                     </div>
                     <div className="flex flex-col items-end gap-1">
@@ -245,7 +245,7 @@ export const PriceDropsDashboard = () => {
                         -{Math.round(drop.drop_percentage)}%
                       </Badge>
                       <span className="text-xs text-green-600 dark:text-green-400 font-medium">
-                        Save {formatPriceDisplay(drop.old_price - drop.new_price, priceCurrency)}
+                        {t('saveMoney')} {formatPriceDisplay(drop.old_price - drop.new_price, priceCurrency)}
                       </span>
                     </div>
                   </div>
@@ -256,7 +256,7 @@ export const PriceDropsDashboard = () => {
                       <div className="flex items-center gap-1.5 mb-1.5">
                         <Store className="h-3 w-3 text-muted-foreground" />
                         <span className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">
-                          Compare Shops
+                          {t('compareShops')}
                         </span>
                       </div>
                       <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -323,14 +323,14 @@ export const PriceDropsDashboard = () => {
                                     )}
                                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                       <Clock className="h-3 w-3" />
-                                      <span>Updated {formatDistanceToNow(new Date(shopPrice.discovered_at), { addSuffix: true })}</span>
+                                      <span>{t('updated')} {formatDistanceToNow(new Date(shopPrice.discovered_at), { addSuffix: true })}</span>
                                     </div>
                                     <div className="pt-1 border-t text-xs">
-                                      <span className="font-medium">Price: </span>
+                                      <span className="font-medium">{t('price')}: </span>
                                       <span className={isCheapest ? 'text-green-600 font-semibold' : ''}>
                                         {formatPriceDisplay(shopPrice.current_price, priceCurrency)}
                                       </span>
-                                      {isCheapest && <span className="ml-1 text-green-600">(Best)</span>}
+                                      {isCheapest && <span className="ml-1 text-green-600">({t('best')})</span>}
                                       {!isCheapest && drop.allPrices && drop.allPrices[0] && (
                                         <span className="ml-1 text-destructive">
                                           (+{formatPriceDisplay(shopPrice.current_price - drop.allPrices[0].current_price, priceCurrency)} vs {drop.allPrices[0].shop?.name})
@@ -356,7 +356,7 @@ export const PriceDropsDashboard = () => {
                     {status.hasAccess && drop.product && (
                       <Link to={`/products/${drop.product.id}`}>
                         <Button variant="ghost" size="sm" className="h-6 px-2 text-xs gap-1">
-                          View <ArrowRight className="h-3 w-3" />
+                          {t('view')} <ArrowRight className="h-3 w-3" />
                         </Button>
                       </Link>
                     )}
@@ -375,15 +375,15 @@ export const PriceDropsDashboard = () => {
                 <Crown className="h-6 w-6 text-amber-600" />
               </div>
               <div className="flex-1 text-center sm:text-left">
-                <h3 className="font-semibold text-lg">Get 1-Hour Early Access to All Deals</h3>
+                <h3 className="font-semibold text-lg">{t('getEarlyAccessDeals')}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Premium members see price drops before everyone else. Never miss a deal again!
+                  {t('premiumSeeFirst')}
                 </p>
               </div>
               <Link to="/premium">
                 <Button className="gap-2 bg-amber-600 hover:bg-amber-700">
                   <Zap className="h-4 w-4" />
-                  Upgrade to Premium
+                  {t('upgradeToPremium')}
                 </Button>
               </Link>
             </div>
