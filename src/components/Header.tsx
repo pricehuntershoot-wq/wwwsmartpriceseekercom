@@ -48,7 +48,7 @@ export const Header = () => {
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-primary">
             <Bot className="h-5 w-5 text-primary-foreground" />
           </div>
-          <span className="text-xl font-bold">CenaBuddy</span>
+          <span className="text-xl font-bold">PriceHunter</span>
           <span className="rounded-full bg-accent/20 px-2 py-0.5 text-xs font-medium text-accent">
             AI
           </span>
