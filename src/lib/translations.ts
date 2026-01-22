@@ -199,6 +199,24 @@ export const translations = {
     aiInsightOpenBox: 'Opened packaging but unused product - full warranty applies',
     aiInsightRefurbished: 'Factory refurbished with quality inspection and warranty',
     viewDeal: 'View Deal',
+    
+    // Price Drops Dashboard
+    priceDropsAlert: 'Price Drops Alert',
+    priceDropsDesc: 'Products with 20%+ price reductions',
+    earlyAccessActiveBadge: 'Early Access Active',
+    getEarlyAccess: 'Get 1-Hour Early Access',
+    cheapestPrice: 'Cheapest Price',
+    was: 'was',
+    saveMoney: 'Save',
+    compareShops: 'Compare Shops',
+    best: 'Best',
+    premiumOnly: 'Premium Only',
+    availableIn: 'Available in',
+    unlockNow: 'Unlock Now',
+    view: 'View',
+    getEarlyAccessDeals: 'Get 1-Hour Early Access to All Deals',
+    premiumSeeFirst: 'Premium members see price drops before everyone else. Never miss a deal again!',
+    upgradeToPremium: 'Upgrade to Premium',
   },
   cs: {
     // Header
@@ -398,6 +416,24 @@ export const translations = {
     aiInsightOpenBox: 'Rozbalený, ale nepoužitý produkt - platí plná záruka',
     aiInsightRefurbished: 'Továrně repasovaný s kontrolou kvality a zárukou',
     viewDeal: 'Zobrazit nabídku',
+    
+    // Price Drops Dashboard
+    priceDropsAlert: 'Upozornění na pokles cen',
+    priceDropsDesc: 'Produkty se slevou 20% a více',
+    earlyAccessActiveBadge: 'Přednostní přístup aktivní',
+    getEarlyAccess: 'Získat 1 hodinu předstihu',
+    cheapestPrice: 'Nejnižší cena',
+    was: 'bylo',
+    saveMoney: 'Ušetříte',
+    compareShops: 'Porovnat obchody',
+    best: 'Nejlepší',
+    premiumOnly: 'Pouze Premium',
+    availableIn: 'Dostupné za',
+    unlockNow: 'Odemknout nyní',
+    view: 'Zobrazit',
+    getEarlyAccessDeals: 'Získejte 1 hodinu předstihu ke všem nabídkám',
+    premiumSeeFirst: 'Premium členové vidí poklesy cen jako první. Už vám neunikne žádná nabídka!',
+    upgradeToPremium: 'Upgradovat na Premium',
   },
 } as const;
 
