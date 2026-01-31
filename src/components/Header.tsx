@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Zap, LogOut, Heart, ShoppingBag, Bell, Crown, Settings, Menu, ChevronDown, Headphones, Smartphone, Watch, Speaker, Package } from "lucide-react";
+import { Zap, LogOut, Heart, ShoppingBag, Bell, Crown, Settings, Menu, ChevronDown, Headphones, Smartphone, Watch, Speaker, Package, Gift } from "lucide-react";
 import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,6 +9,7 @@ import { CurrencySelector } from "./CurrencySelector";
 import { LanguageSelector } from "./LanguageSelector";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -143,10 +144,11 @@ export const Header = () => {
             {t('howItWorks')}
           </button>
           <button 
-            onClick={() => scrollToSection('features')} 
-            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+            onClick={() => toast.info("Coming Soon!", { description: "Gift cards feature is under development." })} 
+            className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
-            {t('features')}
+            <Gift className="h-4 w-4" />
+            Gift Cards
           </button>
         </nav>
 
@@ -268,10 +270,11 @@ export const Header = () => {
                     {t('howItWorks')}
                   </button>
                   <button 
-                    onClick={() => scrollToSection('features')} 
+                    onClick={() => { toast.info("Coming Soon!", { description: "Gift cards feature is under development." }); setIsOpen(false); }} 
                     className="flex items-center gap-3 text-lg font-medium text-foreground"
                   >
-                    {t('features')}
+                    <Gift className="h-5 w-5" />
+                    Gift Cards
                   </button>
                 </nav>
 
