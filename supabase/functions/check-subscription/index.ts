@@ -39,13 +39,15 @@ serve(async (req) => {
     }
     logStep("Authorization header found");
 
+    const token = authHeader.replace("Bearer ", "");
+    
+    // Create a client with anon key to validate the JWT
     const supabaseAuth = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? "",
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const token = authHeader.replace("Bearer ", "");
     const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
     if (claimsError || !claimsData?.claims) {
       logStep("JWT validation failed", { error: claimsError?.message });
@@ -54,16 +56,22 @@ serve(async (req) => {
         status: 401,
       });
     }
-    logStep("JWT validated", { userId: claimsData.claims.sub });
+    
+    const userId = claimsData.claims.sub as string;
+    logStep("JWT validated", { userId });
 
-    const { data: userData, error: userError } = await supabaseAuth.auth.getUser(token);
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
-    const user = userData.user;
-    if (!user?.email) throw new Error("User not authenticated or email not available");
-    logStep("User authenticated", { userId: user.id, email: user.email });
+    // Use service role client to get user email
+    const { data: userData, error: userError } = await supabaseClient.auth.admin.getUserById(userId);
+    if (userError || !userData?.user?.email) {
+      logStep("Failed to get user", { error: userError?.message });
+      throw new Error("User not found or email not available");
+    }
+    
+    const userEmail = userData.user.email;
+    logStep("User authenticated", { userId, email: userEmail });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
     
     if (customers.data.length === 0) {
       logStep("No customer found, updating unsubscribed state");
