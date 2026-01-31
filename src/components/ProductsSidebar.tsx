@@ -14,14 +14,15 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/hooks/useLanguage";
 
 import { Headphones, Smartphone, Watch, Speaker } from "lucide-react";
 
 const SUBCATEGORIES = [
-  { value: 'Headphones', label: 'Headphones', icon: Headphones },
-  { value: 'mobile_phones', label: 'Mobile Phones', icon: Smartphone },
-  { value: 'smart_watches', label: 'Smart Watches', icon: Watch },
-  { value: 'speakers', label: 'Speakers', icon: Speaker },
+  { value: 'Headphones', labelKey: 'categoryHeadphones' as const, icon: Headphones },
+  { value: 'mobile_phones', labelKey: 'categoryMobilePhones' as const, icon: Smartphone },
+  { value: 'smart_watches', labelKey: 'categorySmartWatches' as const, icon: Watch },
+  { value: 'speakers', labelKey: 'categorySpeakers' as const, icon: Speaker },
 ];
 
 const DISCOUNT_FILTERS = [
@@ -57,6 +58,7 @@ export function ProductsSidebar({
   productCount,
 }: ProductsSidebarProps) {
   const { state } = useSidebar();
+  const { t } = useLanguage();
   const isCollapsed = state === "collapsed";
 
   return (
@@ -64,7 +66,7 @@ export function ProductsSidebar({
       <div className="flex h-16 items-center justify-between border-b border-border/50 px-4">
         {!isCollapsed && (
           <span className="text-sm font-medium text-muted-foreground">
-            Filters
+            {t('filters')}
           </span>
         )}
         <SidebarTrigger className={cn(isCollapsed && "mx-auto")} />
@@ -79,7 +81,7 @@ export function ProductsSidebar({
                 {!isCollapsed && (
                   <>
                     <Package className="mr-2 h-4 w-4" />
-                    Categories
+                    {t('categories')}
                     <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
                   </>
                 )}
@@ -98,10 +100,10 @@ export function ProductsSidebar({
                       )}
                     >
                       <Package className="mr-2 h-4 w-4" />
-                      {!isCollapsed && "All Categories"}
+                      {!isCollapsed && t('allCategories')}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                  {SUBCATEGORIES.map(({ value, label, icon: Icon }) => (
+                  {SUBCATEGORIES.map(({ value, labelKey, icon: Icon }) => (
                     <SidebarMenuItem key={value}>
                       <SidebarMenuButton
                         onClick={() => setSelectedCategory(value)}
@@ -111,7 +113,7 @@ export function ProductsSidebar({
                         )}
                       >
                         <Icon className="mr-2 h-4 w-4" />
-                        {!isCollapsed && label}
+                        {!isCollapsed && t(labelKey)}
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))}
@@ -129,7 +131,7 @@ export function ProductsSidebar({
                 {!isCollapsed && (
                   <>
                     <Sparkles className="mr-2 h-4 w-4" />
-                    Discount Type
+                    {t('discountType')}
                     <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
                   </>
                 )}
