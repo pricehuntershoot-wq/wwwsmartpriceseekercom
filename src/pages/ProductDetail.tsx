@@ -255,7 +255,13 @@ const ProductDetail = () => {
     ? czkPrices.reduce((min, p) => getFinalPrice(p) < getFinalPrice(min) ? p : min, czkPrices[0])
     : null;
 
-  const bestPrice = bestEurPrice || bestCzkPrice;
+  // Find the absolute best price across all currencies and conditions
+  const allPrices = product?.prices || [];
+  const absoluteBestPrice = allPrices.length > 0
+    ? allPrices.reduce((min, p) => getFinalPrice(p) < getFinalPrice(min) ? p : min, allPrices[0])
+    : null;
+
+  const bestPrice = absoluteBestPrice || bestEurPrice || bestCzkPrice;
   const currency: Currency = (bestPrice?.currency as Currency) || 'EUR';
   
   // Calculate savings for preferred currency (including promo discounts)
