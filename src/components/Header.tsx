@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Zap, LogOut, Heart, ShoppingBag, Bell, Crown, Settings, Menu } from "lucide-react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Zap, LogOut, Heart, ShoppingBag, Bell, Crown, Settings, Menu, ChevronDown, Headphones, Smartphone, Watch, Speaker, Package } from "lucide-react";
+import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -9,7 +9,29 @@ import { CurrencySelector } from "./CurrencySelector";
 import { LanguageSelector } from "./LanguageSelector";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from "./ui/dropdown-menu";
 import pricehunterLogo from "@/assets/pricehunter-logo.png";
+
+const PRODUCT_CATEGORIES = [
+  { value: 'headphones', label: 'Headphones', icon: Headphones },
+  { value: 'mobile_phones', label: 'Mobile Phones', icon: Smartphone },
+  { value: 'smart_watches', label: 'Smart Watches', icon: Watch },
+  { value: 'speakers', label: 'Speakers', icon: Speaker },
+];
+
+const CONDITION_OPTIONS = [
+  { value: 'all', label: 'Everything' },
+  { value: 'new', label: 'New' },
+  { value: 'used', label: 'Used' },
+  { value: 'unpacked', label: 'Unpacked' },
+];
 
 export const Header = () => {
   const { user, signOut } = useAuth();
@@ -17,6 +39,7 @@ export const Header = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
 
   const handleSignOut = async () => {
@@ -42,6 +65,26 @@ export const Header = () => {
     setIsOpen(false);
   };
 
+  const handleCategorySelect = (category: string | null) => {
+    const params = new URLSearchParams(searchParams);
+    if (category) {
+      params.set('category', category);
+    } else {
+      params.delete('category');
+    }
+    navigate(`/products?${params.toString()}`);
+  };
+
+  const handleConditionSelect = (condition: string) => {
+    const params = new URLSearchParams(searchParams);
+    if (condition && condition !== 'all') {
+      params.set('condition', condition);
+    } else {
+      params.delete('condition');
+    }
+    navigate(`/products?${params.toString()}`);
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-border/50 bg-emerald-900/95 backdrop-blur-xl">
       <div className="container flex h-16 items-center justify-between">
@@ -54,11 +97,45 @@ export const Header = () => {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden items-center gap-8 md:flex">
-          <Link to="/products" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
-            <ShoppingBag className="mr-1 inline h-4 w-4" />
-            {t('products')}
-          </Link>
+        <nav className="hidden items-center gap-6 md:flex">
+          {/* Products Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground">
+              <ShoppingBag className="h-4 w-4" />
+              {t('products')}
+              <ChevronDown className="h-3 w-3" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48">
+              <DropdownMenuLabel>Categories</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => handleCategorySelect(null)}>
+                <Package className="mr-2 h-4 w-4" />
+                All Products
+              </DropdownMenuItem>
+              {PRODUCT_CATEGORIES.map(({ value, label, icon: Icon }) => (
+                <DropdownMenuItem key={value} onClick={() => handleCategorySelect(value)}>
+                  <Icon className="mr-2 h-4 w-4" />
+                  {label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Condition Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground">
+              Condition
+              <ChevronDown className="h-3 w-3" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-40">
+              {CONDITION_OPTIONS.map(({ value, label }) => (
+                <DropdownMenuItem key={value} onClick={() => handleConditionSelect(value)}>
+                  {label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <button 
             onClick={() => scrollToSection('how-it-works')} 
             className="text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -139,13 +216,51 @@ export const Header = () => {
               <div className="flex flex-col gap-6 pt-6">
                 {/* Mobile Navigation Links */}
                 <nav className="flex flex-col gap-4">
-                  <button
-                    onClick={() => handleNavigation('/products')}
-                    className="flex items-center gap-3 text-lg font-medium text-foreground"
-                  >
-                    <ShoppingBag className="h-5 w-5" />
-                    {t('products')}
-                  </button>
+                  {/* Products with subcategories */}
+                  <div className="space-y-2">
+                    <span className="flex items-center gap-3 text-lg font-medium text-foreground">
+                      <ShoppingBag className="h-5 w-5" />
+                      {t('products')}
+                    </span>
+                    <div className="ml-8 flex flex-col gap-2">
+                      <button
+                        onClick={() => { handleCategorySelect(null); setIsOpen(false); }}
+                        className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-2"
+                      >
+                        <Package className="h-4 w-4" />
+                        All Products
+                      </button>
+                      {PRODUCT_CATEGORIES.map(({ value, label, icon: Icon }) => (
+                        <button
+                          key={value}
+                          onClick={() => { handleCategorySelect(value); setIsOpen(false); }}
+                          className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-2"
+                        >
+                          <Icon className="h-4 w-4" />
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Condition filter */}
+                  <div className="space-y-2">
+                    <span className="flex items-center gap-3 text-lg font-medium text-foreground">
+                      Condition
+                    </span>
+                    <div className="ml-8 flex flex-col gap-2">
+                      {CONDITION_OPTIONS.map(({ value, label }) => (
+                        <button
+                          key={value}
+                          onClick={() => { handleConditionSelect(value); setIsOpen(false); }}
+                          className="text-sm text-muted-foreground hover:text-foreground"
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <button 
                     onClick={() => scrollToSection('how-it-works')} 
                     className="flex items-center gap-3 text-lg font-medium text-foreground"
