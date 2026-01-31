@@ -10,6 +10,7 @@ import { LanguageProvider } from "@/hooks/useLanguage";
 
 import Auth from "./pages/Auth";
 import Favorites from "./pages/Favorites";
+import Index from "./pages/Index";
 import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
 import MyAlerts from "./pages/MyAlerts";
@@ -30,7 +31,8 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Products />} />
+              <Route path="/" element={<Index />} />
+              <Route path="/products" element={<Products />} />
               <Route path="/auth" element={<Auth />} />
               
               <Route path="/products/:id" element={<ProductDetail />} />
