@@ -46,7 +46,7 @@ export const Header = () => {
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-border/50 bg-emerald-900/95 backdrop-blur-xl">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2.5">
-          <img src={pricehunterLogo} alt="PriceHunter Logo" className="h-14 w-14" />
+          <img src={pricehunterLogo} alt="PriceHunter Logo" className="h-20 w-20 -my-2" />
           <span className="text-2xl font-bold text-yellow-400 font-display tracking-tight italic" style={{ WebkitTextStroke: '0.5px white' }}>Price Hunter</span>
           <span className="-ml-1 rounded-md bg-orange-500 px-2 py-0.5 text-xs font-bold text-white uppercase tracking-wide rotate-[-8deg] shadow-md">
             Beta
