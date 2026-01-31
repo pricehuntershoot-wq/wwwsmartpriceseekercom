@@ -1,5 +1,6 @@
-import { Bot, Github, Linkedin, Twitter } from "lucide-react";
+import { Github, Linkedin, Twitter } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
+import pricehunterLogo from "@/assets/pricehunter-logo.png";
 
 export const Footer = () => {
   const { t } = useLanguage();
@@ -11,10 +12,8 @@ export const Footer = () => {
           {/* Brand */}
           <div className="md:col-span-2">
             <div className="mb-4 flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-primary">
-                <Bot className="h-5 w-5 text-primary-foreground" />
-              </div>
-              <span className="text-xl font-bold">PriceHunter</span>
+              <img src={pricehunterLogo} alt="PriceHunter Logo" className="h-9 w-9" />
+              <span className="text-xl font-bold text-yellow-400">Price Hunter</span>
             </div>
             <p className="mb-6 max-w-md text-muted-foreground">
               {t('footerDesc')}
