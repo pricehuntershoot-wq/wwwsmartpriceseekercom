@@ -13,7 +13,7 @@ export const Footer = () => {
           <div className="md:col-span-2">
             <div className="mb-4 flex items-center gap-2.5">
               <img src={pricehunterLogo} alt="PriceHunter Logo" className="h-11 w-11" />
-              <span className="text-2xl font-bold text-yellow-400 font-display tracking-tight">Price Hunter</span>
+              <span className="text-2xl font-bold text-yellow-400 font-display tracking-tight italic" style={{ WebkitTextStroke: '1.5px black', textShadow: '2px 2px 0 black' }}>Price Hunter</span>
             </div>
             <p className="mb-6 max-w-md text-muted-foreground">
               {t('footerDesc')}
