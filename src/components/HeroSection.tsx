@@ -1,12 +1,104 @@
 import { ArrowRight, Bot, Search, Sparkles } from "lucide-react";
 import { Button } from "./ui/button";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { RotatingBasket } from "./RotatingBasket";
+import { supabase } from "@/integrations/supabase/client";
+import { useCurrencyPreference } from "@/hooks/useCurrencyPreference";
+import { formatPrice as formatPriceFn } from "@/lib/currency";
+import { useNavigate } from "react-router-dom";
+
+interface ProductSuggestion {
+  id: string;
+  name: string;
+  image_url: string | null;
+  category: string | null;
+  lowestPrice?: number;
+}
 
 export const HeroSection = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<ProductSuggestion[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { t } = useLanguage();
+  const { preferredCurrency } = useCurrencyPreference();
+  const formatPrice = (price: number) => formatPriceFn(price, preferredCurrency);
+  const navigate = useNavigate();
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Fetch product suggestions
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (searchQuery.trim().length < 2) {
+        setSuggestions([]);
+        setIsOpen(false);
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const { data: products, error } = await supabase
+          .from("products")
+          .select("id, name, image_url, category")
+          .ilike("name", `%${searchQuery}%`)
+          .limit(5);
+
+        if (error) throw error;
+
+        // Fetch lowest price for each product
+        const productsWithPrices = await Promise.all(
+          (products || []).map(async (product) => {
+            const { data: prices } = await supabase
+              .from("prices")
+              .select("current_price")
+              .eq("product_id", product.id)
+              .eq("is_active", true)
+              .order("current_price", { ascending: true })
+              .limit(1);
+
+            return {
+              ...product,
+              lowestPrice: prices?.[0]?.current_price,
+            };
+          })
+        );
+
+        setSuggestions(productsWithPrices);
+        setIsOpen(productsWithPrices.length > 0);
+      } catch (error) {
+        console.error("Error fetching suggestions:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const debounce = setTimeout(fetchSuggestions, 300);
+    return () => clearTimeout(debounce);
+  }, [searchQuery]);
+
+  const handleSelectProduct = (productId: string) => {
+    setIsOpen(false);
+    setSearchQuery("");
+    navigate(`/product/${productId}`);
+  };
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
 
   return (
     <section className="relative min-h-screen overflow-hidden pt-32 pb-20">
@@ -54,8 +146,8 @@ export const HeroSection = () => {
             {t('heroSubtitle')}
           </p>
 
-          {/* Search Bar */}
-          <div className="mx-auto mb-8 max-w-2xl">
+          {/* Search Bar with Autocomplete */}
+          <div className="mx-auto mb-8 max-w-2xl" ref={wrapperRef}>
             <div className="group relative">
               <div className="absolute -inset-0.5 rounded-2xl bg-gradient-primary opacity-50 blur transition-opacity group-hover:opacity-75" />
               <div className="relative flex items-center gap-2 rounded-xl border border-border bg-card p-2">
@@ -64,14 +156,65 @@ export const HeroSection = () => {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                   placeholder={t('heroSearchPlaceholder')}
                   className="flex-1 bg-transparent px-2 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none"
                 />
-                <Button variant="hero" size="lg">
+                <Button variant="hero" size="lg" onClick={handleSearch}>
                   {t('heroSearchButton')}
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>
+
+              {/* Autocomplete Dropdown */}
+              {isOpen && (
+                <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-border bg-card shadow-xl">
+                  {isLoading ? (
+                    <div className="flex items-center justify-center p-4">
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    </div>
+                  ) : (
+                    <ul className="divide-y divide-border">
+                      {suggestions.map((product) => (
+                        <li key={product.id}>
+                          <button
+                            type="button"
+                            onClick={() => handleSelectProduct(product.id)}
+                            className="flex w-full items-center gap-4 p-3 text-left transition-colors hover:bg-secondary/50"
+                          >
+                            <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-secondary">
+                              {product.image_url ? (
+                                <img
+                                  src={product.image_url}
+                                  alt={product.name}
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                                  <Search className="h-5 w-5" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1 overflow-hidden">
+                              <p className="truncate font-medium text-foreground">
+                                {product.name}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {product.category}
+                              </p>
+                            </div>
+                            {product.lowestPrice && (
+                              <span className="flex-shrink-0 font-semibold text-primary">
+                                {formatPrice(product.lowestPrice)}
+                              </span>
+                            )}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
