@@ -11,9 +11,9 @@ export const Footer = () => {
         <div className="grid gap-12 md:grid-cols-4">
           {/* Brand */}
           <div className="md:col-span-2">
-            <div className="mb-4 flex items-center gap-2">
-              <img src={pricehunterLogo} alt="PriceHunter Logo" className="h-9 w-9" />
-              <span className="text-xl font-bold text-yellow-400">Price Hunter</span>
+            <div className="mb-4 flex items-center gap-2.5">
+              <img src={pricehunterLogo} alt="PriceHunter Logo" className="h-11 w-11" />
+              <span className="text-2xl font-bold text-yellow-400 font-display tracking-tight">Price Hunter</span>
             </div>
             <p className="mb-6 max-w-md text-muted-foreground">
               {t('footerDesc')}
