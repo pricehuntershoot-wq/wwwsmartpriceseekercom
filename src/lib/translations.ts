@@ -117,7 +117,7 @@ export const translations = {
     heroTitlePart2: 'Others Can\'t See',
     heroSubtitle: 'Our AI agents actively explore e-shops to uncover secret cart discounts, returned items deals, and prices that never appear in traditional comparators.',
     heroSearchPlaceholder: 'Search for any product... (e.g., iPhone 15, Samsung TV, Nike Air Max)',
-    heroSearchButton: 'Burton',
+    heroSearchButton: 'Shoot',
     heroStat1: '500+ E-shops Monitored',
     heroStat2: 'Average 23% More Savings',
     heroStat3: 'Real-time Discovery',
