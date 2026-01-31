@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 import { Headphones, Smartphone, Watch, Speaker } from "lucide-react";
 
 const SUBCATEGORIES = [
-  { value: 'headphones', label: 'Headphones', icon: Headphones },
+  { value: 'Headphones', label: 'Headphones', icon: Headphones },
   { value: 'mobile_phones', label: 'Mobile Phones', icon: Smartphone },
   { value: 'smart_watches', label: 'Smart Watches', icon: Watch },
   { value: 'speakers', label: 'Speakers', icon: Speaker },

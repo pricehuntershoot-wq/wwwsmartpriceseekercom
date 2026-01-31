@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
@@ -25,11 +26,34 @@ const Products = () => {
   const { user } = useAuth();
   const { preferredCurrency } = useCurrencyPreference();
   const { data: promoCodes } = usePromoCodes();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(
+    searchParams.get('category')
+  );
   const [selectedDiscountTypes, setSelectedDiscountTypes] = useState<string[]>([]);
   const [selectedCurrency, setSelectedCurrency] = useState<CurrencyFilter>('all');
   const [sortOption, setSortOption] = useState<SortOption>('price_asc');
+
+  // Sync category with URL params
+  useEffect(() => {
+    const urlCategory = searchParams.get('category');
+    if (urlCategory !== selectedCategory) {
+      setSelectedCategory(urlCategory);
+    }
+  }, [searchParams]);
+
+  // Update URL when category changes
+  const handleCategoryChange = (category: string | null) => {
+    setSelectedCategory(category);
+    const params = new URLSearchParams(searchParams);
+    if (category) {
+      params.set('category', category);
+    } else {
+      params.delete('category');
+    }
+    setSearchParams(params);
+  };
 
   // Fetch products with prices and shops
   const { data: products, isLoading: productsLoading } = useQuery({
@@ -267,7 +291,7 @@ const Products = () => {
         <div className="flex w-full">
           <ProductsSidebar
             selectedCategory={selectedCategory}
-            setSelectedCategory={setSelectedCategory}
+            setSelectedCategory={handleCategoryChange}
             selectedDiscountTypes={selectedDiscountTypes}
             toggleDiscountType={toggleDiscountType}
             selectedCurrency={selectedCurrency}
