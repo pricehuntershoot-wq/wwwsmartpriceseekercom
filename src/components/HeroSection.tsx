@@ -2,6 +2,7 @@ import { ArrowRight, Bot, Search, Sparkles } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState } from "react";
 import { useLanguage } from "@/hooks/useLanguage";
+import { RotatingBasket } from "./RotatingBasket";
 
 export const HeroSection = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -20,6 +21,14 @@ export const HeroSection = () => {
       </div>
       <div className="absolute top-60 right-32 animate-float opacity-20" style={{ animationDelay: "2s" }}>
         <Sparkles className="h-8 w-8 text-accent" />
+      </div>
+      
+      {/* 3D Rotating Basket */}
+      <div className="absolute top-1/3 left-16 opacity-30 lg:left-32">
+        <RotatingBasket />
+      </div>
+      <div className="absolute bottom-1/4 right-16 opacity-25 lg:right-32">
+        <RotatingBasket />
       </div>
 
       <div className="container relative z-10">

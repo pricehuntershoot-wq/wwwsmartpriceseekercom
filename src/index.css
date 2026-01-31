@@ -165,3 +165,24 @@
     background-position: 200% 0;
   }
 }
+
+@keyframes rotate3d {
+  0% {
+    transform: perspective(500px) rotateY(0deg) rotateX(10deg);
+  }
+  50% {
+    transform: perspective(500px) rotateY(180deg) rotateX(-10deg);
+  }
+  100% {
+    transform: perspective(500px) rotateY(360deg) rotateX(10deg);
+  }
+}
+
+.rotating-basket-container {
+  perspective: 500px;
+}
+
+.rotating-basket {
+  animation: rotate3d 8s ease-in-out infinite;
+  transform-style: preserve-3d;
+}
