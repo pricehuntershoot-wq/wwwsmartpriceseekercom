@@ -24,10 +24,10 @@ export const HeroSection = () => {
       </div>
       
       {/* 3D Rotating Basket */}
-      <div className="absolute top-1/3 left-16 opacity-30 lg:left-32">
+      <div className="absolute top-1/3 left-4 opacity-30 sm:left-8 md:left-16 lg:left-32">
         <RotatingBasket />
       </div>
-      <div className="absolute bottom-1/4 right-16 opacity-25 lg:right-32">
+      <div className="absolute bottom-1/4 right-4 opacity-25 sm:right-8 md:right-16 lg:right-32">
         <RotatingBasket />
       </div>
 
