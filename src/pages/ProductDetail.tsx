@@ -62,6 +62,7 @@ const ProductDetail = () => {
   const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false);
   const [tableSortField, setTableSortField] = useState<'price' | 'currency' | 'updated'>('price');
   const [tableSortDirection, setTableSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [conditionFilter, setConditionFilter] = useState<'all' | 'new' | 'open_box'>('all');
 
   // Fetch product with prices and shops
   const { data: product, isLoading } = useQuery({
@@ -270,8 +271,21 @@ const ProductDetail = () => {
     ? (preferredBestPrice.original_price || preferredBestPrice.current_price) - getFinalPrice(preferredBestPrice)
     : 0;
 
+  // Filter prices by condition
+  const filteredByCondition = (product?.prices || []).filter(price => {
+    if (conditionFilter === 'all') return true;
+    if (conditionFilter === 'new') return !price.discount_type || price.discount_type === 'new';
+    if (conditionFilter === 'open_box') return price.discount_type === 'open_box';
+    return true;
+  });
+
+  // Get unique conditions for filter buttons
+  const availableConditions = [...new Set((product?.prices || []).map(p => p.discount_type || 'new'))];
+  const hasOpenBox = availableConditions.includes('open_box');
+  const hasNew = availableConditions.some(c => !c || c === 'new');
+
   // Sort prices for table (using final price after promo)
-  const sortedPrices = [...(product?.prices || [])].sort((a, b) => {
+  const sortedPrices = [...filteredByCondition].sort((a, b) => {
     const direction = tableSortDirection === 'asc' ? 1 : -1;
     switch (tableSortField) {
       case 'price':
@@ -593,28 +607,72 @@ const ProductDetail = () => {
 
         {/* Price comparison table */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <CardHeader className="flex flex-col gap-4 space-y-0 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle className="flex items-center gap-2">
               <Store className="h-5 w-5" />
-              Price Comparison ({product.prices?.length || 0} offers)
+              Price Comparison ({sortedPrices.length} of {product.prices?.length || 0} offers)
             </CardTitle>
-            <div className="flex items-center gap-1 rounded-lg border bg-muted/50 p-1">
-              <Button
-                variant={preferredCurrency === 'EUR' ? 'default' : 'ghost'}
-                size="sm"
-                className="h-7 px-3"
-                onClick={() => setPreferredCurrency('EUR')}
-              >
-                € EUR
-              </Button>
-              <Button
-                variant={preferredCurrency === 'CZK' ? 'default' : 'ghost'}
-                size="sm"
-                className="h-7 px-3"
-                onClick={() => setPreferredCurrency('CZK')}
-              >
-                Kč CZK
-              </Button>
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Condition filter - Alza style */}
+              {(hasNew || hasOpenBox) && (
+                <div className="flex items-center gap-1 rounded-lg border border-border bg-background p-1">
+                  <Button
+                    variant={conditionFilter === 'all' ? 'default' : 'ghost'}
+                    size="sm"
+                    className="h-8 px-3 text-xs font-medium"
+                    onClick={() => setConditionFilter('all')}
+                  >
+                    Vše
+                  </Button>
+                  {hasNew && (
+                    <Button
+                      variant={conditionFilter === 'new' ? 'default' : 'ghost'}
+                      size="sm"
+                      className={cn(
+                        "h-8 px-3 text-xs font-medium",
+                        conditionFilter === 'new' && "bg-green-600 hover:bg-green-700"
+                      )}
+                      onClick={() => setConditionFilter('new')}
+                    >
+                      <Package className="mr-1.5 h-3.5 w-3.5" />
+                      Nový
+                    </Button>
+                  )}
+                  {hasOpenBox && (
+                    <Button
+                      variant={conditionFilter === 'open_box' ? 'default' : 'ghost'}
+                      size="sm"
+                      className={cn(
+                        "h-8 px-3 text-xs font-medium",
+                        conditionFilter === 'open_box' && "bg-amber-600 hover:bg-amber-700"
+                      )}
+                      onClick={() => setConditionFilter('open_box')}
+                    >
+                      <Package className="mr-1.5 h-3.5 w-3.5" />
+                      Rozbalený
+                    </Button>
+                  )}
+                </div>
+              )}
+              {/* Currency toggle */}
+              <div className="flex items-center gap-1 rounded-lg border bg-muted/50 p-1">
+                <Button
+                  variant={preferredCurrency === 'EUR' ? 'default' : 'ghost'}
+                  size="sm"
+                  className="h-7 px-3"
+                  onClick={() => setPreferredCurrency('EUR')}
+                >
+                  € EUR
+                </Button>
+                <Button
+                  variant={preferredCurrency === 'CZK' ? 'default' : 'ghost'}
+                  size="sm"
+                  className="h-7 px-3"
+                  onClick={() => setPreferredCurrency('CZK')}
+                >
+                  Kč CZK
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
