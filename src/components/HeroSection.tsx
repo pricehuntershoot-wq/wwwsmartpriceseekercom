@@ -161,7 +161,7 @@ export const HeroSection = () => {
                   className="flex-1 bg-transparent px-2 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none"
                 />
                 <Button variant="hero" size="lg" onClick={handleSearch}>
-                  {t('heroSearchButton')}
+                  Shoot
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>
