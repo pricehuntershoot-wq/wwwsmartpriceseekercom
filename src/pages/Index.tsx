@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { HeroSection } from "@/components/HeroSection";
+import { HowItWorksSection } from "@/components/HowItWorksSection";
 import { ProductCard } from "@/components/ProductCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -123,24 +125,25 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="container pt-24 pb-16">
-        {/* Hero Section */}
-        <section className="mb-16 text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-2">
-            <Sparkles className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Featured Deal</span>
-          </div>
-          
-          <h1 className="mb-4 text-4xl font-bold md:text-5xl lg:text-6xl">
-            Find the <span className="text-gradient-primary">Best Price</span>
-          </h1>
-          <p className="mx-auto mb-8 max-w-2xl text-lg text-muted-foreground">
-            Compare prices across multiple shops and discover hidden discounts
-          </p>
-        </section>
+      {/* Hero Section with search and value prop */}
+      <HeroSection />
+      
+      {/* How It Works - explains our AI-powered technology */}
+      <HowItWorksSection />
 
+      <main className="container py-16">
         {/* Featured Product */}
         <section className="mb-16">
+          <div className="mb-8 text-center">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-2">
+              <Sparkles className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium text-primary">Featured Deal</span>
+            </div>
+            <h2 className="text-3xl font-bold md:text-4xl">
+              See It In Action
+            </h2>
+          </div>
+          
           <div className="mx-auto max-w-md">
             {isLoading ? (
               <div className="space-y-4">
