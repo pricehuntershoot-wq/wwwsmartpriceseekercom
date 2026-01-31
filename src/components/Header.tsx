@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bot, Zap, LogOut, Heart, ShoppingBag, Bell, Crown, Settings, Menu, X } from "lucide-react";
+import { Zap, LogOut, Heart, ShoppingBag, Bell, Crown, Settings, Menu } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,6 +9,7 @@ import { CurrencySelector } from "./CurrencySelector";
 import { LanguageSelector } from "./LanguageSelector";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import pricehunterLogo from "@/assets/pricehunter-logo.png";
 
 export const Header = () => {
   const { user, signOut } = useAuth();
@@ -45,12 +46,10 @@ export const Header = () => {
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-primary">
-            <Bot className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <span className="text-xl font-bold">PriceHunter</span>
-          <span className="rounded-full bg-accent/20 px-2 py-0.5 text-xs font-medium text-accent">
-            AI
+          <img src={pricehunterLogo} alt="PriceHunter Logo" className="h-9 w-9" />
+          <span className="text-xl font-bold text-yellow-400">Price Hunter</span>
+          <span className="rounded-md bg-orange-500 px-2 py-0.5 text-xs font-bold text-white uppercase tracking-wide rotate-[-8deg] shadow-md">
+            Beta
           </span>
         </Link>
 
