@@ -77,6 +77,13 @@ export const translations = {
     searchProducts: 'Search products...',
     allCategories: 'All Categories',
     noProductsFound: 'No products found',
+    discoverText: 'Discover',
+    productsPageDescription: 'Compare prices across shops and find discounts others miss',
+    clearFilters: 'Clear filters',
+    sortPriceLowHigh: 'Price: Low to High',
+    sortPriceHighLow: 'Price: High to Low',
+    sortBiggestSavings: 'Biggest Savings',
+    sortRecentlyUpdated: 'Recently Updated',
     
     // Categories
     categoryHeadphones: 'Headphones',
@@ -303,6 +310,13 @@ export const translations = {
     searchProducts: 'Hledat produkty...',
     allCategories: 'Všechny kategorie',
     noProductsFound: 'Žádné produkty nenalezeny',
+    discoverText: 'Objevte',
+    productsPageDescription: 'Porovnávejte ceny mezi obchody a najděte slevy, které ostatní přehlédnou',
+    clearFilters: 'Zrušit filtry',
+    sortPriceLowHigh: 'Cena: od nejnižší',
+    sortPriceHighLow: 'Cena: od nejvyšší',
+    sortBiggestSavings: 'Nejvyšší úspora',
+    sortRecentlyUpdated: 'Naposledy aktualizováno',
     
     // Categories
     categoryHeadphones: 'Sluchátka',

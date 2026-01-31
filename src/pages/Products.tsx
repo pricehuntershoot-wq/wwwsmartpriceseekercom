@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useCurrencyPreference } from "@/hooks/useCurrencyPreference";
 import { usePromoCodes, getPromoCodeForShop, calculatePriceWithPromo } from "@/hooks/usePromoCodes";
+import { useLanguage } from "@/hooks/useLanguage";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ const Products = () => {
   const { user } = useAuth();
   const { preferredCurrency } = useCurrencyPreference();
   const { data: promoCodes } = usePromoCodes();
+  const { t } = useLanguage();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(
@@ -281,10 +283,10 @@ const Products = () => {
         {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold md:text-4xl">
-            Discover <span className="text-gradient">Hidden Deals</span>
+            {t('discoverText')} <span className="text-gradient">{t('hiddenDeals')}</span>
           </h1>
           <p className="mt-2 text-muted-foreground">
-            Compare prices across shops and find discounts others miss
+            {t('productsPageDescription')}
           </p>
         </div>
 
@@ -293,7 +295,7 @@ const Products = () => {
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search products..."
+              placeholder={t('searchProducts')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -305,16 +307,16 @@ const Products = () => {
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="price_asc">Price: Low to High</SelectItem>
-              <SelectItem value="price_desc">Price: High to Low</SelectItem>
-              <SelectItem value="savings">Biggest Savings</SelectItem>
-              <SelectItem value="updated">Recently Updated</SelectItem>
+              <SelectItem value="price_asc">{t('sortPriceLowHigh')}</SelectItem>
+              <SelectItem value="price_desc">{t('sortPriceHighLow')}</SelectItem>
+              <SelectItem value="savings">{t('sortBiggestSavings')}</SelectItem>
+              <SelectItem value="updated">{t('sortRecentlyUpdated')}</SelectItem>
             </SelectContent>
           </Select>
           {hasActiveFilters && (
             <Button variant="ghost" onClick={clearFilters}>
               <X className="mr-1 h-4 w-4" />
-              Clear filters
+              {t('clearFilters')}
             </Button>
           )}
         </div>
@@ -344,8 +346,8 @@ const Products = () => {
         ) : (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <Package className="mb-4 h-12 w-12 text-muted-foreground/50" />
-            <h3 className="text-lg font-semibold">No products found</h3>
-            <p className="text-muted-foreground">Try adjusting your search or filters</p>
+            <h3 className="text-lg font-semibold">{t('noProductsFound')}</h3>
+            <p className="text-muted-foreground">{t('productsPageDescription')}</p>
           </div>
         )}
       </main>
