@@ -13,8 +13,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { Search, Package, X, ArrowUpDown } from "lucide-react";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { Search, Package, X, ArrowUpDown, Filter } from "lucide-react";
 import { toast } from "sonner";
 
 type SortOption = 'price_asc' | 'price_desc' | 'savings' | 'updated';
@@ -280,6 +280,12 @@ const Products = () => {
 
             {/* Search & Sort Bar */}
             <div className="mb-6 flex flex-wrap gap-3">
+              {/* Mobile filter trigger */}
+              <SidebarTrigger className="md:hidden">
+                <Filter className="mr-2 h-4 w-4" />
+                Filters
+              </SidebarTrigger>
+              
               <div className="relative flex-1 min-w-[200px]">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
