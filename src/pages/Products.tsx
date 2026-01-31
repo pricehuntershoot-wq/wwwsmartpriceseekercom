@@ -5,7 +5,6 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
 import { EarlyAccessBanner } from "@/components/EarlyAccessBanner";
-import pricehunterLogo from "@/assets/pricehunter-logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useCurrencyPreference } from "@/hooks/useCurrencyPreference";
@@ -275,17 +274,7 @@ const Products = () => {
     <div className="min-h-screen bg-background">
       <Header />
       
-      {/* Hero Banner */}
-      <div className="bg-emerald-900 pt-16">
-        <div className="container flex items-center gap-6 py-8">
-          <img src={pricehunterLogo} alt="PriceHunter Logo" className="h-24 w-24 md:h-32 md:w-32" />
-          <h2 className="text-3xl font-bold text-yellow-400 font-display tracking-tight italic md:text-4xl lg:text-5xl" style={{ WebkitTextStroke: '0.5px white' }}>
-            We are going hunting
-          </h2>
-        </div>
-      </div>
-      
-      <main className="container py-6 lg:py-8">
+      <main className="container pt-20 py-6 lg:py-8">
         {/* Early Access Banner */}
         <EarlyAccessBanner />
         
