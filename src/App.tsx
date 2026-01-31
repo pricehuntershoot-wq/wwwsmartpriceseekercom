@@ -7,7 +7,7 @@ import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/hooks/useAuth";
 import { CurrencyPreferenceProvider } from "@/hooks/useCurrencyPreference";
 import { LanguageProvider } from "@/hooks/useLanguage";
-import Index from "./pages/Index";
+
 import Auth from "./pages/Auth";
 import Favorites from "./pages/Favorites";
 import Products from "./pages/Products";
@@ -30,9 +30,9 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<Products />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/products" element={<Products />} />
+              
               <Route path="/products/:id" element={<ProductDetail />} />
               <Route path="/favorites" element={<Favorites />} />
               <Route path="/alerts" element={<MyAlerts />} />
