@@ -266,7 +266,6 @@ const Products = () => {
       <SidebarProvider defaultOpen={true}>
         <div className="flex w-full">
           <ProductsSidebar
-            categories={categories as string[]}
             selectedCategory={selectedCategory}
             setSelectedCategory={setSelectedCategory}
             selectedDiscountTypes={selectedDiscountTypes}

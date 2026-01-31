@@ -15,6 +15,15 @@ import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 
+import { Headphones, Smartphone, Watch, Speaker } from "lucide-react";
+
+const SUBCATEGORIES = [
+  { value: 'headphones', label: 'Headphones', icon: Headphones },
+  { value: 'mobile_phones', label: 'Mobile Phones', icon: Smartphone },
+  { value: 'smart_watches', label: 'Smart Watches', icon: Watch },
+  { value: 'speakers', label: 'Speakers', icon: Speaker },
+];
+
 const DISCOUNT_FILTERS = [
   { type: 'in_cart', label: 'In Cart', icon: ShoppingCart },
   { type: 'open_box', label: 'Open Box', icon: Package },
@@ -29,7 +38,6 @@ const CURRENCY_FILTERS = [
 ];
 
 interface ProductsSidebarProps {
-  categories: string[];
   selectedCategory: string | null;
   setSelectedCategory: (category: string | null) => void;
   selectedDiscountTypes: string[];
@@ -40,7 +48,6 @@ interface ProductsSidebarProps {
 }
 
 export function ProductsSidebar({
-  categories,
   selectedCategory,
   setSelectedCategory,
   selectedDiscountTypes,
@@ -90,19 +97,21 @@ export function ProductsSidebar({
                         selectedCategory === null && "bg-primary text-primary-foreground hover:bg-primary/90"
                       )}
                     >
-                      {!isCollapsed ? "All Categories" : "All"}
+                      <Package className="mr-2 h-4 w-4" />
+                      {!isCollapsed && "All Categories"}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                  {categories.map((category) => (
-                    <SidebarMenuItem key={category}>
+                  {SUBCATEGORIES.map(({ value, label, icon: Icon }) => (
+                    <SidebarMenuItem key={value}>
                       <SidebarMenuButton
-                        onClick={() => setSelectedCategory(category)}
+                        onClick={() => setSelectedCategory(value)}
                         className={cn(
                           "w-full justify-start",
-                          selectedCategory === category && "bg-primary text-primary-foreground hover:bg-primary/90"
+                          selectedCategory === value && "bg-primary text-primary-foreground hover:bg-primary/90"
                         )}
                       >
-                        {!isCollapsed ? category : category.slice(0, 3)}
+                        <Icon className="mr-2 h-4 w-4" />
+                        {!isCollapsed && label}
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))}
