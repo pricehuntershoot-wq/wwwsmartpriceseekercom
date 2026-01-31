@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { TrendingDown, Clock, Crown, ArrowRight, Percent, Zap, Lock, Store, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
+import { cs, enUS } from "date-fns/locale";
 
 interface ShopPrice {
   id: string;
@@ -55,7 +56,9 @@ export const PriceDropsDashboard = () => {
   const { user } = useAuth();
   const { isPremium, loading: subscriptionLoading } = useSubscription();
   const { preferredCurrency } = useCurrencyPreference();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+
+  const dateLocale = language === 'cs' ? cs : enUS;
 
   const { data: priceDrops, isLoading } = useQuery({
     queryKey: ['price-drops-dashboard'],
@@ -190,7 +193,7 @@ export const PriceDropsDashboard = () => {
                     <Lock className="h-8 w-8 text-muted-foreground" />
                     <p className="text-sm font-medium text-muted-foreground">{t('premiumOnly')}</p>
                     <p className="text-xs text-muted-foreground">
-                      {t('availableIn')} {formatDistanceToNow(new Date(new Date(drop.detected_at).getTime() + 60 * 60 * 1000))}
+                      {t('availableIn')} {formatDistanceToNow(new Date(new Date(drop.detected_at).getTime() + 60 * 60 * 1000), { locale: dateLocale })}
                     </p>
                     <Link to="/premium">
                       <Button size="sm" variant="default" className="mt-2 gap-1">
@@ -323,7 +326,7 @@ export const PriceDropsDashboard = () => {
                                     )}
                                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                       <Clock className="h-3 w-3" />
-                                      <span>{t('updated')} {formatDistanceToNow(new Date(shopPrice.discovered_at), { addSuffix: true })}</span>
+                                      <span>{t('updated')} {formatDistanceToNow(new Date(shopPrice.discovered_at), { addSuffix: true, locale: dateLocale })}</span>
                                     </div>
                                     <div className="pt-1 border-t text-xs">
                                       <span className="font-medium">{t('price')}: </span>
@@ -351,7 +354,7 @@ export const PriceDropsDashboard = () => {
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
-                      {formatDistanceToNow(new Date(drop.detected_at), { addSuffix: true })}
+                      {formatDistanceToNow(new Date(drop.detected_at), { addSuffix: true, locale: dateLocale })}
                     </div>
                     {status.hasAccess && drop.product && (
                       <Link to={`/products/${drop.product.id}`}>
