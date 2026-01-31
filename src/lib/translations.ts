@@ -78,6 +78,15 @@ export const translations = {
     allCategories: 'All Categories',
     noProductsFound: 'No products found',
     
+    // Categories
+    categoryHeadphones: 'Headphones',
+    categoryMobilePhones: 'Mobile Phones',
+    categorySmartWatches: 'Smart Watches',
+    categorySpeakers: 'Speakers',
+    categories: 'Categories',
+    discountType: 'Discount Type',
+    filters: 'Filters',
+    
     // Product Detail
     priceComparison: 'Price Comparison',
     priceHistory: 'Price History',
@@ -294,6 +303,15 @@ export const translations = {
     searchProducts: 'Hledat produkty...',
     allCategories: 'Všechny kategorie',
     noProductsFound: 'Žádné produkty nenalezeny',
+    
+    // Categories
+    categoryHeadphones: 'Sluchátka',
+    categoryMobilePhones: 'Mobily',
+    categorySmartWatches: 'Chytré hodinky',
+    categorySpeakers: 'Reproduktory',
+    categories: 'Kategorie',
+    discountType: 'Typ slevy',
+    filters: 'Filtry',
     
     // Product Detail
     priceComparison: 'Srovnání cen',

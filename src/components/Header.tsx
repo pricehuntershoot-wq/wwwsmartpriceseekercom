@@ -21,10 +21,10 @@ import {
 import pricehunterLogo from "@/assets/pricehunter-logo.png";
 
 const PRODUCT_CATEGORIES = [
-  { value: 'Headphones', label: 'Headphones', icon: Headphones },
-  { value: 'mobile_phones', label: 'Mobile Phones', icon: Smartphone },
-  { value: 'smart_watches', label: 'Smart Watches', icon: Watch },
-  { value: 'speakers', label: 'Speakers', icon: Speaker },
+  { value: 'Headphones', labelKey: 'categoryHeadphones' as const, icon: Headphones },
+  { value: 'mobile_phones', labelKey: 'categoryMobilePhones' as const, icon: Smartphone },
+  { value: 'smart_watches', labelKey: 'categorySmartWatches' as const, icon: Watch },
+  { value: 'speakers', labelKey: 'categorySpeakers' as const, icon: Speaker },
 ];
 
 const CONDITION_OPTIONS = [
@@ -107,16 +107,16 @@ export const Header = () => {
               <ChevronDown className="h-3 w-3" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-48">
-              <DropdownMenuLabel>Categories</DropdownMenuLabel>
+              <DropdownMenuLabel>{t('categories')}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => handleCategorySelect(null)}>
                 <Package className="mr-2 h-4 w-4" />
-                All Products
+                {t('allProducts')}
               </DropdownMenuItem>
-              {PRODUCT_CATEGORIES.map(({ value, label, icon: Icon }) => (
+              {PRODUCT_CATEGORIES.map(({ value, labelKey, icon: Icon }) => (
                 <DropdownMenuItem key={value} onClick={() => handleCategorySelect(value)}>
                   <Icon className="mr-2 h-4 w-4" />
-                  {label}
+                  {t(labelKey)}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
@@ -230,16 +230,16 @@ export const Header = () => {
                         className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-2"
                       >
                         <Package className="h-4 w-4" />
-                        All Products
+                        {t('allProducts')}
                       </button>
-                      {PRODUCT_CATEGORIES.map(({ value, label, icon: Icon }) => (
+                      {PRODUCT_CATEGORIES.map(({ value, labelKey, icon: Icon }) => (
                         <button
                           key={value}
                           onClick={() => { handleCategorySelect(value); setIsOpen(false); }}
                           className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-2"
                         >
                           <Icon className="h-4 w-4" />
-                          {label}
+                          {t(labelKey)}
                         </button>
                       ))}
                     </div>
