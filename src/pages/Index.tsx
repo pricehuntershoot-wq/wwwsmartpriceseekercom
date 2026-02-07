@@ -12,12 +12,11 @@ import { ArrowRight, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
-const FEATURED_PRODUCT_ID = "bbbb2222-2222-2222-2222-222222222222"; // Sony WH-1000XM6
+const FEATURED_PRODUCT_ID = "bbbb2222-2222-2222-2222-222222222222";
 
 const Index = () => {
   const { user } = useAuth();
 
-  // Fetch featured product with prices and shops
   const { data: featuredProduct, isLoading } = useQuery({
     queryKey: ['featured-product', FEATURED_PRODUCT_ID],
     queryFn: async () => {
@@ -30,24 +29,12 @@ const Index = () => {
       if (error) throw error;
       if (!product) return null;
 
-      // Fetch prices with shop info
       const { data: pricesData } = await supabase
         .from('prices')
-        .select(`
-          id,
-          current_price,
-          original_price,
-          discount_type,
-          discount_label,
-          product_url,
-          discovered_at,
-          currency,
-          shop_id
-        `)
+        .select(`id, current_price, original_price, discount_type, discount_label, product_url, discovered_at, currency, shop_id`)
         .eq('product_id', product.id)
         .eq('is_active', true);
 
-      // Fetch shop info for each price
       const pricesWithShops = await Promise.all(
         (pricesData || []).map(async (price) => {
           const { data: shopData } = await supabase
@@ -63,14 +50,10 @@ const Index = () => {
         })
       );
 
-      return {
-        ...product,
-        prices: pricesWithShops
-      };
+      return { ...product, prices: pricesWithShops };
     }
   });
 
-  // Fetch user favorites
   const { data: favorites, refetch: refetchFavorites } = useQuery({
     queryKey: ['favorites', user?.id],
     queryFn: async () => {
@@ -79,7 +62,6 @@ const Index = () => {
         .from('favorites')
         .select('product_id')
         .eq('user_id', user.id);
-      
       if (error) throw error;
       return data.map(f => f.product_id);
     },
@@ -91,55 +73,34 @@ const Index = () => {
       toast.error("Please sign in to save favorites");
       return;
     }
-
     const isFavorited = favorites?.includes(productId);
-
     if (isFavorited) {
-      const { error } = await supabase
-        .from('favorites')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('product_id', productId);
-      
-      if (error) {
-        toast.error("Failed to remove favorite");
-        return;
-      }
+      const { error } = await supabase.from('favorites').delete().eq('user_id', user.id).eq('product_id', productId);
+      if (error) { toast.error("Failed to remove favorite"); return; }
       toast.success("Removed from favorites");
     } else {
-      const { error } = await supabase
-        .from('favorites')
-        .insert({ user_id: user.id, product_id: productId });
-      
-      if (error) {
-        toast.error("Failed to add favorite");
-        return;
-      }
+      const { error } = await supabase.from('favorites').insert({ user_id: user.id, product_id: productId });
+      if (error) { toast.error("Failed to add favorite"); return; }
       toast.success("Added to favorites");
     }
-    
     refetchFavorites();
   };
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
-      {/* Hero Section with search and value prop */}
       <HeroSection />
-      
-      {/* How It Works - explains our AI-powered technology */}
       <HowItWorksSection />
 
-      <main className="container py-16">
+      <main className="container py-20">
         {/* Featured Product */}
         <section className="mb-16">
-          <div className="mb-8 text-center">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-2">
-              <Sparkles className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium text-primary">Featured Deal</span>
+          <div className="mb-10 text-center">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5">
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              <span className="text-xs font-medium tracking-wide uppercase text-primary">Featured Deal</span>
             </div>
-            <h2 className="text-3xl font-bold md:text-4xl">
+            <h2 className="font-heading text-3xl font-bold sm:text-4xl">
               See It In Action
             </h2>
           </div>
@@ -147,7 +108,7 @@ const Index = () => {
           <div className="mx-auto max-w-md">
             {isLoading ? (
               <div className="space-y-4">
-                <Skeleton className="aspect-square" />
+                <Skeleton className="aspect-square rounded-xl" />
                 <Skeleton className="h-4 w-3/4" />
                 <Skeleton className="h-4 w-1/2" />
               </div>
@@ -163,10 +124,10 @@ const Index = () => {
           </div>
         </section>
 
-        {/* CTA to Products */}
+        {/* CTA */}
         <section className="text-center">
           <Link to="/products">
-            <Button variant="hero" size="lg" className="gap-2">
+            <Button size="lg" className="gap-2">
               Browse All Products
               <ArrowRight className="h-4 w-4" />
             </Button>

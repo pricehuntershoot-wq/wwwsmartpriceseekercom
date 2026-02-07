@@ -34,7 +34,6 @@ const Products = () => {
   const [selectedCurrency, setSelectedCurrency] = useState<CurrencyFilter>('all');
   const [sortOption, setSortOption] = useState<SortOption>('price_asc');
 
-  // Sync category with URL params
   useEffect(() => {
     const urlCategory = searchParams.get('category');
     if (urlCategory !== selectedCategory) {
@@ -42,48 +41,27 @@ const Products = () => {
     }
   }, [searchParams]);
 
-  // Update URL when category changes
   const handleCategoryChange = (category: string | null) => {
     setSelectedCategory(category);
     const params = new URLSearchParams(searchParams);
-    if (category) {
-      params.set('category', category);
-    } else {
-      params.delete('category');
-    }
+    if (category) { params.set('category', category); } else { params.delete('category'); }
     setSearchParams(params);
   };
 
-  // Fetch products with prices and shops
   const { data: products, isLoading: productsLoading } = useQuery({
     queryKey: ['products'],
     queryFn: async () => {
-      const { data: productsData, error: productsError } = await supabase
-        .from('products')
-        .select('*');
-      
+      const { data: productsData, error: productsError } = await supabase.from('products').select('*');
       if (productsError) throw productsError;
 
-      // Fetch prices with shop info for each product
       const productsWithPrices = await Promise.all(
         productsData.map(async (product) => {
           const { data: pricesData } = await supabase
             .from('prices')
-            .select(`
-              id,
-              current_price,
-              original_price,
-              discount_type,
-              discount_label,
-              product_url,
-              discovered_at,
-              currency,
-              shop_id
-            `)
+            .select(`id, current_price, original_price, discount_type, discount_label, product_url, discovered_at, currency, shop_id`)
             .eq('product_id', product.id)
             .eq('is_active', true);
 
-          // Fetch shop info for each price
           const pricesWithShops = await Promise.all(
             (pricesData || []).map(async (price) => {
               const { data: shopData } = await supabase
@@ -91,7 +69,6 @@ const Products = () => {
                 .select('id, name, logo_url')
                 .eq('id', price.shop_id)
                 .maybeSingle();
-              
               return {
                 ...price,
                 shop: shopData || { id: price.shop_id, name: 'Unknown', logo_url: null }
@@ -99,10 +76,7 @@ const Products = () => {
             })
           );
 
-          return {
-            ...product,
-            prices: pricesWithShops
-          };
+          return { ...product, prices: pricesWithShops };
         })
       );
 
@@ -110,35 +84,25 @@ const Products = () => {
     }
   });
 
-  // Fetch user favorites
   const { data: favorites, refetch: refetchFavorites } = useQuery({
     queryKey: ['favorites', user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await supabase
-        .from('favorites')
-        .select('product_id')
-        .eq('user_id', user.id);
-      
+      const { data, error } = await supabase.from('favorites').select('product_id').eq('user_id', user.id);
       if (error) throw error;
       return data.map(f => f.product_id);
     },
     enabled: !!user
   });
 
-  // Get unique categories
-  const categories = products 
-    ? [...new Set(products.map(p => p.category).filter(Boolean))]
-    : [];
+  const categories = products ? [...new Set(products.map(p => p.category).filter(Boolean))] : [];
 
-  // Helper to get the final price after promo for a price entry
   const getFinalPrice = (price: { current_price: number; shop: { id: string } }) => {
     const promoCode = getPromoCodeForShop(promoCodes, price.shop.id);
     const { finalPrice } = calculatePriceWithPromo(price.current_price, promoCode);
     return finalPrice;
   };
 
-  // Helper to get best price for a product (lowest final price after promos)
   const getBestPrice = (product: typeof products[0]) => {
     if (!product.prices?.length) return null;
     return product.prices.reduce((best, price) => 
@@ -146,40 +110,30 @@ const Products = () => {
     , product.prices[0]);
   };
 
-  // Helper to get savings for a product (including promo discounts)
   const getSavings = (product: typeof products[0]) => {
     const best = getBestPrice(product);
     if (!best) return 0;
     const originalPrice = best.original_price || best.current_price;
-    const finalPrice = getFinalPrice(best);
-    return originalPrice - finalPrice;
+    return originalPrice - getFinalPrice(best);
   };
 
-  // Helper to get most recent update
   const getLatestUpdate = (product: typeof products[0]) => {
     if (!product.prices?.length) return new Date(0);
     return new Date(Math.max(...product.prices.map(p => new Date(p.discovered_at).getTime())));
   };
 
-  // Filter and sort products
   const filteredProducts = useMemo(() => {
     let result = products?.filter(product => {
       const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.description?.toLowerCase().includes(searchQuery.toLowerCase());
-      
       const matchesCategory = !selectedCategory || product.category === selectedCategory;
-      
       const matchesDiscount = selectedDiscountTypes.length === 0 || 
         product.prices.some(p => selectedDiscountTypes.includes(p.discount_type || ''));
-
-      // Filter by currency - only show products that have prices in the selected currency
       const matchesCurrency = selectedCurrency === 'all' || 
         product.prices.some(p => (p.currency || 'EUR') === selectedCurrency);
-
       return matchesSearch && matchesCategory && matchesDiscount && matchesCurrency;
     });
 
-    // If filtering by currency, also filter the prices within each product
     if (result && selectedCurrency !== 'all') {
       result = result.map(product => ({
         ...product,
@@ -191,27 +145,18 @@ const Products = () => {
       result = [...result].sort((a, b) => {
         switch (sortOption) {
           case 'price_asc': {
-            const bestA = getBestPrice(a);
-            const bestB = getBestPrice(b);
-            const priceA = bestA ? getFinalPrice(bestA) : Infinity;
-            const priceB = bestB ? getFinalPrice(bestB) : Infinity;
+            const priceA = getBestPrice(a) ? getFinalPrice(getBestPrice(a)!) : Infinity;
+            const priceB = getBestPrice(b) ? getFinalPrice(getBestPrice(b)!) : Infinity;
             return priceA - priceB;
           }
           case 'price_desc': {
-            const bestA = getBestPrice(a);
-            const bestB = getBestPrice(b);
-            const priceA = bestA ? getFinalPrice(bestA) : 0;
-            const priceB = bestB ? getFinalPrice(bestB) : 0;
+            const priceA = getBestPrice(a) ? getFinalPrice(getBestPrice(a)!) : 0;
+            const priceB = getBestPrice(b) ? getFinalPrice(getBestPrice(b)!) : 0;
             return priceB - priceA;
           }
-          case 'savings': {
-            return getSavings(b) - getSavings(a);
-          }
-          case 'updated': {
-            return getLatestUpdate(b).getTime() - getLatestUpdate(a).getTime();
-          }
-          default:
-            return 0;
+          case 'savings': return getSavings(b) - getSavings(a);
+          case 'updated': return getLatestUpdate(b).getTime() - getLatestUpdate(a).getTime();
+          default: return 0;
         }
       });
     }
@@ -220,46 +165,18 @@ const Products = () => {
   }, [products, promoCodes, searchQuery, selectedCategory, selectedDiscountTypes, selectedCurrency, sortOption]);
 
   const handleFavorite = async (productId: string) => {
-    if (!user) {
-      toast.error("Please sign in to save favorites");
-      return;
-    }
-
+    if (!user) { toast.error("Please sign in to save favorites"); return; }
     const isFavorited = favorites?.includes(productId);
-
     if (isFavorited) {
-      const { error } = await supabase
-        .from('favorites')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('product_id', productId);
-      
-      if (error) {
-        toast.error("Failed to remove favorite");
-        return;
-      }
+      const { error } = await supabase.from('favorites').delete().eq('user_id', user.id).eq('product_id', productId);
+      if (error) { toast.error("Failed to remove favorite"); return; }
       toast.success("Removed from favorites");
     } else {
-      const { error } = await supabase
-        .from('favorites')
-        .insert({ user_id: user.id, product_id: productId });
-      
-      if (error) {
-        toast.error("Failed to add favorite");
-        return;
-      }
+      const { error } = await supabase.from('favorites').insert({ user_id: user.id, product_id: productId });
+      if (error) { toast.error("Failed to add favorite"); return; }
       toast.success("Added to favorites");
     }
-    
     refetchFavorites();
-  };
-
-  const toggleDiscountType = (type: string) => {
-    setSelectedDiscountTypes(prev => 
-      prev.includes(type) 
-        ? prev.filter(t => t !== type)
-        : [...prev, type]
-    );
   };
 
   const clearFilters = () => {
@@ -276,33 +193,32 @@ const Products = () => {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="container pt-20 py-6 lg:py-8">
-        {/* Early Access Banner */}
+      <main className="container pt-24 pb-12">
         <EarlyAccessBanner />
         
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold md:text-4xl">
+          <h1 className="font-heading text-3xl font-bold sm:text-4xl">
             {t('discoverText')} <span className="text-gradient">{t('hiddenDeals')}</span>
           </h1>
-          <p className="mt-2 text-muted-foreground">
+          <p className="mt-2 text-sm text-muted-foreground sm:text-base">
             {t('productsPageDescription')}
           </p>
         </div>
 
-        {/* Search & Sort Bar */}
-        <div className="mb-6 flex flex-wrap gap-3">
+        {/* Search & Sort */}
+        <div className="mb-8 flex flex-wrap gap-3">
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder={t('searchProducts')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              className="pl-10 bg-card/50"
             />
           </div>
           <Select value={sortOption} onValueChange={(value: SortOption) => setSortOption(value)}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px] bg-card/50">
               <ArrowUpDown className="mr-2 h-4 w-4" />
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
@@ -314,7 +230,7 @@ const Products = () => {
             </SelectContent>
           </Select>
           {hasActiveFilters && (
-            <Button variant="ghost" onClick={clearFilters}>
+            <Button variant="ghost" size="sm" onClick={clearFilters}>
               <X className="mr-1 h-4 w-4" />
               {t('clearFilters')}
             </Button>
@@ -323,17 +239,17 @@ const Products = () => {
 
         {/* Products Grid */}
         {productsLoading ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="space-y-4">
-                <Skeleton className="aspect-square" />
+              <div key={i} className="space-y-3">
+                <Skeleton className="aspect-square rounded-xl" />
                 <Skeleton className="h-4 w-3/4" />
                 <Skeleton className="h-4 w-1/2" />
               </div>
             ))}
           </div>
         ) : filteredProducts && filteredProducts.length > 0 ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredProducts.map(product => (
               <ProductCard
                 key={product.id}
@@ -344,10 +260,12 @@ const Products = () => {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <Package className="mb-4 h-12 w-12 text-muted-foreground/50" />
-            <h3 className="text-lg font-semibold">{t('noProductsFound')}</h3>
-            <p className="text-muted-foreground">{t('productsPageDescription')}</p>
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary">
+              <Package className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h3 className="font-heading text-lg font-semibold">{t('noProductsFound')}</h3>
+            <p className="mt-1 text-sm text-muted-foreground">{t('productsPageDescription')}</p>
           </div>
         )}
       </main>

@@ -87,21 +87,20 @@ export const Header = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 border-b border-border/50 bg-emerald-900/95 backdrop-blur-xl">
+    <header className="fixed top-0 left-0 right-0 z-50 glass glass-border">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2.5">
-          <img src={pricehunterLogo} alt="PriceHunter Logo" className="h-20 w-20 -my-2" />
-          <span className="text-2xl font-bold text-yellow-400 font-display tracking-tight italic" style={{ WebkitTextStroke: '0.5px white' }}>Price Hunter</span>
-          <span className="-ml-1 rounded-md bg-orange-500 px-2 py-0.5 text-xs font-bold text-white uppercase tracking-wide rotate-[-8deg] shadow-md">
+          <img src={pricehunterLogo} alt="PriceHunter Logo" className="h-16 w-16 -my-2" />
+          <span className="text-xl font-bold text-yellow-400 font-display tracking-tight italic" style={{ WebkitTextStroke: '0.5px white' }}>Price Hunter</span>
+          <span className="-ml-1 rounded bg-accent/90 px-1.5 py-0.5 text-[10px] font-bold text-accent-foreground uppercase tracking-wider rotate-[-6deg]">
             Beta
           </span>
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden items-center gap-6 md:flex">
-          {/* Products Dropdown */}
+        <nav className="hidden items-center gap-1 md:flex">
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground">
+            <DropdownMenuTrigger className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
               <ShoppingBag className="h-4 w-4" />
               {t('products')}
               <ChevronDown className="h-3 w-3" />
@@ -122,9 +121,8 @@ export const Header = () => {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Condition Dropdown */}
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground">
+            <DropdownMenuTrigger className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
               Condition
               <ChevronDown className="h-3 w-3" />
             </DropdownMenuTrigger>
@@ -139,13 +137,13 @@ export const Header = () => {
 
           <button 
             onClick={() => scrollToSection('how-it-works')} 
-            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+            className="rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
           >
             {t('howItWorks')}
           </button>
           <button 
             onClick={() => toast.info("Coming Soon!", { description: "Gift cards feature is under development." })} 
-            className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
           >
             <Gift className="h-4 w-4" />
             Gift Cards
@@ -153,7 +151,7 @@ export const Header = () => {
         </nav>
 
         {/* Desktop Actions */}
-        <div className="hidden items-center gap-2 md:flex">
+        <div className="hidden items-center gap-1.5 md:flex">
           <LanguageSelector />
           <CurrencySelector />
           {user ? (
@@ -194,7 +192,7 @@ export const Header = () => {
               <Button variant="ghost" size="sm" asChild>
                 <Link to="/auth">{t('signIn')}</Link>
               </Button>
-              <Button variant="hero" size="sm" asChild>
+              <Button variant="default" size="sm" asChild>
                 <Link to="/auth">
                   <Zap className="h-4 w-4" />
                   {t('getStarted')}
@@ -216,11 +214,9 @@ export const Header = () => {
             </SheetTrigger>
             <SheetContent side="right" className="w-[300px] sm:w-[350px]">
               <div className="flex flex-col gap-6 pt-6">
-                {/* Mobile Navigation Links */}
                 <nav className="flex flex-col gap-4">
-                  {/* Products with subcategories */}
                   <div className="space-y-2">
-                    <span className="flex items-center gap-3 text-lg font-medium text-foreground">
+                    <span className="flex items-center gap-3 text-lg font-heading font-medium text-foreground">
                       <ShoppingBag className="h-5 w-5" />
                       {t('products')}
                     </span>
@@ -245,9 +241,8 @@ export const Header = () => {
                     </div>
                   </div>
 
-                  {/* Condition filter */}
                   <div className="space-y-2">
-                    <span className="flex items-center gap-3 text-lg font-medium text-foreground">
+                    <span className="flex items-center gap-3 text-lg font-heading font-medium text-foreground">
                       Condition
                     </span>
                     <div className="ml-8 flex flex-col gap-2">
@@ -265,13 +260,13 @@ export const Header = () => {
 
                   <button 
                     onClick={() => scrollToSection('how-it-works')} 
-                    className="flex items-center gap-3 text-lg font-medium text-foreground"
+                    className="flex items-center gap-3 text-lg font-heading font-medium text-foreground"
                   >
                     {t('howItWorks')}
                   </button>
                   <button 
                     onClick={() => { toast.info("Coming Soon!", { description: "Gift cards feature is under development." }); setIsOpen(false); }} 
-                    className="flex items-center gap-3 text-lg font-medium text-foreground"
+                    className="flex items-center gap-3 text-lg font-heading font-medium text-foreground"
                   >
                     <Gift className="h-5 w-5" />
                     Gift Cards
@@ -280,36 +275,23 @@ export const Header = () => {
 
                 <div className="h-px bg-border" />
 
-                {/* Mobile User Actions */}
                 {user ? (
                   <div className="flex flex-col gap-4">
                     {isPremium && <PremiumBadge size="sm" />}
-                    <button
-                      onClick={() => handleNavigation('/favorites')}
-                      className="flex items-center gap-3 text-lg font-medium text-foreground"
-                    >
+                    <button onClick={() => handleNavigation('/favorites')} className="flex items-center gap-3 text-lg font-heading font-medium text-foreground">
                       <Heart className="h-5 w-5" />
                       {t('favorites')}
                     </button>
-                    <button
-                      onClick={() => handleNavigation('/alerts')}
-                      className="flex items-center gap-3 text-lg font-medium text-foreground"
-                    >
+                    <button onClick={() => handleNavigation('/alerts')} className="flex items-center gap-3 text-lg font-heading font-medium text-foreground">
                       <Bell className="h-5 w-5" />
                       {t('alerts')}
                     </button>
-                    <button
-                      onClick={() => handleNavigation('/settings')}
-                      className="flex items-center gap-3 text-lg font-medium text-foreground"
-                    >
+                    <button onClick={() => handleNavigation('/settings')} className="flex items-center gap-3 text-lg font-heading font-medium text-foreground">
                       <Settings className="h-5 w-5" />
                       {t('settings')}
                     </button>
                     {!isPremium && (
-                      <button
-                        onClick={() => handleNavigation('/premium')}
-                        className="flex items-center gap-3 text-lg font-medium text-accent"
-                      >
+                      <button onClick={() => handleNavigation('/premium')} className="flex items-center gap-3 text-lg font-heading font-medium text-accent">
                         <Crown className="h-5 w-5" />
                         {t('premium')}
                       </button>
@@ -325,7 +307,7 @@ export const Header = () => {
                     <Button variant="outline" className="w-full" onClick={() => handleNavigation('/auth')}>
                       {t('signIn')}
                     </Button>
-                    <Button variant="hero" className="w-full" onClick={() => handleNavigation('/auth')}>
+                    <Button variant="default" className="w-full" onClick={() => handleNavigation('/auth')}>
                       <Zap className="h-4 w-4 mr-2" />
                       {t('getStarted')}
                     </Button>
