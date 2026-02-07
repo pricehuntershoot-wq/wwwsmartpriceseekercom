@@ -126,6 +126,11 @@ export const translations = {
     alertCreated: 'Price alert created',
     alertDeleted: 'Alert deleted',
     
+    // Index / Landing
+    featuredDealBadge: 'Featured Deal',
+    seeItInAction: 'See It In Action',
+    browseAllProducts: 'Browse All Products',
+
     // Hero Section
     heroBadge: 'AI-Powered Price Discovery',
     heroTitlePart1: 'Find',
@@ -359,6 +364,11 @@ export const translations = {
     alertCreated: 'Cenové upozornění vytvořeno',
     alertDeleted: 'Upozornění smazáno',
     
+    // Index / Landing
+    featuredDealBadge: 'Doporučená nabídka',
+    seeItInAction: 'Podívejte se, jak to funguje',
+    browseAllProducts: 'Procházet všechny produkty',
+
     // Hero Section
     heroBadge: 'Objevování cen s pomocí AI',
     heroTitlePart1: 'Najděte',
