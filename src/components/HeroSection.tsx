@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCurrencyPreference } from "@/hooks/useCurrencyPreference";
 import { formatPrice as formatPriceFn } from "@/lib/currency";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 interface ProductSuggestion {
   id: string;
@@ -112,28 +113,49 @@ export const HeroSection = () => {
       <div className="container relative z-10">
         <div className="mx-auto max-w-3xl text-center">
           {/* Badge */}
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5"
+          >
             <Sparkles className="h-3.5 w-3.5 text-primary" />
             <span className="text-xs font-medium tracking-wide uppercase text-primary">
               {t('heroBadge')}
             </span>
-          </div>
+          </motion.div>
 
           {/* Headline */}
-          <h1 className="mb-6 font-heading text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="mb-6 font-heading text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl md:text-6xl lg:text-7xl"
+          >
             {t('heroTitlePart1')}{" "}
             <span className="text-gradient-primary">{t('heroTitleHighlight')}</span>
             <br />
             {t('heroTitlePart2')}
-          </h1>
+          </motion.h1>
 
           {/* Subheadline */}
-          <p className="mx-auto mb-10 max-w-xl text-base text-muted-foreground sm:text-lg">
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.35 }}
+            className="mx-auto mb-10 max-w-xl text-base text-muted-foreground sm:text-lg"
+          >
             {t('heroSubtitle')}
-          </p>
+          </motion.p>
 
           {/* Search Bar */}
-          <div className="mx-auto mb-12 max-w-xl" ref={wrapperRef}>
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+            className="mx-auto mb-12 max-w-xl"
+            ref={wrapperRef}
+          >
             <div className="relative rounded-xl border border-border bg-card/80 backdrop-blur-sm p-1.5 shadow-card transition-shadow focus-within:shadow-glow focus-within:border-primary/30">
               <div className="flex items-center gap-2">
                 <Search className="ml-3 h-4 w-4 text-muted-foreground" />
@@ -193,17 +215,22 @@ export const HeroSection = () => {
                 </div>
               )}
             </div>
-          </div>
+          </motion.div>
 
           {/* Trust signals */}
-          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.65 }}
+            className="flex flex-wrap items-center justify-center gap-6 sm:gap-10"
+          >
             {trustSignals.map(({ icon: Icon, text }, i) => (
               <div key={i} className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
                 <Icon className="h-4 w-4 text-primary/60" />
                 <span>{text}</span>
               </div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

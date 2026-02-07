@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
 
 const FEATURED_PRODUCT_ID = "bbbb2222-2222-2222-2222-222222222222";
 
@@ -94,7 +95,13 @@ const Index = () => {
 
       <main className="container py-20">
         {/* Featured Product */}
-        <section className="mb-16">
+        <motion.section
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.6 }}
+          className="mb-16"
+        >
           <div className="mb-10 text-center">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5">
               <Sparkles className="h-3.5 w-3.5 text-primary" />
@@ -105,7 +112,13 @@ const Index = () => {
             </h2>
           </div>
           
-          <div className="mx-auto max-w-md">
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.97 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.5, delay: 0.15 }}
+            className="mx-auto max-w-md"
+          >
             {isLoading ? (
               <div className="space-y-4">
                 <Skeleton className="aspect-square rounded-xl" />
@@ -121,18 +134,24 @@ const Index = () => {
             ) : (
               <p className="text-center text-muted-foreground">Featured product not found</p>
             )}
-          </div>
-        </section>
+          </motion.div>
+        </motion.section>
 
         {/* CTA */}
-        <section className="text-center">
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="text-center"
+        >
           <Link to="/products">
             <Button size="lg" className="gap-2">
               Browse All Products
               <ArrowRight className="h-4 w-4" />
             </Button>
           </Link>
-        </section>
+        </motion.section>
       </main>
 
       <Footer />
