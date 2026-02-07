@@ -6,6 +6,7 @@ import { HowItWorksSection } from "@/components/HowItWorksSection";
 import { ProductCard } from "@/components/ProductCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/hooks/useLanguage";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
@@ -17,6 +18,7 @@ const FEATURED_PRODUCT_ID = "bbbb2222-2222-2222-2222-222222222222";
 
 const Index = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   const { data: featuredProduct, isLoading } = useQuery({
     queryKey: ['featured-product', FEATURED_PRODUCT_ID],
@@ -105,10 +107,10 @@ const Index = () => {
           <div className="mb-10 text-center">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5">
               <Sparkles className="h-3.5 w-3.5 text-primary" />
-              <span className="text-xs font-medium tracking-wide uppercase text-primary">Featured Deal</span>
+              <span className="text-xs font-medium tracking-wide uppercase text-primary">{t('featuredDealBadge')}</span>
             </div>
             <h2 className="font-heading text-3xl font-bold sm:text-4xl">
-              See It In Action
+              {t('seeItInAction')}
             </h2>
           </div>
           
@@ -147,7 +149,7 @@ const Index = () => {
         >
           <Link to="/products">
             <Button size="lg" className="gap-2">
-              Browse All Products
+              {t('browseAllProducts')}
               <ArrowRight className="h-4 w-4" />
             </Button>
           </Link>
