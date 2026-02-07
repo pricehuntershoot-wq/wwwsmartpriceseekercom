@@ -21,6 +21,7 @@ export const HeroSection = () => {
   const [suggestions, setSuggestions] = useState<ProductSuggestion[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
   const { t } = useLanguage();
   const { preferredCurrency } = useCurrencyPreference();
   const formatPrice = (price: number) => formatPriceFn(price, preferredCurrency);
@@ -103,11 +104,23 @@ export const HeroSection = () => {
     { icon: Zap, text: t('heroStat3') },
   ];
 
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <section className="relative min-h-[90vh] overflow-hidden pt-28 pb-20 flex items-center">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-hero" />
-      <div className="absolute top-1/4 left-1/2 h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-primary/5 blur-[150px]" />
+      {/* Background with parallax */}
+      <div
+        className="absolute inset-0 bg-gradient-hero"
+        style={{ transform: `translateY(${scrollY * 0.3}px)` }}
+      />
+      <div
+        className="absolute top-1/4 left-1/2 h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-primary/5 blur-[150px]"
+        style={{ transform: `translate(-50%, ${scrollY * 0.15}px)` }}
+      />
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
       <div className="container relative z-10">
