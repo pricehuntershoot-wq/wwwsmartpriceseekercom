@@ -5,38 +5,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface DiscountPattern {
-  type: 'promo_code_field' | 'cart_discount' | 'returned_item' | 'open_box' | 'refurbished' | 'bundle_deal' | 'hidden_discount';
-  confidence: 'high' | 'medium' | 'low';
-  description: string;
-  selector?: string;
-  actionRequired?: string;
-}
-
-interface AnalysisResult {
-  url: string;
-  productName?: string;
-  currentPrice?: string;
-  originalPrice?: string;
-  discountPatterns: DiscountPattern[];
-  promoCodeFields: {
-    detected: boolean;
-    possibleCodes?: string[];
-    inputSelectors?: string[];
-  };
-  cartDiscountIndicators: string[];
-  conditionType?: 'new' | 'returned' | 'used' | 'open_box' | 'refurbished';
-  recommendations: string[];
-}
-
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { url, htmlContent } = await req.json();
+    const { url, htmlContent, markdownContent } = await req.json();
 
     if (!url) {
       return new Response(
@@ -47,61 +22,72 @@ serve(async (req) => {
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
-      console.error('LOVABLE_API_KEY not configured');
       return new Response(
         JSON.stringify({ success: false, error: 'AI service not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // If HTML content is provided, analyze it. Otherwise, provide guidance for what to look for.
-    const contentToAnalyze = htmlContent 
-      ? `Analyze this product page HTML from ${url}:\n\n${htmlContent.substring(0, 50000)}`
-      : `I need you to describe what discount patterns and hidden deals we should look for on the Czech e-shop: ${url}`;
+    // Use markdown (preferred) or HTML content for analysis
+    let contentToAnalyze: string;
+    if (markdownContent) {
+      contentToAnalyze = `Analyze this product page content from ${url}:\n\n${markdownContent.substring(0, 60000)}`;
+    } else if (htmlContent) {
+      contentToAnalyze = `Analyze this product page HTML from ${url}:\n\n${htmlContent.substring(0, 50000)}`;
+    } else {
+      contentToAnalyze = `I need you to describe what discount patterns and hidden deals we should look for on the Czech e-shop: ${url}`;
+    }
 
     console.log(`Analyzing product page: ${url}`);
 
-    const systemPrompt = `You are an expert at analyzing e-commerce product pages to find hidden discounts and deals that traditional price comparison engines miss.
+    const systemPrompt = `You are an expert at analyzing Czech e-commerce product pages (Alza.cz, Datart.cz, Mall.cz, Notino.cz, CZC.cz, etc.) to extract ALL price tiers and hidden discounts.
 
-Your task is to identify:
-1. **Promo Code Fields**: Input fields where discount codes can be entered (in cart, checkout, or on product page)
-2. **Cart-Only Discounts**: Indicators that suggest prices change when added to cart (e.g., "Cena v košíku", "Sleva po přidání do košíku", "Add to cart for special price")
-3. **Product Condition**: Whether the product is new, returned ("Vrácené zboží"), open-box ("Rozbaleno"), refurbished ("Repasované"), or used ("Použité")
-4. **Bundle Deals**: Discounts for buying multiple items together
-5. **Hidden Promotions**: Any text suggesting hidden deals, flash sales, or member-only prices
+Your task is to extract a COMPLETE price breakdown with these tiers:
 
-For Czech e-shops like Alza.cz, Datart.cz, Mall.cz, Notino.cz, look for:
-- "Sleva v košíku" (cart discount)
-- "Zadejte slevový kód" (enter promo code)
-- "Kód kupónu" (coupon code)
-- "Vrácené zboží" (returned goods)
-- "Rozbaleno" (unpacked/open box)
-- "Záruka vrácení peněz" with special pricing
-- Product badges indicating special conditions
+1. **Main Price (Základní cena)**: The displayed retail price
+2. **Promo Code Price (Cena se slevovým kódem)**: Price after applying a visible promo/coupon code shown on the page (e.g., "Koupit s kódem ALZADNY20 → 9 272,-")
+3. **Cart Price (Cena v košíku)**: Price that only appears when added to cart
+4. **Used/Returned Price (Cena použitého/vráceného)**: Price for used, returned, open-box, or refurbished condition
+5. **Used + Promo Price**: Used price combined with promo code if applicable
 
-Return your analysis as a JSON object with this structure:
+Look for these Czech patterns:
+- "Koupit s kódem [CODE]" → promo code + discounted price
+- "Stav zboží: Nový / Použitý / Rozbaleno" → condition selector with different prices
+- "S kódem od X,-" → price with code for specific condition
+- "Sleva v košíku" or "Cena v košíku" → cart-only discount
+- "bez DPH" → price without VAT (ignore this, use with-VAT price)
+- "Garance nejlepší ceny" → best price guarantee badge
+
+Return your analysis as a JSON object with this EXACT structure:
 {
-  "productName": "string or null",
-  "currentPrice": "string or null",
-  "originalPrice": "string or null if there's a strikethrough price",
-  "discountPatterns": [
+  "productName": "string",
+  "priceTiers": [
     {
-      "type": "promo_code_field | cart_discount | returned_item | open_box | refurbished | bundle_deal | hidden_discount",
-      "confidence": "high | medium | low",
-      "description": "what was found",
-      "selector": "CSS selector if identifiable",
-      "actionRequired": "what action reveals the discount"
+      "tierType": "main | promo_code | cart | used | used_promo | open_box | refurbished",
+      "price": number (in CZK, without currency symbol),
+      "originalPrice": number or null (strikethrough price if shown),
+      "condition": "new | used | returned | open_box | refurbished",
+      "promoCode": "string or null (the actual code like ALZADNY20)",
+      "promoDescription": "string or null (e.g., 'Koupit s kódem ALZADNY20')",
+      "label": "string (human readable label like 'Nový', 'Použitý s kódem')",
+      "confidence": "high | medium | low"
     }
   ],
-  "promoCodeFields": {
-    "detected": true/false,
-    "possibleCodes": ["any codes mentioned on page"],
-    "inputSelectors": ["CSS selectors for promo code inputs"]
-  },
+  "promoCodes": [
+    {
+      "code": "string (e.g., ALZADNY20)",
+      "discount": "string (e.g., '20%' or '2318 Kč')",
+      "description": "string",
+      "applicableTo": "all | new | used"
+    }
+  ],
+  "conditions": ["new", "used", "returned", "open_box", "refurbished"],
   "cartDiscountIndicators": ["list of text snippets suggesting cart discounts"],
-  "conditionType": "new | returned | used | open_box | refurbished | null",
-  "recommendations": ["specific actions to discover hidden prices"]
-}`;
+  "recommendations": ["specific actions to discover more hidden prices"],
+  "currency": "CZK"
+}
+
+IMPORTANT: Extract ACTUAL numeric prices. Parse Czech price format: "11 590,-" → 11590, "9 272,-" → 9272. Remove spaces, commas, dashes, and currency symbols.`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -115,7 +101,7 @@ Return your analysis as a JSON object with this structure:
           { role: 'system', content: systemPrompt },
           { role: 'user', content: contentToAnalyze }
         ],
-        temperature: 0.3,
+        temperature: 0.1,
       }),
     });
 
@@ -131,7 +117,7 @@ Return your analysis as a JSON object with this structure:
       }
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ success: false, error: 'AI credits exhausted. Please add credits to continue.' }),
+          JSON.stringify({ success: false, error: 'AI credits exhausted.' }),
           { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
@@ -146,44 +132,32 @@ Return your analysis as a JSON object with this structure:
     const content = aiResponse.choices?.[0]?.message?.content;
 
     if (!content) {
-      console.error('No content in AI response');
       return new Response(
         JSON.stringify({ success: false, error: 'No analysis result' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Try to parse the JSON from the response
-    let analysis: AnalysisResult;
+    // Parse JSON from response
+    let analysis;
     try {
-      // Extract JSON from markdown code blocks if present
       const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
       const jsonStr = jsonMatch ? jsonMatch[1].trim() : content.trim();
-      const parsed = JSON.parse(jsonStr);
-      
-      analysis = {
-        url,
-        productName: parsed.productName,
-        currentPrice: parsed.currentPrice,
-        originalPrice: parsed.originalPrice,
-        discountPatterns: parsed.discountPatterns || [],
-        promoCodeFields: parsed.promoCodeFields || { detected: false },
-        cartDiscountIndicators: parsed.cartDiscountIndicators || [],
-        conditionType: parsed.conditionType,
-        recommendations: parsed.recommendations || [],
-      };
+      analysis = JSON.parse(jsonStr);
     } catch (parseError) {
       console.log('Could not parse JSON, returning raw analysis');
       analysis = {
-        url,
-        discountPatterns: [],
-        promoCodeFields: { detected: false },
+        productName: null,
+        priceTiers: [],
+        promoCodes: [],
+        conditions: [],
         cartDiscountIndicators: [],
         recommendations: [content],
+        currency: 'CZK',
       };
     }
 
-    console.log('Analysis complete for:', url);
+    console.log('Analysis complete for:', url, 'Found', analysis.priceTiers?.length || 0, 'price tiers');
     
     return new Response(
       JSON.stringify({ success: true, analysis }),
