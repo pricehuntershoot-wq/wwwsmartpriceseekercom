@@ -17,6 +17,7 @@ import MyAlerts from "./pages/MyAlerts";
 import Premium from "./pages/Premium";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import Analyzer from "./pages/Analyzer";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ const App = () => (
               <Route path="/alerts" element={<MyAlerts />} />
               <Route path="/premium" element={<Premium />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/analyzer" element={<Analyzer />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

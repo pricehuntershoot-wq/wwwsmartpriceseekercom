@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Zap, LogOut, Heart, ShoppingBag, Bell, Crown, Settings, Menu, ChevronDown, Headphones, Smartphone, Watch, Speaker, Package, Gift } from "lucide-react";
+import { Zap, LogOut, Heart, ShoppingBag, Bell, Crown, Settings, Menu, ChevronDown, Headphones, Smartphone, Watch, Speaker, Package, Gift, Sparkles } from "lucide-react";
 import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -141,6 +141,13 @@ export const Header = () => {
           >
             {t('howItWorks')}
           </button>
+          <Link 
+            to="/analyzer" 
+            className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          >
+            <Sparkles className="h-4 w-4" />
+            Analyzér
+          </Link>
           <button 
             onClick={() => toast.info("Coming Soon!", { description: "Gift cards feature is under development." })} 
             className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
@@ -263,6 +270,13 @@ export const Header = () => {
                     className="flex items-center gap-3 text-lg font-heading font-medium text-foreground"
                   >
                     {t('howItWorks')}
+                  </button>
+                  <button 
+                    onClick={() => handleNavigation('/analyzer')} 
+                    className="flex items-center gap-3 text-lg font-heading font-medium text-foreground"
+                  >
+                    <Sparkles className="h-5 w-5" />
+                    Cenový Analyzér
                   </button>
                   <button 
                     onClick={() => { toast.info("Coming Soon!", { description: "Gift cards feature is under development." }); setIsOpen(false); }} 
