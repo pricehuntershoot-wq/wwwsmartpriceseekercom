@@ -18,6 +18,7 @@ import Premium from "./pages/Premium";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import Analyzer from "./pages/Analyzer";
+import SearchResults from "./pages/SearchResults";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const App = () => (
               <Route path="/premium" element={<Premium />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/analyzer" element={<Analyzer />} />
+              <Route path="/search" element={<SearchResults />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

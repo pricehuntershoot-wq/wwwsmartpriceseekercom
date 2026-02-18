@@ -94,7 +94,7 @@ export const HeroSection = () => {
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
-      navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
