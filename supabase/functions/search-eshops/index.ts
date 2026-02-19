@@ -88,7 +88,7 @@ serve(async (req) => {
     // Build combined content for AI analysis
     const combinedContent = scrapeResults
       .filter(r => r.markdown)
-      .map(r => `=== ${r.eshop.toUpperCase()} ===\n${r.markdown!.substring(0, 25000)}`)
+      .map(r => `=== ${r.eshop.toUpperCase()} ===\n${r.markdown!.substring(0, 15000)}`)
       .join('\n\n');
 
     if (!combinedContent) {
@@ -120,34 +120,48 @@ Return a JSON array of products. Maximum 10 products per e-shop, sorted by relev
 
 IMPORTANT: Return ONLY valid JSON array, no markdown code fences.`;
 
+    const models = [
+      { name: 'google/gemini-2.5-flash-lite', temperature: 0.1 },
+      { name: 'google/gemini-2.5-flash', temperature: 0.1 },
+      { name: 'openai/gpt-5-mini', temperature: 1 },
+    ];
     let aiResponse = null;
-    for (let attempt = 0; attempt < 3; attempt++) {
-      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'google/gemini-2.5-flash',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: `Search query: "${trimmedQuery}"\n\nSearch results:\n${combinedContent}` },
-          ],
-          temperature: 0.1,
-        }),
-      });
+    
+    for (const { name: model, temperature } of models) {
+      let success = false;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model,
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: `Search query: "${trimmedQuery}"\n\nSearch results:\n${combinedContent}` },
+              ],
+              temperature,
+            }),
+          });
 
-      if (response.ok) {
-        aiResponse = await response.json();
-        break;
-      }
+          if (response.ok) {
+            aiResponse = await response.json();
+            success = true;
+            console.log(`AI succeeded with model: ${model}`);
+            break;
+          }
 
-      const errorText = await response.text();
-      console.error(`AI attempt ${attempt + 1} failed:`, response.status, errorText);
-      if (attempt < 2) {
-        await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+          const errorText = await response.text();
+          console.error(`AI ${model} attempt ${attempt + 1} failed:`, response.status, errorText);
+          if (attempt < 1) await new Promise(r => setTimeout(r, 1000));
+        } catch (err) {
+          console.error(`AI ${model} fetch error:`, err);
+        }
       }
+      if (success) break;
     }
 
     if (!aiResponse) {
