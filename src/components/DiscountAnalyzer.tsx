@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,14 +38,27 @@ interface AnalysisResult {
 }
 
 export function DiscountAnalyzer() {
+  const [searchParams] = useSearchParams();
   const [url, setUrl] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [step, setStep] = useState<"idle" | "scraping" | "analyzing">("idle");
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
-  const handleAnalyze = async () => {
-    if (!url.trim()) {
+  // Auto-start analysis if URL is passed via query param
+  useEffect(() => {
+    const urlParam = searchParams.get("url");
+    if (urlParam && !isAnalyzing && !result) {
+      setUrl(urlParam);
+      // Trigger analysis on next tick after state is set
+      setTimeout(() => {
+        analyzeUrl(urlParam);
+      }, 100);
+    }
+  }, [searchParams]);
+
+  const analyzeUrl = async (targetUrl: string) => {
+    if (!targetUrl.trim()) {
       toast.error("Zadejte URL produktu");
       return;
     }
@@ -54,8 +68,7 @@ export function DiscountAnalyzer() {
     setStep("scraping");
 
     try {
-      // Step 1: Scrape the page with Firecrawl
-      const scrapeResult = await firecrawlApi.scrape(url.trim(), {
+      const scrapeResult = await firecrawlApi.scrape(targetUrl.trim(), {
         formats: ["markdown", "html"],
         waitFor: 3000,
         location: { country: "CZ", languages: ["cs"] },
@@ -74,10 +87,9 @@ export function DiscountAnalyzer() {
 
       setStep("analyzing");
 
-      // Step 2: Analyze with AI
       const { data, error } = await supabase.functions.invoke("analyze-product-page", {
         body: {
-          url: url.trim(),
+          url: targetUrl.trim(),
           markdownContent: markdown,
           htmlContent: html,
         },
@@ -96,6 +108,8 @@ export function DiscountAnalyzer() {
       setStep("idle");
     }
   };
+
+  const handleAnalyze = () => analyzeUrl(url);
 
   const copyCode = (code: string) => {
     navigator.clipboard.writeText(code);
