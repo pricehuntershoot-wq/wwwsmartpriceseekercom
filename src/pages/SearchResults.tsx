@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2, ExternalLink, Tag, Copy, Check, AlertCircle, ShoppingBag } from "lucide-react";
+import { Loader2, ExternalLink, Tag, Copy, Check, AlertCircle, ShoppingBag, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -248,12 +248,20 @@ const SearchResults = () => {
                         )}
 
                         {product.productUrl && (
-                          <Button asChild size="sm" variant="outline" className="w-full">
-                            <a href={product.productUrl} target="_blank" rel="noopener noreferrer">
-                              Zobrazit na {eshopInfo.name}
-                              <ExternalLink className="ml-1 h-3 w-3" />
-                            </a>
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button asChild size="sm" variant="outline" className="flex-1">
+                              <a href={product.productUrl} target="_blank" rel="noopener noreferrer">
+                                {eshopInfo.name}
+                                <ExternalLink className="ml-1 h-3 w-3" />
+                              </a>
+                            </Button>
+                            <Button asChild size="sm" variant="default" className="flex-1">
+                              <Link to={`/analyzer?url=${encodeURIComponent(product.productUrl)}`}>
+                                <Sparkles className="mr-1 h-3 w-3" />
+                                Analyzovat
+                              </Link>
+                            </Button>
+                          </div>
                         )}
                       </CardContent>
                     </Card>
