@@ -120,32 +120,42 @@ Return a JSON array of products. Maximum 10 products per e-shop, sorted by relev
 
 IMPORTANT: Return ONLY valid JSON array, no markdown code fences.`;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Search query: "${trimmedQuery}"\n\nSearch results:\n${combinedContent}` },
-        ],
-        temperature: 0.1,
-      }),
-    });
+    let aiResponse = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: `Search query: "${trimmedQuery}"\n\nSearch results:\n${combinedContent}` },
+          ],
+          temperature: 0.1,
+        }),
+      });
 
-    if (!response.ok) {
+      if (response.ok) {
+        aiResponse = await response.json();
+        break;
+      }
+
       const errorText = await response.text();
-      console.error('AI error:', response.status, errorText);
+      console.error(`AI attempt ${attempt + 1} failed:`, response.status, errorText);
+      if (attempt < 2) {
+        await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+      }
+    }
+
+    if (!aiResponse) {
       return new Response(
-        JSON.stringify({ success: false, error: 'AI analysis failed' }),
+        JSON.stringify({ success: false, error: 'AI analysis failed after retries' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    const aiResponse = await response.json();
     const content = aiResponse.choices?.[0]?.message?.content;
 
     let products = [];
