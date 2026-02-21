@@ -462,7 +462,20 @@ const SearchResults = () => {
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <ShoppingBag className="h-16 w-16 text-muted-foreground/30 mb-4" />
             <h3 className="font-heading text-lg font-semibold">Žádné produkty nenalezeny</h3>
-            <p className="text-sm text-muted-foreground mt-1">Zkuste jiný hledaný výraz</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {errors.length > 0
+                ? "Některé e-shopy neodpověděly – zkuste to znovu"
+                : "Zkuste jiný hledaný výraz"}
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-4 gap-2"
+              onClick={() => searchEshops(query.trim())}
+            >
+              <Loader2 className="h-4 w-4" />
+              Zkusit znovu
+            </Button>
           </div>
         )}
       </main>
