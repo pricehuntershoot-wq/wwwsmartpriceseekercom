@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Zap, LogOut, Heart, ShoppingBag, Bell, Crown, Settings, Menu, ChevronDown, Headphones, Smartphone, Watch, Speaker, Package, Gift, Sparkles } from "lucide-react";
+import { Zap, LogOut, Heart, ShoppingBag, Bell, Crown, Settings, Menu, ChevronDown, Headphones, Smartphone, Watch, Speaker, Package, Gift, Sparkles, Tv, Tablet, Gamepad2, CircleDot } from "lucide-react";
 import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -25,6 +25,10 @@ const PRODUCT_CATEGORIES = [
   { value: 'mobile_phones', labelKey: 'categoryMobilePhones' as const, icon: Smartphone, searchTerm: 'mobily' },
   { value: 'smart_watches', labelKey: 'categorySmartWatches' as const, icon: Watch, searchTerm: 'chytré hodinky' },
   { value: 'speakers', labelKey: 'categorySpeakers' as const, icon: Speaker, searchTerm: 'reproduktory' },
+  { value: 'tv', labelKey: 'categoryTV' as const, icon: Tv, searchTerm: 'televize' },
+  { value: 'tablets', labelKey: 'categoryTablets' as const, icon: Tablet, searchTerm: 'tablety' },
+  { value: 'gaming_consoles', labelKey: 'categoryGamingConsoles' as const, icon: Gamepad2, searchTerm: 'herní konzole' },
+  { value: 'smart_rings', labelKey: 'categorySmartRings' as const, icon: CircleDot, searchTerm: 'chytré prsteny' },
 ];
 
 const CONDITION_OPTIONS = [
