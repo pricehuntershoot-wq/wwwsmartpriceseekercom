@@ -86,7 +86,7 @@ const SearchResults = () => {
     setTimeout(() => setCopiedCode(null), 2000);
   };
 
-  const formatPrice = (price: number) => price.toLocaleString("cs-CZ") + " Kč";
+  const formatPrice = (price: number | null | undefined) => price != null ? price.toLocaleString("cs-CZ") + " Kč" : "N/A";
 
   const availableEshops = useMemo(
     () => [...new Set(products.map((p) => p.eshop).filter(Boolean))],
@@ -127,11 +127,11 @@ const SearchResults = () => {
     }
 
     result.sort((a, b) => {
-      if (sortOrder === "price-asc") return a.price - b.price;
-      if (sortOrder === "price-desc") return b.price - a.price;
+      if (sortOrder === "price-asc") return (a.price ?? Infinity) - (b.price ?? Infinity);
+      if (sortOrder === "price-desc") return (b.price ?? 0) - (a.price ?? 0);
       if (sortOrder === "discount-desc") {
-        const discA = a.originalPrice ? (a.originalPrice - a.price) / a.originalPrice : 0;
-        const discB = b.originalPrice ? (b.originalPrice - b.price) / b.originalPrice : 0;
+        const discA = a.originalPrice ? (a.originalPrice - (a.price ?? 0)) / a.originalPrice : 0;
+        const discB = b.originalPrice ? (b.originalPrice - (b.price ?? 0)) / b.originalPrice : 0;
         return discB - discA;
       }
       return 0;
@@ -140,8 +140,8 @@ const SearchResults = () => {
     return result;
   }, [products, selectedEshops, selectedCategories, sortOrder]);
 
-  const lowestPrice =
-    filteredProducts.length > 0 ? Math.min(...filteredProducts.map((p) => p.price)) : null;
+  const pricedProducts = filteredProducts.filter(p => p.price != null && p.price > 0);
+  const lowestPrice = pricedProducts.length > 0 ? Math.min(...pricedProducts.map((p) => p.price)) : null;
 
   return (
     <div className="min-h-screen bg-background">
