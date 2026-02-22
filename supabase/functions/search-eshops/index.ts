@@ -11,37 +11,54 @@ const ESHOP_SEARCH_URLS = {
   smarty: (q: string) => `https://www.smarty.cz/hledej?q=${encodeURIComponent(q)}`,
 };
 
-async function scrapeEshop(eshopName: string, url: string, apiKey: string): Promise<{ eshop: string; markdown: string | null; error?: string }> {
-  try {
-    console.log(`Scraping ${eshopName}: ${url}`);
-    const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        url,
-        formats: ['markdown'],
-        onlyMainContent: true,
-        waitFor: 5000,
-        location: { country: 'CZ', languages: ['cs'] },
-      }),
-    });
+async function scrapeEshop(eshopName: string, url: string, apiKey: string, maxRetries = 2): Promise<{ eshop: string; markdown: string | null; error?: string }> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`Scraping ${eshopName} (attempt ${attempt}): ${url}`);
+      const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          url,
+          formats: ['markdown'],
+          onlyMainContent: true,
+          waitFor: 5000,
+          location: { country: 'CZ', languages: ['cs'] },
+        }),
+      });
 
-    const data = await response.json();
-    if (!response.ok) {
-      console.error(`${eshopName} scrape failed:`, data);
-      return { eshop: eshopName, markdown: null, error: data.error || 'Scrape failed' };
+      const data = await response.json();
+      if (!response.ok) {
+        const errMsg = data.error || 'Scrape failed';
+        const isRetryable = typeof errMsg === 'string' && (errMsg.includes('ERR_TUNNEL') || errMsg.includes('TUNNEL') || errMsg.includes('proxy') || response.status >= 500);
+        if (isRetryable && attempt < maxRetries) {
+          console.warn(`${eshopName} retryable error (attempt ${attempt}): ${errMsg}`);
+          await new Promise(r => setTimeout(r, 2000 * attempt));
+          continue;
+        }
+        console.error(`${eshopName} scrape failed:`, data);
+        return { eshop: eshopName, markdown: null, error: errMsg };
+      }
+
+      const markdown = data.data?.markdown || data.markdown || null;
+      console.log(`${eshopName} scraped, markdown length: ${markdown?.length || 0}`);
+      return { eshop: eshopName, markdown };
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      const isRetryable = errMsg.includes('ERR_TUNNEL') || errMsg.includes('TUNNEL') || errMsg.includes('proxy') || errMsg.includes('fetch failed');
+      if (isRetryable && attempt < maxRetries) {
+        console.warn(`${eshopName} fetch error (attempt ${attempt}): ${errMsg}`);
+        await new Promise(r => setTimeout(r, 2000 * attempt));
+        continue;
+      }
+      console.error(`${eshopName} error:`, err);
+      return { eshop: eshopName, markdown: null, error: errMsg };
     }
-
-    const markdown = data.data?.markdown || data.markdown || null;
-    console.log(`${eshopName} scraped, markdown length: ${markdown?.length || 0}`);
-    return { eshop: eshopName, markdown };
-  } catch (err) {
-    console.error(`${eshopName} error:`, err);
-    return { eshop: eshopName, markdown: null, error: err.message };
   }
+  return { eshop: eshopName, markdown: null, error: 'Max retries exceeded' };
 }
 
 serve(async (req) => {
