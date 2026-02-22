@@ -21,10 +21,10 @@ import {
 import pricehunterLogo from "@/assets/pricehunter-logo.png";
 
 const PRODUCT_CATEGORIES = [
-  { value: 'Headphones', labelKey: 'categoryHeadphones' as const, icon: Headphones },
-  { value: 'mobile_phones', labelKey: 'categoryMobilePhones' as const, icon: Smartphone },
-  { value: 'smart_watches', labelKey: 'categorySmartWatches' as const, icon: Watch },
-  { value: 'speakers', labelKey: 'categorySpeakers' as const, icon: Speaker },
+  { value: 'Headphones', labelKey: 'categoryHeadphones' as const, icon: Headphones, searchTerm: 'sluchátka' },
+  { value: 'mobile_phones', labelKey: 'categoryMobilePhones' as const, icon: Smartphone, searchTerm: 'mobily' },
+  { value: 'smart_watches', labelKey: 'categorySmartWatches' as const, icon: Watch, searchTerm: 'chytré hodinky' },
+  { value: 'speakers', labelKey: 'categorySpeakers' as const, icon: Speaker, searchTerm: 'reproduktory' },
 ];
 
 const CONDITION_OPTIONS = [
@@ -66,14 +66,12 @@ export const Header = () => {
     setIsOpen(false);
   };
 
-  const handleCategorySelect = (category: string | null) => {
-    const params = new URLSearchParams(searchParams);
-    if (category) {
-      params.set('category', category);
+  const handleCategorySelect = (category: string | null, searchTerm?: string) => {
+    if (searchTerm) {
+      navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
     } else {
-      params.delete('category');
+      navigate('/products');
     }
-    navigate(`/products?${params.toString()}`);
   };
 
   const handleConditionSelect = (condition: string) => {
@@ -112,8 +110,8 @@ export const Header = () => {
                 <Package className="mr-2 h-4 w-4" />
                 {t('allProducts')}
               </DropdownMenuItem>
-              {PRODUCT_CATEGORIES.map(({ value, labelKey, icon: Icon }) => (
-                <DropdownMenuItem key={value} onClick={() => handleCategorySelect(value)}>
+              {PRODUCT_CATEGORIES.map(({ value, labelKey, icon: Icon, searchTerm }) => (
+                <DropdownMenuItem key={value} onClick={() => handleCategorySelect(value, searchTerm)}>
                   <Icon className="mr-2 h-4 w-4" />
                   {t(labelKey)}
                 </DropdownMenuItem>
@@ -235,10 +233,10 @@ export const Header = () => {
                         <Package className="h-4 w-4" />
                         {t('allProducts')}
                       </button>
-                      {PRODUCT_CATEGORIES.map(({ value, labelKey, icon: Icon }) => (
+                      {PRODUCT_CATEGORIES.map(({ value, labelKey, icon: Icon, searchTerm }) => (
                         <button
                           key={value}
-                          onClick={() => { handleCategorySelect(value); setIsOpen(false); }}
+                          onClick={() => { handleCategorySelect(value, searchTerm); setIsOpen(false); }}
                           className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-2"
                         >
                           <Icon className="h-4 w-4" />
