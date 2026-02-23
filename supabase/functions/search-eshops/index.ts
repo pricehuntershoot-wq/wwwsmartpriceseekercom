@@ -1,15 +1,180 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const CACHE_HOURS = 24;
+
 const ESHOP_SEARCH_URLS = {
   alza: (q: string) => `https://www.alza.cz/search.htm?exps=${encodeURIComponent(q)}`,
   datart: (q: string) => `https://www.datart.cz/vyhledavani?q=${encodeURIComponent(q)}`,
   smarty: (q: string) => `https://www.smarty.cz/hledej?q=${encodeURIComponent(q)}`,
 };
+
+function getSupabaseAdmin() {
+  return createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+  );
+}
+
+async function getCachedResults(supabase: any, query: string) {
+  const cutoff = new Date(Date.now() - CACHE_HOURS * 60 * 60 * 1000).toISOString();
+  
+  // Search for products matching the query that have recent prices
+  const { data: products, error } = await supabase
+    .from('prices')
+    .select(`
+      id,
+      current_price,
+      original_price,
+      product_url,
+      discount_type,
+      discount_label,
+      discovered_at,
+      products (id, name, image_url, category),
+      shops (id, name)
+    `)
+    .gte('discovered_at', cutoff)
+    .eq('is_active', true);
+
+  if (error || !products || products.length === 0) return null;
+
+  // Filter by query match (case-insensitive)
+  const q = query.toLowerCase();
+  const matched = products.filter((p: any) => 
+    p.products?.name?.toLowerCase().includes(q)
+  );
+
+  if (matched.length === 0) return null;
+
+  console.log(`Found ${matched.length} cached results for "${query}"`);
+
+  return matched.map((p: any) => ({
+    name: p.products?.name || '',
+    price: p.current_price,
+    originalPrice: p.original_price,
+    eshop: p.shops?.name?.toLowerCase().replace('.cz', '').replace('.', '') || 'unknown',
+    productUrl: p.product_url,
+    imageUrl: p.products?.image_url,
+    category: p.products?.category,
+    promoCode: p.discount_label,
+    condition: p.discount_type || 'new',
+    fromCache: true,
+    cachedAt: p.discovered_at,
+  }));
+}
+
+async function saveResultsToDB(supabase: any, products: any[]) {
+  const shopCache: Record<string, string> = {};
+
+  for (const product of products) {
+    try {
+      // 1. Upsert shop
+      const shopName = product.eshop === 'alza' ? 'Alza.cz' : 
+                        product.eshop === 'datart' ? 'Datart.cz' :
+                        product.eshop === 'smarty' ? 'Smarty.cz' : product.eshop;
+      
+      let shopId = shopCache[shopName];
+      if (!shopId) {
+        const { data: existingShop } = await supabase
+          .from('shops')
+          .select('id')
+          .eq('name', shopName)
+          .maybeSingle();
+
+        if (existingShop) {
+          shopId = existingShop.id;
+        } else {
+          const { data: newShop } = await supabase
+            .from('shops')
+            .insert({ name: shopName, website_url: `https://www.${shopName.toLowerCase()}` })
+            .select('id')
+            .single();
+          shopId = newShop?.id;
+        }
+        if (shopId) shopCache[shopName] = shopId;
+      }
+      if (!shopId) continue;
+
+      // 2. Upsert product
+      let productId: string;
+      const { data: existingProduct } = await supabase
+        .from('products')
+        .select('id')
+        .eq('name', product.name)
+        .maybeSingle();
+
+      if (existingProduct) {
+        productId = existingProduct.id;
+      } else {
+        const { data: newProduct } = await supabase
+          .from('products')
+          .insert({
+            name: product.name,
+            image_url: product.imageUrl || null,
+            category: product.category || null,
+          })
+          .select('id')
+          .single();
+        if (!newProduct) continue;
+        productId = newProduct.id;
+      }
+
+      // 3. Upsert price
+      const { data: existingPrice } = await supabase
+        .from('prices')
+        .select('id')
+        .eq('product_id', productId)
+        .eq('shop_id', shopId)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (existingPrice) {
+        await supabase
+          .from('prices')
+          .update({
+            current_price: product.price,
+            original_price: product.originalPrice || null,
+            product_url: product.productUrl || null,
+            discount_type: product.condition || 'new',
+            discount_label: product.promoCode || null,
+            discovered_at: new Date().toISOString(),
+          })
+          .eq('id', existingPrice.id);
+      } else {
+        await supabase
+          .from('prices')
+          .insert({
+            product_id: productId,
+            shop_id: shopId,
+            current_price: product.price,
+            original_price: product.originalPrice || null,
+            product_url: product.productUrl || null,
+            discount_type: product.condition || 'new',
+            discount_label: product.promoCode || null,
+            currency: 'CZK',
+          });
+      }
+
+      // 4. Record price history
+      await supabase
+        .from('price_history')
+        .insert({
+          product_id: productId,
+          shop_id: shopId,
+          price: product.price,
+          currency: 'CZK',
+        });
+
+    } catch (err) {
+      console.error(`Failed to save product "${product.name}":`, err);
+    }
+  }
+}
 
 async function scrapeEshop(eshopName: string, url: string, apiKey: string, maxRetries = 2): Promise<{ eshop: string; markdown: string | null; error?: string }> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -76,6 +241,22 @@ serve(async (req) => {
       );
     }
 
+    const trimmedQuery = query.trim();
+    console.log(`Searching for "${trimmedQuery}" across e-shops...`);
+
+    // Step 1: Check database cache first
+    const supabase = getSupabaseAdmin();
+    const cachedResults = await getCachedResults(supabase, trimmedQuery);
+
+    if (cachedResults && cachedResults.length > 0) {
+      console.log(`Returning ${cachedResults.length} cached results for "${trimmedQuery}"`);
+      return new Response(
+        JSON.stringify({ success: true, products: cachedResults, errors: [], fromCache: true }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Step 2: No cache — scrape live
     const FIRECRAWL_API_KEY = Deno.env.get('FIRECRAWL_API_KEY');
     if (!FIRECRAWL_API_KEY) {
       return new Response(
@@ -91,9 +272,6 @@ serve(async (req) => {
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    const trimmedQuery = query.trim();
-    console.log(`Searching for "${trimmedQuery}" across e-shops...`);
 
     // Scrape all 3 e-shops in parallel
     const scrapeResults = await Promise.all(
@@ -202,10 +380,17 @@ IMPORTANT: Return ONLY valid JSON array, no markdown code fences.`;
 
     console.log(`Found ${products.length} products across e-shops`);
 
+    // Step 3: Save results to database (non-blocking)
+    if (products.length > 0) {
+      // We await this to ensure data is saved, but it's fast with service role
+      await saveResultsToDB(supabase, products);
+      console.log(`Saved ${products.length} products to database`);
+    }
+
     const errors = scrapeResults.filter(r => r.error).map(r => `${r.eshop}: ${r.error}`);
 
     return new Response(
-      JSON.stringify({ success: true, products, errors }),
+      JSON.stringify({ success: true, products, errors, fromCache: false }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 

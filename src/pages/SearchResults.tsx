@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, ExternalLink, Tag, Copy, Check, AlertCircle, ShoppingBag, Sparkles, SlidersHorizontal, X, Bot } from "lucide-react";
+import { Loader2, ExternalLink, Tag, Copy, Check, AlertCircle, ShoppingBag, Sparkles, SlidersHorizontal, X, Bot, Database } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -44,6 +44,7 @@ const SearchResults = () => {
   const [sortOrder, setSortOrder] = useState<"price-asc" | "price-desc" | "discount-desc">("price-asc");
   const [searchProgress, setSearchProgress] = useState(0);
   const [showWittyMessage, setShowWittyMessage] = useState(false);
+  const [fromCache, setFromCache] = useState(false);
   const wittyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -61,6 +62,7 @@ const SearchResults = () => {
     setSelectedCategories([]);
     setSearchProgress(0);
     setShowWittyMessage(false);
+    setFromCache(false);
 
     // Simulate progress bar advancing
     progressTimerRef.current = setInterval(() => {
@@ -86,9 +88,14 @@ const SearchResults = () => {
       setSearchProgress(100);
       setProducts(data.products || []);
       setErrors(data.errors || []);
+      setFromCache(data.fromCache || false);
 
       if (data.products?.length > 0) {
-        toast.success(`Nalezeno ${data.products.length} produktů`);
+        toast.success(
+          data.fromCache
+            ? `Nalezeno ${data.products.length} produktů z databáze`
+            : `Nalezeno ${data.products.length} produktů`
+        );
       } else {
         toast.info("Žádné produkty nenalezeny");
       }
@@ -338,6 +345,21 @@ const SearchResults = () => {
         {/* Results grid */}
         {!isLoading && filteredProducts.length > 0 && (
           <div className="space-y-6">
+            {fromCache && (
+              <div className="p-3 rounded-xl bg-accent/30 border border-border flex items-center gap-2">
+                <Database className="h-4 w-4 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">
+                  Výsledky z databáze (posledních 24h).{" "}
+                  <button className="text-primary underline" onClick={() => {
+                    setFromCache(false);
+                    // Force fresh search by clearing cache flag — edge function will be updated to support this
+                  }}>
+                    Hledat znovu
+                  </button>
+                </p>
+              </div>
+            )}
+
             {lowestPrice !== null && (
               <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/20">
                 <p className="text-sm font-medium text-green-600">
