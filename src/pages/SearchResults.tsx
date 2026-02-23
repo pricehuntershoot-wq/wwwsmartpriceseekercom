@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -6,9 +6,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, ExternalLink, Tag, Copy, Check, AlertCircle, ShoppingBag, Sparkles, SlidersHorizontal, X } from "lucide-react";
+import { Loader2, ExternalLink, Tag, Copy, Check, AlertCircle, ShoppingBag, Sparkles, SlidersHorizontal, X, Bot } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -41,6 +42,10 @@ const SearchResults = () => {
   const [selectedEshops, setSelectedEshops] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [sortOrder, setSortOrder] = useState<"price-asc" | "price-desc" | "discount-desc">("price-asc");
+  const [searchProgress, setSearchProgress] = useState(0);
+  const [showWittyMessage, setShowWittyMessage] = useState(false);
+  const wittyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (query.trim().length >= 2) {
@@ -54,6 +59,21 @@ const SearchResults = () => {
     setErrors([]);
     setSelectedEshops([]);
     setSelectedCategories([]);
+    setSearchProgress(0);
+    setShowWittyMessage(false);
+
+    // Simulate progress bar advancing
+    progressTimerRef.current = setInterval(() => {
+      setSearchProgress((prev) => {
+        if (prev >= 90) return 90; // cap at 90 until done
+        return prev + Math.random() * 12;
+      });
+    }, 400);
+
+    // Show witty message after 5 seconds
+    wittyTimerRef.current = setTimeout(() => {
+      setShowWittyMessage(true);
+    }, 5000);
 
     try {
       const { data, error } = await supabase.functions.invoke("search-eshops", {
@@ -63,6 +83,7 @@ const SearchResults = () => {
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Vyhledávání selhalo");
 
+      setSearchProgress(100);
       setProducts(data.products || []);
       setErrors(data.errors || []);
 
@@ -75,7 +96,14 @@ const SearchResults = () => {
       console.error("Search error:", err);
       toast.error(err instanceof Error ? err.message : "Vyhledávání selhalo");
     } finally {
-      setIsLoading(false);
+      if (progressTimerRef.current) clearInterval(progressTimerRef.current);
+      if (wittyTimerRef.current) clearTimeout(wittyTimerRef.current);
+      // Small delay so user sees 100%
+      setTimeout(() => {
+        setIsLoading(false);
+        setSearchProgress(0);
+        setShowWittyMessage(false);
+      }, 300);
     }
   };
 
@@ -253,17 +281,32 @@ const SearchResults = () => {
           </div>
         )}
 
-        {/* Loading skeletons */}
+        {/* Loading with progress bar */}
         {isLoading && (
           <div className="space-y-6">
-            <div className="flex items-center gap-3 p-6 rounded-xl bg-muted/50 border border-border">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              <div>
-                <p className="font-semibold">Prohledáváme e-shopy...</p>
-                <p className="text-sm text-muted-foreground">
-                  Stahujeme výsledky z Alza.cz, Datart.cz a Smarty.cz
-                </p>
+            <div className="p-6 rounded-xl bg-muted/50 border border-border space-y-4">
+              <div className="flex items-center gap-3">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                <div>
+                  <p className="font-semibold">Prohledáváme více obchodů...</p>
+                  <p className="text-sm text-muted-foreground">
+                    Stahujeme výsledky z Alza.cz, Datart.cz a Smarty.cz
+                  </p>
+                </div>
               </div>
+              <Progress value={searchProgress} className="h-2 animate-pulse-slow" />
+              <p className="text-xs text-muted-foreground text-right">
+                {Math.round(searchProgress)}%
+              </p>
+
+              {showWittyMessage && (
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/10 animate-fade-in">
+                  <Bot className="h-5 w-5 text-primary shrink-0" />
+                  <p className="text-sm text-primary font-medium">
+                    Naši AI agenti právě vyjednávají nejlepší ceny pro vás, vydržte! 🤖💰
+                  </p>
+                </div>
+              )}
             </div>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 6 }).map((_, i) => (
