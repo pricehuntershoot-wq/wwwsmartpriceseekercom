@@ -19,6 +19,7 @@ import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import Analyzer from "./pages/Analyzer";
 import SearchResults from "./pages/SearchResults";
+import CategoryProducts from "./pages/CategoryProducts";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/products" element={<Products />} />
+              <Route path="/category/:slug" element={<CategoryProducts />} />
               <Route path="/auth" element={<Auth />} />
               
               <Route path="/products/:id" element={<ProductDetail />} />

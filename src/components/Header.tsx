@@ -73,8 +73,8 @@ export const Header = () => {
   };
 
   const handleCategorySelect = (category: string | null, searchTerm?: string) => {
-    if (searchTerm) {
-      navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
+    if (category) {
+      navigate(`/category/${category}`);
     } else {
       navigate('/products');
     }
