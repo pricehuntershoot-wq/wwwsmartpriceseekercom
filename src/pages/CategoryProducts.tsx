@@ -1,170 +1,202 @@
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { ShopComparisonCard } from "@/components/ShopComparisonCard";
-import { Headphones, Smartphone, Tv, Tablet, Watch, Speaker, Gamepad2, CircleDot, Monitor, Cable } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
+import {
+  Headphones, Smartphone, Tv, Tablet, Watch, Speaker, Gamepad2,
+  CircleDot, Monitor, Cable, Loader2, ExternalLink, Tag, Copy, Check,
+  AlertCircle, ShoppingBag, Bot, Database, Sparkles, Target, RefreshCw
+} from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-const s = (alza: number, smarty: number, datart: number) => [
-  { shop: "Alza.cz", price: alza, url: "https://www.alza.cz" },
-  { shop: "Smarty.cz", price: smarty, url: "https://www.smarty.cz" },
-  { shop: "Datart.cz", price: datart, url: "https://www.datart.cz" },
-];
+interface EshopProduct {
+  name: string;
+  price: number;
+  originalPrice?: number | null;
+  eshop: string;
+  productUrl?: string | null;
+  imageUrl?: string | null;
+  category?: string | null;
+  promoCode?: string | null;
+  condition?: string;
+  fromCache?: boolean;
+}
 
-const HEADPHONES_DATA = [
-  { name: "Sony WH-1000XM5", image: "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=400&h=400&fit=crop", shops: s(7490, 7290, 7690) },
-  { name: "Apple AirPods Pro 2 (USB-C)", image: "https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?w=400&h=400&fit=crop", shops: s(6490, 6690, 6290) },
-  { name: "Bose QuietComfort Ultra", image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop", shops: s(9990, 9490, 9790) },
-  { name: "Samsung Galaxy Buds3 Pro", image: "https://images.unsplash.com/photo-1590658268037-6bf12f032f55?w=400&h=400&fit=crop", shops: s(5290, 5490, 5190) },
-  { name: "Sennheiser Momentum 4", image: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=400&h=400&fit=crop", shops: s(8490, 8290, 8690) },
-  { name: "JBL Tune 770NC", image: "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&h=400&fit=crop", shops: s(1990, 2190, 1890) },
-  { name: "Apple AirPods Max (USB-C)", image: "https://images.unsplash.com/photo-1625245488600-f03fef636a3c?w=400&h=400&fit=crop", shops: s(14990, 14790, 15290) },
-  { name: "Sony WF-1000XM5", image: "https://images.unsplash.com/photo-1572536147248-ac59a8abfa4b?w=400&h=400&fit=crop", shops: s(5990, 5790, 6190) },
-  { name: "Beyerdynamic DT 900 Pro X", image: "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400&h=400&fit=crop", shops: s(6790, 6990, 6790) },
-  { name: "Marshall Major V", image: "https://images.unsplash.com/photo-1524678606370-a47ad25cb82a?w=400&h=400&fit=crop", shops: s(2990, 2790, 3190) },
-];
+// Group products by name and show prices from each shop side-by-side
+interface GroupedProduct {
+  name: string;
+  imageUrl: string | null;
+  category: string | null;
+  shops: {
+    eshop: string;
+    price: number;
+    originalPrice?: number | null;
+    productUrl?: string | null;
+    promoCode?: string | null;
+    condition?: string;
+  }[];
+}
 
-const MOBILE_DATA = [
-  { name: "Apple iPhone 15 Pro Max 256GB", image: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=400&h=400&fit=crop", shops: s(34990, 33990, 35490) },
-  { name: "Samsung Galaxy S24 Ultra 256GB", image: "https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=400&h=400&fit=crop", shops: s(31990, 30990, 32490) },
-  { name: "Google Pixel 8 Pro", image: "https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=400&h=400&fit=crop", shops: s(22990, 21990, 23490) },
-  { name: "OnePlus 12 256GB", image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=400&fit=crop", shops: s(21990, 20990, 22490) },
-  { name: "Xiaomi 14 Ultra", image: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=400&h=400&fit=crop", shops: s(27990, 26490, 27490) },
-  { name: "Samsung Galaxy Z Flip5", image: "https://images.unsplash.com/photo-1574944985070-8f3ebc6b79d2?w=400&h=400&fit=crop", shops: s(24990, 23990, 25490) },
-  { name: "Apple iPhone 15 128GB", image: "https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=400&h=400&fit=crop", shops: s(22990, 22490, 23490) },
-  { name: "Nothing Phone (2)", image: "https://images.unsplash.com/photo-1533228100845-08145b01de14?w=400&h=400&fit=crop", shops: s(15990, 14990, 16490) },
-  { name: "Samsung Galaxy A55 5G", image: "https://images.unsplash.com/photo-1556656793-08538906a9f8?w=400&h=400&fit=crop", shops: s(10990, 10490, 11290) },
-  { name: "Motorola Edge 50 Pro", image: "https://images.unsplash.com/photo-1512054502232-10a0a035d672?w=400&h=400&fit=crop", shops: s(13990, 12990, 14490) },
-];
-
-const TV_DATA = [
-  { name: "Samsung QE65S95D OLED 65\"", image: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=400&h=400&fit=crop", shops: s(49990, 47990, 51990) },
-  { name: "LG OLED65C4 65\"", image: "https://images.unsplash.com/photo-1461151304267-38535e780c79?w=400&h=400&fit=crop", shops: s(39990, 38490, 41990) },
-  { name: "Sony XR-55A95L OLED 55\"", image: "https://images.unsplash.com/photo-1509281373149-e957c6296406?w=400&h=400&fit=crop", shops: s(44990, 42990, 45990) },
-  { name: "TCL 65C845 MiniLED 65\"", image: "https://images.unsplash.com/photo-1567690187548-f07b1d7bf5a9?w=400&h=400&fit=crop", shops: s(22990, 21490, 23990) },
-  { name: "Hisense 65U8KQ MiniLED 65\"", image: "https://images.unsplash.com/photo-1558888401-3cc1de77652d?w=400&h=400&fit=crop", shops: s(24990, 23990, 25990) },
-  { name: "Samsung QE55Q80D QLED 55\"", image: "https://images.unsplash.com/photo-1593784991095-a205069470b6?w=400&h=400&fit=crop", shops: s(22990, 21990, 23490) },
-  { name: "LG 55QNED86 55\"", image: "https://images.unsplash.com/photo-1571415060716-baff5f717c37?w=400&h=400&fit=crop", shops: s(17990, 16990, 18490) },
-  { name: "Sony KD-55X85L 55\"", image: "https://images.unsplash.com/photo-1601944179066-29786cb9d32a?w=400&h=400&fit=crop", shops: s(18990, 17990, 19490) },
-  { name: "Philips 65PUS8808 65\"", image: "https://images.unsplash.com/photo-1574375927938-d5a98e8d7e28?w=400&h=400&fit=crop", shops: s(19990, 18490, 20990) },
-  { name: "Samsung QE75Q60D QLED 75\"", image: "https://images.unsplash.com/photo-1539786774582-0707555f1f72?w=400&h=400&fit=crop", shops: s(29990, 28990, 31490) },
-];
-
-const TABLET_DATA = [
-  { name: "Apple iPad Pro 13\" M4 256GB", image: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=400&h=400&fit=crop", shops: s(33990, 32990, 34990) },
-  { name: "Samsung Galaxy Tab S9 Ultra", image: "https://images.unsplash.com/photo-1561154464-82e9aab32f65?w=400&h=400&fit=crop", shops: s(29990, 28490, 30990) },
-  { name: "Apple iPad Air 11\" M2 128GB", image: "https://images.unsplash.com/photo-1585790050230-5dd28404ccb9?w=400&h=400&fit=crop", shops: s(17990, 17490, 18490) },
-  { name: "Samsung Galaxy Tab S9 FE", image: "https://images.unsplash.com/photo-1632882765546-1ee75f53becb?w=400&h=400&fit=crop", shops: s(11990, 11490, 12490) },
-  { name: "Lenovo Tab P12 Pro", image: "https://images.unsplash.com/photo-1589739900243-4b52cd9dd846?w=400&h=400&fit=crop", shops: s(12990, 11990, 13490) },
-  { name: "Apple iPad 10. generace 64GB", image: "https://images.unsplash.com/photo-1542751110-97427bbecf20?w=400&h=400&fit=crop", shops: s(10990, 10490, 11490) },
-  { name: "Xiaomi Pad 6 256GB", image: "https://images.unsplash.com/photo-1527698266440-12104e498b76?w=400&h=400&fit=crop", shops: s(8990, 8490, 9490) },
-  { name: "Samsung Galaxy Tab A9+", image: "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400&h=400&fit=crop", shops: s(6990, 6490, 7490) },
-  { name: "OnePlus Pad 2", image: "https://images.unsplash.com/photo-1623126908029-58cb08a2b272?w=400&h=400&fit=crop", shops: s(11990, 10990, 12490) },
-  { name: "Apple iPad mini 6. gen 64GB", image: "https://images.unsplash.com/photo-1471897488648-5eae4ac6686b?w=400&h=400&fit=crop", shops: s(14990, 14490, 15490) },
-];
-
-const WATCHES_DATA = [
-  { name: "Apple Watch Series 9 45mm", image: "https://images.unsplash.com/photo-1546868871-af0de0ae72be?w=400&h=400&fit=crop", shops: s(11990, 11490, 12490) },
-  { name: "Samsung Galaxy Watch6 Classic 47mm", image: "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=400&h=400&fit=crop", shops: s(9990, 9490, 10490) },
-  { name: "Apple Watch Ultra 2", image: "https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=400&h=400&fit=crop", shops: s(22990, 21990, 23490) },
-  { name: "Garmin Venu 3", image: "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=400&h=400&fit=crop", shops: s(12490, 11990, 12990) },
-  { name: "Google Pixel Watch 2", image: "https://images.unsplash.com/photo-1617625802912-cde586faf331?w=400&h=400&fit=crop", shops: s(9490, 8990, 9990) },
-  { name: "Garmin Fenix 7X Pro", image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop", shops: s(19990, 18990, 20490) },
-  { name: "Samsung Galaxy Watch FE", image: "https://images.unsplash.com/photo-1553545204-4f7d339aa06a?w=400&h=400&fit=crop", shops: s(5490, 4990, 5990) },
-  { name: "Apple Watch SE 2. gen 44mm", image: "https://images.unsplash.com/photo-1551816230-ef5deaed4a26?w=400&h=400&fit=crop", shops: s(7990, 7490, 8490) },
-  { name: "Xiaomi Watch 2 Pro", image: "https://images.unsplash.com/photo-1542496658-e33a6d0d50f6?w=400&h=400&fit=crop", shops: s(6990, 6490, 7490) },
-  { name: "Withings ScanWatch 2", image: "https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=400&h=400&fit=crop", shops: s(8990, 8490, 9490) },
-];
-
-const SPEAKERS_DATA = [
-  { name: "Sonos Era 300", image: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400&h=400&fit=crop", shops: s(11990, 11490, 12490) },
-  { name: "JBL Charge 5", image: "https://images.unsplash.com/photo-1589003077984-894e133dabab?w=400&h=400&fit=crop", shops: s(3990, 3690, 4290) },
-  { name: "Marshall Stanmore III", image: "https://images.unsplash.com/photo-1545454675-3531b543be5d?w=400&h=400&fit=crop", shops: s(9990, 9490, 10490) },
-  { name: "Bose SoundLink Max", image: "https://images.unsplash.com/photo-1558089687-f282ffcbc126?w=400&h=400&fit=crop", shops: s(8990, 8490, 9490) },
-  { name: "Sonos Move 2", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop", shops: s(12490, 11990, 12990) },
-  { name: "JBL Flip 6", image: "https://images.unsplash.com/photo-1558537348-c0f8e733989d?w=400&h=400&fit=crop", shops: s(2990, 2790, 3190) },
-  { name: "Bang & Olufsen Beosound A1", image: "https://images.unsplash.com/photo-1548921441-89c8bd0e6f54?w=400&h=400&fit=crop", shops: s(6990, 6490, 7490) },
-  { name: "Ultimate Ears Megaboom 4", image: "https://images.unsplash.com/photo-1564424224827-cd24b8915874?w=400&h=400&fit=crop", shops: s(5490, 4990, 5990) },
-  { name: "Sony SRS-XB100", image: "https://images.unsplash.com/photo-1518893063132-36e46dbe2428?w=400&h=400&fit=crop", shops: s(1490, 1290, 1590) },
-  { name: "Harman Kardon Aura Studio 4", image: "https://images.unsplash.com/photo-1462638379155-7a72b06e6b76?w=400&h=400&fit=crop", shops: s(7990, 7490, 8490) },
-];
-
-const GAMING_DATA = [
-  { name: "PlayStation 5 Slim", image: "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=400&h=400&fit=crop", shops: s(13990, 13490, 14490) },
-  { name: "Xbox Series X", image: "https://images.unsplash.com/photo-1621259182978-fbf93132d53d?w=400&h=400&fit=crop", shops: s(12990, 11990, 13490) },
-  { name: "Nintendo Switch OLED", image: "https://images.unsplash.com/photo-1578303512597-81e6cc155b3e?w=400&h=400&fit=crop", shops: s(8990, 8490, 9490) },
-  { name: "PlayStation 5 Digital Edition", image: "https://images.unsplash.com/photo-1607853202273-797f1c22a38e?w=400&h=400&fit=crop", shops: s(10990, 10490, 11490) },
-  { name: "Xbox Series S 1TB", image: "https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?w=400&h=400&fit=crop", shops: s(7990, 7490, 8490) },
-  { name: "Steam Deck OLED 512GB", image: "https://images.unsplash.com/photo-1640955014216-75201056c829?w=400&h=400&fit=crop", shops: s(14990, 13990, 15490) },
-  { name: "Nintendo Switch Lite", image: "https://images.unsplash.com/photo-1585620385456-4759f9b5c7d9?w=400&h=400&fit=crop", shops: s(5490, 4990, 5990) },
-  { name: "ASUS ROG Ally", image: "https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?w=400&h=400&fit=crop", shops: s(17990, 16990, 18490) },
-  { name: "Meta Quest 3 128GB", image: "https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?w=400&h=400&fit=crop", shops: s(13490, 12990, 13990) },
-  { name: "Lenovo Legion Go", image: "https://images.unsplash.com/photo-1551103782-8ab07afd45c1?w=400&h=400&fit=crop", shops: s(19990, 18490, 20490) },
-];
-
-const SMART_RINGS_DATA = [
-  { name: "Oura Ring Gen 3 Heritage", image: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&h=400&fit=crop", shops: s(8990, 8490, 9490) },
-  { name: "Samsung Galaxy Ring", image: "https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=400&h=400&fit=crop", shops: s(9990, 9490, 10490) },
-  { name: "Oura Ring Gen 3 Horizon", image: "https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&h=400&fit=crop", shops: s(9490, 8990, 9990) },
-  { name: "Ultrahuman Ring Air", image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&h=400&fit=crop", shops: s(9990, 9290, 10490) },
-  { name: "RingConn Smart Ring", image: "https://images.unsplash.com/photo-1602752250015-52934bc45613?w=400&h=400&fit=crop", shops: s(4990, 4490, 5490) },
-  { name: "Circular Ring Slim", image: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&h=400&fit=crop", shops: s(6990, 6490, 7490) },
-  { name: "Amazfit Helio Ring", image: "https://images.unsplash.com/photo-1583484963886-cfe2bff2945f?w=400&h=400&fit=crop", shops: s(5990, 5490, 6490) },
-  { name: "Oura Ring Gen 3 Gucci Edition", image: "https://images.unsplash.com/photo-1543294001-f7cd5d7fb516?w=400&h=400&fit=crop", shops: s(12990, 12490, 13490) },
-  { name: "Movano Evie Ring", image: "https://images.unsplash.com/photo-1596944924616-7b38e7cfac36?w=400&h=400&fit=crop", shops: s(7990, 7490, 8490) },
-  { name: "Happy Ring", image: "https://images.unsplash.com/photo-1586104237886-89307f67d868?w=400&h=400&fit=crop", shops: s(3990, 3490, 4490) },
-];
-
-const PC_DATA = [
-  { name: "Apple MacBook Air 15\" M3", image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400&h=400&fit=crop", shops: s(37990, 36990, 38990) },
-  { name: "Lenovo ThinkPad X1 Carbon Gen 11", image: "https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?w=400&h=400&fit=crop", shops: s(42990, 40990, 43990) },
-  { name: "ASUS ROG Strix G16 (2024)", image: "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=400&h=400&fit=crop", shops: s(34990, 33490, 35990) },
-  { name: "Apple MacBook Pro 14\" M3 Pro", image: "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=400&h=400&fit=crop", shops: s(54990, 52990, 55990) },
-  { name: "Dell XPS 15 (2024)", image: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=400&fit=crop", shops: s(38990, 37490, 39990) },
-  { name: "HP Pavilion Desktop TP01", image: "https://images.unsplash.com/photo-1587831990711-23ca6441447b?w=400&h=400&fit=crop", shops: s(18990, 17990, 19490) },
-  { name: "Acer Nitro 5 AN515", image: "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=400&h=400&fit=crop", shops: s(24990, 23990, 25990) },
-  { name: "Lenovo IdeaCentre 5i", image: "https://images.unsplash.com/photo-1547082299-de196ea013d6?w=400&h=400&fit=crop", shops: s(16990, 15990, 17490) },
-  { name: "Apple Mac mini M2", image: "https://images.unsplash.com/photo-1619953942547-233eab5a70d6?w=400&h=400&fit=crop", shops: s(15990, 14990, 16490) },
-  { name: "MSI Katana GF66", image: "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=400&h=400&fit=crop", shops: s(21990, 20490, 22990) },
-];
-
-const ACCESSORIES_DATA = [
-  { name: "Apple MagSafe Charger", image: "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=400&h=400&fit=crop", shops: s(1090, 990, 1190) },
-  { name: "Anker PowerBank 26800mAh", image: "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=400&h=400&fit=crop", shops: s(1490, 1290, 1590) },
-  { name: "Samsung 45W USB-C nabíječka", image: "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&h=400&fit=crop", shops: s(990, 890, 1090) },
-  { name: "Logitech MX Master 3S", image: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400&h=400&fit=crop", shops: s(2490, 2290, 2690) },
-  { name: "Apple Magic Keyboard s Touch ID", image: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=400&h=400&fit=crop", shops: s(3990, 3790, 4190) },
-  { name: "SanDisk Extreme Pro 1TB SSD", image: "https://images.unsplash.com/photo-1531492746076-161ca9bcad58?w=400&h=400&fit=crop", shops: s(3490, 3190, 3690) },
-  { name: "Spigen Ultra Hybrid (iPhone 15 Pro)", image: "https://images.unsplash.com/photo-1601593346740-925612772716?w=400&h=400&fit=crop", shops: s(690, 590, 790) },
-  { name: "Belkin BoostCharge Pro 3v1", image: "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=400&h=400&fit=crop", shops: s(3490, 3290, 3690) },
-  { name: "Apple Pencil (USB-C)", image: "https://images.unsplash.com/photo-1585790050230-5dd28404ccb9?w=400&h=400&fit=crop", shops: s(2190, 1990, 2390) },
-  { name: "Samsung SmartTag2 (4 pack)", image: "https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400&h=400&fit=crop", shops: s(2490, 2190, 2690) },
-];
-
-type CategoryProduct = { name: string; image: string; shops: { shop: string; price: number; url: string }[] };
-
-const CATEGORY_CONFIG: Record<string, { title: string; icon: typeof Headphones; data: CategoryProduct[] }> = {
-  Headphones: { title: "Sluchátka", icon: Headphones, data: HEADPHONES_DATA },
-  mobile_phones: { title: "Mobilní telefony", icon: Smartphone, data: MOBILE_DATA },
-  tv: { title: "Televize", icon: Tv, data: TV_DATA },
-  tablets: { title: "Tablety", icon: Tablet, data: TABLET_DATA },
-  smart_watches: { title: "Chytré hodinky", icon: Watch, data: WATCHES_DATA },
-  speakers: { title: "Reproduktory", icon: Speaker, data: SPEAKERS_DATA },
-  gaming_consoles: { title: "Herní konzole", icon: Gamepad2, data: GAMING_DATA },
-  smart_rings: { title: "Chytré prsteny", icon: CircleDot, data: SMART_RINGS_DATA },
-  pc: { title: "Počítače", icon: Monitor, data: PC_DATA },
-  accessories: { title: "Příslušenství", icon: Cable, data: ACCESSORIES_DATA },
+const ESHOP_META: Record<string, { name: string; logo: string; color: string }> = {
+  alza: { name: "Alza.cz", logo: "https://cdn.alza.cz/Foto/favicon/android-chrome-192x192.png", color: "bg-green-600" },
+  datart: { name: "Datart.cz", logo: "https://www.datart.cz/favicon.ico", color: "bg-red-600" },
+  smarty: { name: "Smarty.cz", logo: "https://www.smarty.cz/favicon.ico", color: "bg-blue-600" },
 };
+
+const CATEGORY_CONFIG: Record<string, { title: string; icon: typeof Headphones; searchTerm: string }> = {
+  Headphones: { title: "Sluchátka", icon: Headphones, searchTerm: "sluchátka" },
+  mobile_phones: { title: "Mobilní telefony", icon: Smartphone, searchTerm: "mobily" },
+  tv: { title: "Televize", icon: Tv, searchTerm: "televize" },
+  tablets: { title: "Tablety", icon: Tablet, searchTerm: "tablety" },
+  smart_watches: { title: "Chytré hodinky", icon: Watch, searchTerm: "chytré hodinky" },
+  speakers: { title: "Reproduktory", icon: Speaker, searchTerm: "reproduktory" },
+  gaming_consoles: { title: "Herní konzole", icon: Gamepad2, searchTerm: "herní konzole" },
+  smart_rings: { title: "Chytré prsteny", icon: CircleDot, searchTerm: "chytré prsteny" },
+  pc: { title: "Počítače", icon: Monitor, searchTerm: "počítač PC" },
+  accessories: { title: "Příslušenství", icon: Cable, searchTerm: "příslušenství elektronika" },
+};
+
+const formatPrice = (price: number) => price.toLocaleString("cs-CZ") + " Kč";
+
+const getConditionLabel = (condition?: string) => {
+  switch (condition) {
+    case "open_box": return { label: "Rozbaleno", color: "bg-amber-500/15 text-amber-400 border-amber-500/30" };
+    case "used": return { label: "Použité", color: "bg-orange-500/15 text-orange-400 border-orange-500/30" };
+    case "refurbished": return { label: "Repasované", color: "bg-purple-500/15 text-purple-400 border-purple-500/30" };
+    default: return null;
+  }
+};
+
+function groupProducts(products: EshopProduct[]): GroupedProduct[] {
+  const groups: Record<string, GroupedProduct> = {};
+
+  for (const p of products) {
+    // Normalize name for grouping (remove extra spaces, lowercase)
+    const key = p.name.toLowerCase().replace(/\s+/g, " ").trim();
+
+    if (!groups[key]) {
+      groups[key] = {
+        name: p.name,
+        imageUrl: p.imageUrl || null,
+        category: p.category || null,
+        shops: [],
+      };
+    }
+
+    // Use first available image
+    if (!groups[key].imageUrl && p.imageUrl) {
+      groups[key].imageUrl = p.imageUrl;
+    }
+
+    groups[key].shops.push({
+      eshop: p.eshop,
+      price: p.price,
+      originalPrice: p.originalPrice,
+      productUrl: p.productUrl,
+      promoCode: p.promoCode,
+      condition: p.condition,
+    });
+  }
+
+  // Sort groups by lowest price
+  return Object.values(groups).sort((a, b) => {
+    const minA = Math.min(...a.shops.map(s => s.price));
+    const minB = Math.min(...b.shops.map(s => s.price));
+    return minA - minB;
+  });
+}
 
 const CategoryProducts = () => {
   const { slug } = useParams<{ slug: string }>();
   const config = CATEGORY_CONFIG[slug || ""] || CATEGORY_CONFIG["Headphones"];
   const Icon = config.icon;
 
+  const [products, setProducts] = useState<EshopProduct[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<string[]>([]);
+  const [searchProgress, setSearchProgress] = useState(0);
+  const [showWittyMessage, setShowWittyMessage] = useState(false);
+  const [fromCache, setFromCache] = useState(false);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const wittyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const searchCategory = async () => {
+    setIsLoading(true);
+    setProducts([]);
+    setErrors([]);
+    setSearchProgress(0);
+    setShowWittyMessage(false);
+    setFromCache(false);
+
+    progressTimerRef.current = setInterval(() => {
+      setSearchProgress((prev) => (prev >= 90 ? 90 : prev + Math.random() * 10));
+    }, 500);
+
+    wittyTimerRef.current = setTimeout(() => setShowWittyMessage(true), 5000);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("search-eshops", {
+        body: { query: config.searchTerm },
+      });
+
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || "Vyhledávání selhalo");
+
+      setSearchProgress(100);
+      setProducts(data.products || []);
+      setErrors(data.errors || []);
+      setFromCache(data.fromCache || false);
+
+      if (data.products?.length > 0) {
+        toast.success(
+          data.fromCache
+            ? `Nalezeno ${data.products.length} nabídek z databáze`
+            : `Nalezeno ${data.products.length} nabídek ze 3 e-shopů`
+        );
+      }
+    } catch (err) {
+      console.error("Category search error:", err);
+      toast.error(err instanceof Error ? err.message : "Vyhledávání selhalo");
+    } finally {
+      if (progressTimerRef.current) clearInterval(progressTimerRef.current);
+      if (wittyTimerRef.current) clearTimeout(wittyTimerRef.current);
+      setTimeout(() => {
+        setIsLoading(false);
+        setSearchProgress(0);
+        setShowWittyMessage(false);
+      }, 300);
+    }
+  };
+
+  useEffect(() => {
+    searchCategory();
+  }, [slug]);
+
+  const grouped = useMemo(() => groupProducts(products), [products]);
+
+  const copyCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    setCopiedCode(code);
+    toast.success(`Kód ${code} zkopírován!`);
+    setTimeout(() => setCopiedCode(null), 2000);
+  };
+
+  const totalPromos = products.filter(p => p.promoCode).length;
+  const totalHiddenDeals = products.filter(p => p.condition && p.condition !== "new").length;
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <main className="container pt-24 pb-12">
-        <div className="mb-10">
+        {/* Header */}
+        <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
               <Icon className="h-5 w-5 text-primary" />
@@ -174,22 +206,280 @@ const CategoryProducts = () => {
             </h1>
           </div>
           <p className="text-muted-foreground">
-            Porovnání cen ze 3 obchodů — nejnižší cena je označena jako{" "}
-            <span className="font-bold text-[hsl(54,100%,50%)]">Hunterův úlovek</span>
+            AI agenti prohledávají <span className="font-semibold text-foreground">Alza.cz</span>,{" "}
+            <span className="font-semibold text-foreground">Datart.cz</span> a{" "}
+            <span className="font-semibold text-foreground">Smarty.cz</span> — hledáme{" "}
+            <span className="font-bold text-primary">skryté slevy</span>, promo kódy a rozbalené produkty
           </p>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {config.data.map((product, i) => (
-            <div
-              key={product.name}
-              className="animate-fade-in"
-              style={{ animationDelay: `${i * 0.06}s` }}
-            >
-              <ShopComparisonCard product={product} />
+        {/* Loading state */}
+        {isLoading && (
+          <div className="space-y-6">
+            <div className="p-6 rounded-xl bg-muted/50 border border-border space-y-4">
+              <div className="flex items-center gap-3">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                <div>
+                  <p className="font-semibold">Prohledáváme skryté slevy...</p>
+                  <p className="text-sm text-muted-foreground">
+                    Stahujeme a analyzujeme stránky ze 3 e-shopů pomocí AI
+                  </p>
+                </div>
+              </div>
+              <Progress value={searchProgress} className="h-2" />
+              <p className="text-xs text-muted-foreground text-right">{Math.round(searchProgress)}%</p>
+
+              {showWittyMessage && (
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/10 animate-fade-in">
+                  <Bot className="h-5 w-5 text-primary shrink-0" />
+                  <p className="text-sm text-primary font-medium">
+                    Naši AI agenti právě analyzují ceny v košíku a hledají promo kódy... 🤖🔍
+                  </p>
+                </div>
+              )}
             </div>
-          ))}
-        </div>
+
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="space-y-3">
+                  <Skeleton className="aspect-[4/3] rounded-xl" />
+                  <Skeleton className="h-5 w-3/4" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Errors */}
+        {errors.length > 0 && !isLoading && (
+          <div className="mb-6 p-4 rounded-lg bg-amber-500/10 border border-amber-500/20">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertCircle className="h-4 w-4 text-amber-500" />
+              <span className="text-sm font-medium text-amber-600">Některé e-shopy neodpověděly</span>
+            </div>
+            <ul className="text-xs text-muted-foreground space-y-1">
+              {errors.map((e, i) => <li key={i}>• {e}</li>)}
+            </ul>
+          </div>
+        )}
+
+        {/* Results */}
+        {!isLoading && grouped.length > 0 && (
+          <div className="space-y-6">
+            {/* Stats banner */}
+            <div className="flex flex-wrap gap-3">
+              {fromCache && (
+                <div className="flex items-center gap-2 rounded-lg bg-accent/30 border border-border px-3 py-2">
+                  <Database className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Z databáze (24h cache)</span>
+                  <Button variant="ghost" size="sm" onClick={searchCategory} className="h-6 px-2 gap-1">
+                    <RefreshCw className="h-3 w-3" />
+                    Znovu
+                  </Button>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2 rounded-lg bg-primary/10 border border-primary/20 px-3 py-2">
+                <Sparkles className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium text-primary">
+                  {grouped.length} produktů · {products.length} nabídek
+                </span>
+              </div>
+
+              {totalPromos > 0 && (
+                <div className="flex items-center gap-2 rounded-lg bg-purple-500/10 border border-purple-500/20 px-3 py-2">
+                  <Tag className="h-4 w-4 text-purple-400" />
+                  <span className="text-sm font-medium text-purple-400">
+                    {totalPromos} promo kódů nalezeno
+                  </span>
+                </div>
+              )}
+
+              {totalHiddenDeals > 0 && (
+                <div className="flex items-center gap-2 rounded-lg bg-amber-500/10 border border-amber-500/20 px-3 py-2">
+                  <Target className="h-4 w-4 text-amber-400" />
+                  <span className="text-sm font-medium text-amber-400">
+                    {totalHiddenDeals} skrytých slev (rozbaleno, repas...)
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Product grid */}
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {grouped.map((product, i) => {
+                const lowestPrice = Math.min(...product.shops.map(s => s.price));
+                const hasPromo = product.shops.some(s => s.promoCode);
+                const hasHiddenDeal = product.shops.some(s => s.condition && s.condition !== "new");
+
+                return (
+                  <div
+                    key={i}
+                    className="group overflow-hidden rounded-2xl border border-border bg-gradient-card transition-all duration-300 hover:border-primary/50 hover:shadow-glow animate-fade-in"
+                    style={{ animationDelay: `${i * 0.06}s` }}
+                  >
+                    {/* Image */}
+                    <div className="relative aspect-[4/3] overflow-hidden bg-secondary/50 p-6">
+                      {product.imageUrl ? (
+                        <img
+                          src={product.imageUrl}
+                          alt={product.name}
+                          className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center">
+                          <ShoppingBag className="h-12 w-12 text-muted-foreground/30" />
+                        </div>
+                      )}
+
+                      {/* Badges */}
+                      <div className="absolute top-2 left-2 flex flex-col gap-1">
+                        {hasPromo && (
+                          <Badge className="bg-purple-500/20 text-purple-400 border border-purple-500/30 text-[10px]">
+                            <Tag className="h-3 w-3 mr-1" />
+                            Promo kód
+                          </Badge>
+                        )}
+                        {hasHiddenDeal && (
+                          <Badge className="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px]">
+                            🔍 Skrytá sleva
+                          </Badge>
+                        )}
+                      </div>
+
+                      {/* Analyze link */}
+                      {product.shops[0]?.productUrl && (
+                        <Link
+                          to={`/analyzer?url=${encodeURIComponent(product.shops[0].productUrl)}`}
+                          className="absolute top-2 right-2"
+                        >
+                          <Badge className="bg-primary/90 text-primary-foreground text-[10px] cursor-pointer hover:bg-primary">
+                            <Sparkles className="h-3 w-3 mr-1" />
+                            Deep Analyze
+                          </Badge>
+                        </Link>
+                      )}
+                    </div>
+
+                    {/* Name */}
+                    <div className="px-5 pt-4 pb-2">
+                      <h3 className="line-clamp-2 text-sm font-semibold leading-snug">
+                        {product.name}
+                      </h3>
+                    </div>
+
+                    {/* Shop prices */}
+                    <div className="grid grid-cols-3 gap-2 px-5 pb-3">
+                      {["alza", "datart", "smarty"].map((eshopKey) => {
+                        const shopOffer = product.shops.find(s => s.eshop === eshopKey);
+                        const meta = ESHOP_META[eshopKey];
+                        const isLowest = shopOffer && shopOffer.price === lowestPrice;
+
+                        return (
+                          <div
+                            key={eshopKey}
+                            className={`relative flex flex-col items-center gap-1.5 rounded-xl p-2.5 transition-all duration-200 ${
+                              shopOffer
+                                ? isLowest
+                                  ? "bg-[hsl(54,100%,50%)]/15 ring-2 ring-[hsl(54,100%,50%)] shadow-[0_0_20px_-4px_hsl(54,100%,50%/0.4)]"
+                                  : "bg-secondary/50 hover:bg-secondary/80"
+                                : "bg-secondary/20 opacity-40"
+                            }`}
+                          >
+                            {isLowest && (
+                              <div className="absolute -top-1 left-1/2 -translate-x-1/2 flex items-center gap-0.5 rounded-full bg-[hsl(54,100%,50%)] px-1.5 py-0.5 text-[9px] font-bold text-black whitespace-nowrap shadow-md">
+                                <Target className="h-2.5 w-2.5" />
+                                Úlovek
+                              </div>
+                            )}
+
+                            <div className="mt-1 flex flex-col items-center gap-0.5">
+                              <img src={meta.logo} alt={meta.name} className="h-5 w-5 rounded" />
+                              <span className="text-[10px] text-muted-foreground">{meta.name}</span>
+                            </div>
+
+                            {shopOffer ? (
+                              <>
+                                <span className={`text-sm font-bold ${isLowest ? "text-[hsl(54,100%,50%)]" : "text-foreground"}`}>
+                                  {formatPrice(shopOffer.price)}
+                                </span>
+                                {shopOffer.originalPrice && shopOffer.originalPrice > shopOffer.price && (
+                                  <span className="text-[10px] text-muted-foreground line-through">
+                                    {formatPrice(shopOffer.originalPrice)}
+                                  </span>
+                                )}
+                              </>
+                            ) : (
+                              <span className="text-[10px] text-muted-foreground">—</span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Promo codes & conditions */}
+                    {(hasPromo || hasHiddenDeal) && (
+                      <div className="px-5 pb-3 flex flex-wrap gap-1.5">
+                        {product.shops.map((s, j) => {
+                          const condInfo = getConditionLabel(s.condition);
+                          return (
+                            <div key={j} className="contents">
+                              {s.promoCode && (
+                                <button
+                                  onClick={() => copyCode(s.promoCode!)}
+                                  className="inline-flex items-center gap-1 rounded-md bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 text-[10px] font-medium text-purple-400 hover:bg-purple-500/20 transition-colors"
+                                >
+                                  <Tag className="h-3 w-3" />
+                                  {s.promoCode}
+                                  {copiedCode === s.promoCode ? (
+                                    <Check className="h-3 w-3 text-green-400" />
+                                  ) : (
+                                    <Copy className="h-3 w-3" />
+                                  )}
+                                </button>
+                              )}
+                              {condInfo && (
+                                <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${condInfo.color}`}>
+                                  {condInfo.label} · {ESHOP_META[s.eshop]?.name}
+                                </Badge>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Action buttons */}
+                    <div className="px-5 pb-4 flex gap-2">
+                      {product.shops.find(s => s.price === lowestPrice)?.productUrl && (
+                        <Button size="sm" className="flex-1 gap-1" asChild>
+                          <a
+                            href={product.shops.find(s => s.price === lowestPrice)!.productUrl!}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Koupit za {formatPrice(lowestPrice)}
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </a>
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!isLoading && grouped.length === 0 && products.length === 0 && !errors.length && (
+          <div className="text-center py-20">
+            <ShoppingBag className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
+            <p className="text-lg font-medium text-muted-foreground">Vyhledávání se spouští...</p>
+          </div>
+        )}
       </main>
       <Footer />
     </div>
