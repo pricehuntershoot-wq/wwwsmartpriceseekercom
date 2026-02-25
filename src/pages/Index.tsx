@@ -14,46 +14,49 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
-const FEATURED_PRODUCT_ID = "bbbb2222-2222-2222-2222-222222222222";
-
 const Index = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
 
-  const { data: featuredProduct, isLoading } = useQuery({
-    queryKey: ['featured-product', FEATURED_PRODUCT_ID],
+  const { data: allProducts, isLoading } = useQuery({
+    queryKey: ['all-products'],
     queryFn: async () => {
-      const { data: product, error } = await supabase
+      const { data: products, error } = await supabase
         .from('products')
         .select('*')
-        .eq('id', FEATURED_PRODUCT_ID)
-        .maybeSingle();
+        .order('name');
       
       if (error) throw error;
-      if (!product) return null;
+      if (!products) return [];
 
-      const { data: pricesData } = await supabase
-        .from('prices')
-        .select(`id, current_price, original_price, discount_type, discount_label, product_url, discovered_at, currency, shop_id`)
-        .eq('product_id', product.id)
-        .eq('is_active', true);
+      const productsWithPrices = await Promise.all(
+        products.map(async (product) => {
+          const { data: pricesData } = await supabase
+            .from('prices')
+            .select(`id, current_price, original_price, discount_type, discount_label, product_url, discovered_at, currency, shop_id`)
+            .eq('product_id', product.id)
+            .eq('is_active', true);
 
-      const pricesWithShops = await Promise.all(
-        (pricesData || []).map(async (price) => {
-          const { data: shopData } = await supabase
-            .from('shops')
-            .select('id, name, logo_url')
-            .eq('id', price.shop_id)
-            .maybeSingle();
-          
-          return {
-            ...price,
-            shop: shopData || { id: price.shop_id, name: 'Unknown', logo_url: null }
-          };
+          const pricesWithShops = await Promise.all(
+            (pricesData || []).map(async (price) => {
+              const { data: shopData } = await supabase
+                .from('shops')
+                .select('id, name, logo_url')
+                .eq('id', price.shop_id)
+                .maybeSingle();
+              
+              return {
+                ...price,
+                shop: shopData || { id: price.shop_id, name: 'Unknown', logo_url: null }
+              };
+            })
+          );
+
+          return { ...product, prices: pricesWithShops };
         })
       );
 
-      return { ...product, prices: pricesWithShops };
+      return productsWithPrices;
     }
   });
 
@@ -96,7 +99,7 @@ const Index = () => {
       <HowItWorksSection />
 
       <main className="container py-20">
-        {/* Featured Product */}
+        {/* All Products */}
         <motion.section
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -114,29 +117,37 @@ const Index = () => {
             </h2>
           </div>
           
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.97 }}
-            whileInView={{ opacity: 1, y: 0, scale: 1 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.5, delay: 0.15 }}
-            className="mx-auto max-w-md"
-          >
-            {isLoading ? (
-              <div className="space-y-4">
-                <Skeleton className="aspect-square rounded-xl" />
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-              </div>
-            ) : featuredProduct ? (
-              <ProductCard
-                product={featuredProduct}
-                onFavorite={handleFavorite}
-                isFavorited={favorites?.includes(featuredProduct.id)}
-              />
-            ) : (
-              <p className="text-center text-muted-foreground">Featured product not found</p>
-            )}
-          </motion.div>
+          {isLoading ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="space-y-4">
+                  <Skeleton className="aspect-square rounded-xl" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                </div>
+              ))}
+            </div>
+          ) : allProducts && allProducts.length > 0 ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {allProducts.map((product, index) => (
+                <motion.div
+                  key={product.id}
+                  initial={{ opacity: 0, y: 20, scale: 0.97 }}
+                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                  viewport={{ once: true, margin: "-60px" }}
+                  transition={{ duration: 0.5, delay: index * 0.08 }}
+                >
+                  <ProductCard
+                    product={product}
+                    onFavorite={handleFavorite}
+                    isFavorited={favorites?.includes(product.id)}
+                  />
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-muted-foreground">No products found</p>
+          )}
         </motion.section>
 
         {/* CTA */}
