@@ -176,7 +176,7 @@ async function saveResultsToDB(supabase: any, products: any[]) {
   }
 }
 
-async function scrapeEshop(eshopName: string, url: string, apiKey: string, maxRetries = 2): Promise<{ eshop: string; markdown: string | null; error?: string }> {
+async function scrapeEshop(eshopName: string, url: string, apiKey: string, maxRetries = 2): Promise<{ eshop: string; markdown: string | null; imageLinks: string[]; error?: string }> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       console.log(`Scraping ${eshopName} (attempt ${attempt}): ${url}`);
@@ -188,7 +188,7 @@ async function scrapeEshop(eshopName: string, url: string, apiKey: string, maxRe
         },
         body: JSON.stringify({
           url,
-          formats: ['markdown'],
+          formats: ['markdown', 'links'],
           onlyMainContent: true,
           waitFor: 5000,
           location: { country: 'CZ', languages: ['cs'] },
@@ -205,12 +205,17 @@ async function scrapeEshop(eshopName: string, url: string, apiKey: string, maxRe
           continue;
         }
         console.error(`${eshopName} scrape failed:`, data);
-        return { eshop: eshopName, markdown: null, error: errMsg };
+        return { eshop: eshopName, markdown: null, imageLinks: [], error: errMsg };
       }
 
       const markdown = data.data?.markdown || data.markdown || null;
-      console.log(`${eshopName} scraped, markdown length: ${markdown?.length || 0}`);
-      return { eshop: eshopName, markdown };
+      const links: string[] = data.data?.links || data.links || [];
+      // Filter to only image URLs
+      const imageLinks = links.filter((l: string) => 
+        /\.(jpg|jpeg|png|webp|gif)/i.test(l) || /\/(img|image|foto|Foto|ImgW)/i.test(l)
+      );
+      console.log(`${eshopName} scraped, markdown length: ${markdown?.length || 0}, image links: ${imageLinks.length}`);
+      return { eshop: eshopName, markdown, imageLinks };
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : String(err);
       const isRetryable = errMsg.includes('ERR_TUNNEL') || errMsg.includes('TUNNEL') || errMsg.includes('proxy') || errMsg.includes('fetch failed');
@@ -220,10 +225,10 @@ async function scrapeEshop(eshopName: string, url: string, apiKey: string, maxRe
         continue;
       }
       console.error(`${eshopName} error:`, err);
-      return { eshop: eshopName, markdown: null, error: errMsg };
+      return { eshop: eshopName, markdown: null, imageLinks: [], error: errMsg };
     }
   }
-  return { eshop: eshopName, markdown: null, error: 'Max retries exceeded' };
+  return { eshop: eshopName, markdown: null, imageLinks: [], error: 'Max retries exceeded' };
 }
 
 serve(async (req) => {
@@ -283,7 +288,13 @@ serve(async (req) => {
     // Build combined content for AI analysis
     const combinedContent = scrapeResults
       .filter(r => r.markdown)
-      .map(r => `=== ${r.eshop.toUpperCase()} ===\n${r.markdown!.substring(0, 15000)}`)
+      .map(r => {
+        let section = `=== ${r.eshop.toUpperCase()} ===\n${r.markdown!.substring(0, 14000)}`;
+        if (r.imageLinks.length > 0) {
+          section += `\n\n--- PRODUCT IMAGE URLs found on ${r.eshop} ---\n${r.imageLinks.slice(0, 30).join('\n')}`;
+        }
+        return section;
+      })
       .join('\n\n');
 
     if (!combinedContent) {
