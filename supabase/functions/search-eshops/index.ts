@@ -299,12 +299,20 @@ serve(async (req) => {
 Given search results from multiple Czech e-shops (Alza.cz, Datart.cz, Smarty.cz), extract ALL products found.
 
 For each product, extract:
-- name: full product name
+- name: full product name (exact as shown on the page)
 - price: the lowest/main price in CZK (as a number, no currency symbol)
 - originalPrice: the original/crossed-out price if shown (number or null)
 - eshop: which e-shop it's from ("alza", "datart", "smarty")
-- productUrl: the product URL if you can find it (or null)
-- imageUrl: the product image URL if found (or null)  
+- productUrl: the full product URL. For Alza, prepend "https://www.alza.cz" if path starts with "/". For Datart, prepend "https://www.datart.cz". For Smarty, prepend "https://www.smarty.cz".
+- imageUrl: the DIRECT product image URL. CRITICAL RULES for imageUrl:
+  1. It MUST be the actual product photo URL (ending in .jpg, .jpeg, .png, .webp, or containing /img/, /image/, /foto/, /photo/)
+  2. It MUST belong to THIS specific product, not a generic banner or category image
+  3. For Alza: look for URLs containing "cdn.alza.cz/Foto" or "cdn.alza.cz/ImgW.ashx" — these are product images
+  4. For Datart: look for URLs containing "datart.cz" and image file extensions
+  5. For Smarty: look for URLs containing "smarty.cz" and image file extensions
+  6. If you are NOT 100% sure the image belongs to this exact product, set imageUrl to null
+  7. NEVER assign the same image URL to multiple different products
+  8. Markdown image syntax: ![alt](url) — extract the url part
 - category: detected category (mobily, sluchátka, tv, reproduktory, chytré hodinky, chytré prsteny, tablety, herní konzole, pc, příslušenství, jiné)
 - promoCode: any visible promo/discount code (or null)
 - condition: "new", "used", "open_box", or "refurbished"
@@ -380,9 +388,28 @@ IMPORTANT: Return ONLY valid JSON array, no markdown code fences.`;
 
     console.log(`Found ${products.length} products across e-shops`);
 
+    // Validate and clean image URLs
+    const seenImages = new Set<string>();
+    products = products.map((p: any) => {
+      let img = p.imageUrl;
+      // Remove duplicate images (same image assigned to multiple products)
+      if (img && seenImages.has(img)) {
+        img = null;
+      }
+      if (img) {
+        seenImages.add(img);
+        // Validate it looks like a real product image URL
+        const isValidImage = /\.(jpg|jpeg|png|webp|gif)/i.test(img) || 
+          /\/(img|image|foto|photo|Foto|ImgW)/i.test(img);
+        if (!isValidImage) img = null;
+      }
+      return { ...p, imageUrl: img };
+    });
+
+    console.log(`Found ${products.length} products across e-shops`);
+
     // Step 3: Save results to database (non-blocking)
     if (products.length > 0) {
-      // We await this to ensure data is saved, but it's fast with service role
       await saveResultsToDB(supabase, products);
       console.log(`Saved ${products.length} products to database`);
     }
