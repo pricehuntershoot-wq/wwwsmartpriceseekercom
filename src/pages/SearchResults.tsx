@@ -2,14 +2,15 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, ExternalLink, Tag, Copy, Check, AlertCircle, ShoppingBag, Sparkles, SlidersHorizontal, X, Bot, Database } from "lucide-react";
+import {
+  Loader2, ExternalLink, Tag, Copy, Check, AlertCircle, ShoppingBag,
+  Sparkles, SlidersHorizontal, X, Bot, Database, Target, RefreshCw
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -25,11 +26,72 @@ interface EshopProduct {
   condition?: string;
 }
 
-const ESHOP_LOGOS: Record<string, { name: string; color: string }> = {
-  alza: { name: "Alza.cz", color: "bg-green-500/20 text-green-600" },
-  datart: { name: "Datart.cz", color: "bg-blue-500/20 text-blue-600" },
-  smarty: { name: "Smarty.cz", color: "bg-orange-500/20 text-orange-600" },
+interface GroupedProduct {
+  name: string;
+  imageUrl: string | null;
+  category: string | null;
+  shops: {
+    eshop: string;
+    price: number;
+    originalPrice?: number | null;
+    productUrl?: string | null;
+    promoCode?: string | null;
+    condition?: string;
+  }[];
+}
+
+const ESHOP_META: Record<string, { name: string; logo: string; color: string }> = {
+  alza: { name: "Alza.cz", logo: "https://cdn.alza.cz/Foto/favicon/android-chrome-192x192.png", color: "bg-green-600" },
+  datart: { name: "Datart.cz", logo: "https://www.datart.cz/favicon.ico", color: "bg-red-600" },
+  smarty: { name: "Smarty.cz", logo: "https://www.smarty.cz/favicon.ico", color: "bg-blue-600" },
 };
+
+const formatPrice = (price: number) => price.toLocaleString("cs-CZ") + " Kč";
+
+const getConditionLabel = (condition?: string) => {
+  switch (condition) {
+    case "open_box": return { label: "Rozbaleno", color: "bg-amber-500/15 text-amber-400 border-amber-500/30" };
+    case "used": return { label: "Použité", color: "bg-orange-500/15 text-orange-400 border-orange-500/30" };
+    case "refurbished": return { label: "Repasované", color: "bg-purple-500/15 text-purple-400 border-purple-500/30" };
+    default: return null;
+  }
+};
+
+function groupProducts(products: EshopProduct[]): GroupedProduct[] {
+  const groups: Record<string, GroupedProduct> = {};
+
+  for (const p of products) {
+    const key = p.name.toLowerCase().replace(/\s+/g, " ").trim();
+
+    if (!groups[key]) {
+      groups[key] = {
+        name: p.name,
+        imageUrl: p.imageUrl || null,
+        category: p.category || null,
+        shops: [],
+      };
+    }
+
+    if (!groups[key].imageUrl && p.imageUrl) {
+      groups[key].imageUrl = p.imageUrl;
+    }
+
+    groups[key].shops.push({
+      eshop: p.eshop,
+      price: p.price,
+      originalPrice: p.originalPrice,
+      productUrl: p.productUrl,
+      promoCode: p.promoCode,
+      condition: p.condition,
+    });
+  }
+
+  return Object.values(groups).sort((a, b) => {
+    const minA = Math.min(...a.shops.map(s => s.price));
+    const minB = Math.min(...b.shops.map(s => s.price));
+    return minA - minB;
+  });
+}
 
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
@@ -38,9 +100,6 @@ const SearchResults = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
-  const [showFilters, setShowFilters] = useState(false);
-  const [selectedEshops, setSelectedEshops] = useState<string[]>([]);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [sortOrder, setSortOrder] = useState<"price-asc" | "price-desc" | "discount-desc">("price-asc");
   const [searchProgress, setSearchProgress] = useState(0);
   const [showWittyMessage, setShowWittyMessage] = useState(false);
@@ -58,24 +117,15 @@ const SearchResults = () => {
     setIsLoading(true);
     setProducts([]);
     setErrors([]);
-    setSelectedEshops([]);
-    setSelectedCategories([]);
     setSearchProgress(0);
     setShowWittyMessage(false);
     setFromCache(false);
 
-    // Simulate progress bar advancing
     progressTimerRef.current = setInterval(() => {
-      setSearchProgress((prev) => {
-        if (prev >= 90) return 90; // cap at 90 until done
-        return prev + Math.random() * 12;
-      });
+      setSearchProgress((prev) => (prev >= 90 ? 90 : prev + Math.random() * 12));
     }, 400);
 
-    // Show witty message after 5 seconds
-    wittyTimerRef.current = setTimeout(() => {
-      setShowWittyMessage(true);
-    }, 5000);
+    wittyTimerRef.current = setTimeout(() => setShowWittyMessage(true), 5000);
 
     try {
       const { data, error } = await supabase.functions.invoke("search-eshops", {
@@ -93,8 +143,8 @@ const SearchResults = () => {
       if (data.products?.length > 0) {
         toast.success(
           data.fromCache
-            ? `Nalezeno ${data.products.length} produktů z databáze`
-            : `Nalezeno ${data.products.length} produktů`
+            ? `Nalezeno ${data.products.length} nabídek z databáze`
+            : `Nalezeno ${data.products.length} nabídek ze 3 e-shopů`
         );
       } else {
         toast.info("Žádné produkty nenalezeny");
@@ -105,7 +155,6 @@ const SearchResults = () => {
     } finally {
       if (progressTimerRef.current) clearInterval(progressTimerRef.current);
       if (wittyTimerRef.current) clearTimeout(wittyTimerRef.current);
-      // Small delay so user sees 100%
       setTimeout(() => {
         setIsLoading(false);
         setSearchProgress(0);
@@ -121,62 +170,14 @@ const SearchResults = () => {
     setTimeout(() => setCopiedCode(null), 2000);
   };
 
-  const formatPrice = (price: number | null | undefined) => price != null ? price.toLocaleString("cs-CZ") + " Kč" : "N/A";
+  const grouped = useMemo(() => {
+    const g = groupProducts(products);
+    if (sortOrder === "price-desc") return [...g].reverse();
+    return g;
+  }, [products, sortOrder]);
 
-  const availableEshops = useMemo(
-    () => [...new Set(products.map((p) => p.eshop).filter(Boolean))],
-    [products]
-  );
-  const availableCategories = useMemo(
-    () => [...new Set(products.map((p) => p.category).filter(Boolean))] as string[],
-    [products]
-  );
-
-  const toggleEshop = (eshop: string) =>
-    setSelectedEshops((prev) =>
-      prev.includes(eshop) ? prev.filter((e) => e !== eshop) : [...prev, eshop]
-    );
-
-  const toggleCategory = (cat: string) =>
-    setSelectedCategories((prev) =>
-      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
-    );
-
-  const clearFilters = () => {
-    setSelectedEshops([]);
-    setSelectedCategories([]);
-    setSortOrder("price-asc");
-  };
-
-  const hasActiveFilters =
-    selectedEshops.length > 0 || selectedCategories.length > 0 || sortOrder !== "price-asc";
-
-  const filteredProducts = useMemo(() => {
-    let result = [...products];
-
-    if (selectedEshops.length > 0) {
-      result = result.filter((p) => selectedEshops.includes(p.eshop));
-    }
-    if (selectedCategories.length > 0) {
-      result = result.filter((p) => p.category && selectedCategories.includes(p.category));
-    }
-
-    result.sort((a, b) => {
-      if (sortOrder === "price-asc") return (a.price ?? Infinity) - (b.price ?? Infinity);
-      if (sortOrder === "price-desc") return (b.price ?? 0) - (a.price ?? 0);
-      if (sortOrder === "discount-desc") {
-        const discA = a.originalPrice ? (a.originalPrice - (a.price ?? 0)) / a.originalPrice : 0;
-        const discB = b.originalPrice ? (b.originalPrice - (b.price ?? 0)) / b.originalPrice : 0;
-        return discB - discA;
-      }
-      return 0;
-    });
-
-    return result;
-  }, [products, selectedEshops, selectedCategories, sortOrder]);
-
-  const pricedProducts = filteredProducts.filter(p => p.price != null && p.price > 0);
-  const lowestPrice = pricedProducts.length > 0 ? Math.min(...pricedProducts.map((p) => p.price)) : null;
+  const totalPromos = products.filter(p => p.promoCode).length;
+  const totalHiddenDeals = products.filter(p => p.condition && p.condition !== "new").length;
 
   return (
     <div className="min-h-screen bg-background">
@@ -187,124 +188,46 @@ const SearchResults = () => {
             Výsledky pro: <span className="text-gradient-primary">„{query}"</span>
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Vyhledáváme na Alza.cz, Datart.cz a Smarty.cz
+            AI agenti prohledávají <span className="font-semibold text-foreground">Alza.cz</span>,{" "}
+            <span className="font-semibold text-foreground">Datart.cz</span> a{" "}
+            <span className="font-semibold text-foreground">Smarty.cz</span>
           </p>
         </div>
 
-        {/* Filter / sort bar */}
-        {!isLoading && products.length > 0 && (
-          <div className="mb-6 space-y-3">
-            <div className="flex flex-wrap items-center gap-3">
-              <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as typeof sortOrder)}>
-                <SelectTrigger className="w-52 h-9 text-sm">
-                  <SelectValue placeholder="Řadit podle..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="price-asc">Cena: od nejnižší</SelectItem>
-                  <SelectItem value="price-desc">Cena: od nejvyšší</SelectItem>
-                  <SelectItem value="discount-desc">Největší sleva</SelectItem>
-                </SelectContent>
-              </Select>
+        {/* Sort bar */}
+        {!isLoading && grouped.length > 0 && (
+          <div className="mb-6 flex flex-wrap items-center gap-3">
+            <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as typeof sortOrder)}>
+              <SelectTrigger className="w-52 h-9 text-sm">
+                <SelectValue placeholder="Řadit podle..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="price-asc">Cena: od nejnižší</SelectItem>
+                <SelectItem value="price-desc">Cena: od nejvyšší</SelectItem>
+              </SelectContent>
+            </Select>
 
-              <Button
-                variant={showFilters ? "default" : "outline"}
-                size="sm"
-                onClick={() => setShowFilters((v) => !v)}
-                className="gap-2"
-              >
-                <SlidersHorizontal className="h-4 w-4" />
-                Filtry
-                {selectedEshops.length + selectedCategories.length > 0 && (
-                  <Badge className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs rounded-full">
-                    {selectedEshops.length + selectedCategories.length}
-                  </Badge>
-                )}
-              </Button>
-
-              {hasActiveFilters && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearFilters}
-                  className="gap-1 text-muted-foreground"
-                >
-                  <X className="h-3 w-3" />
-                  Zrušit filtry
-                </Button>
-              )}
-
-              <span className="ml-auto text-sm text-muted-foreground">
-                {filteredProducts.length} z {products.length} produktů
-              </span>
-            </div>
-
-            {showFilters && (
-              <div className="flex flex-wrap gap-6 p-4 rounded-xl border border-border bg-secondary/30">
-                {availableEshops.length > 1 && (
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-                      E-shop
-                    </p>
-                    <div className="flex flex-wrap gap-3">
-                      {availableEshops.map((eshop) => {
-                        const info = ESHOP_LOGOS[eshop] || {
-                          name: eshop,
-                          color: "bg-muted text-muted-foreground",
-                        };
-                        return (
-                          <label key={eshop} className="flex items-center gap-2 cursor-pointer">
-                            <Checkbox
-                              checked={selectedEshops.includes(eshop)}
-                              onCheckedChange={() => toggleEshop(eshop)}
-                            />
-                            <span className="text-sm">{info.name}</span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {availableCategories.length > 0 && (
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-                      Kategorie
-                    </p>
-                    <div className="flex flex-wrap gap-3">
-                      {availableCategories.map((cat) => (
-                        <label key={cat} className="flex items-center gap-2 cursor-pointer">
-                          <Checkbox
-                            checked={selectedCategories.includes(cat)}
-                            onCheckedChange={() => toggleCategory(cat)}
-                          />
-                          <span className="text-sm">{cat}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
+            <span className="ml-auto text-sm text-muted-foreground">
+              {grouped.length} produktů · {products.length} nabídek
+            </span>
           </div>
         )}
 
-        {/* Loading with progress bar */}
+        {/* Loading */}
         {isLoading && (
           <div className="space-y-6">
             <div className="p-6 rounded-xl bg-muted/50 border border-border space-y-4">
               <div className="flex items-center gap-3">
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
                 <div>
-                  <p className="font-semibold">Prohledáváme více obchodů...</p>
+                  <p className="font-semibold">Prohledáváme skryté slevy...</p>
                   <p className="text-sm text-muted-foreground">
-                    Stahujeme výsledky z Alza.cz, Datart.cz a Smarty.cz
+                    Stahujeme a analyzujeme stránky ze 3 e-shopů pomocí AI
                   </p>
                 </div>
               </div>
-              <Progress value={searchProgress} className="h-2 animate-pulse-slow" />
-              <p className="text-xs text-muted-foreground text-right">
-                {Math.round(searchProgress)}%
-              </p>
+              <Progress value={searchProgress} className="h-2" />
+              <p className="text-xs text-muted-foreground text-right">{Math.round(searchProgress)}%</p>
 
               {showWittyMessage && (
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/10 animate-fade-in">
@@ -315,12 +238,12 @@ const SearchResults = () => {
                 </div>
               )}
             </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="space-y-3">
-                  <Skeleton className="h-48 rounded-xl" />
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="aspect-[4/3] rounded-xl" />
+                  <Skeleton className="h-5 w-3/4" />
+                  <Skeleton className="h-10 w-full" />
                 </div>
               ))}
             </div>
@@ -335,194 +258,229 @@ const SearchResults = () => {
               <span className="text-sm font-medium text-amber-600">Některé e-shopy neodpověděly</span>
             </div>
             <ul className="text-xs text-muted-foreground space-y-1">
-              {errors.map((e, i) => (
-                <li key={i}>• {e}</li>
-              ))}
+              {errors.map((e, i) => <li key={i}>• {e}</li>)}
             </ul>
           </div>
         )}
 
-        {/* Results grid */}
-        {!isLoading && filteredProducts.length > 0 && (
+        {/* Grouped results */}
+        {!isLoading && grouped.length > 0 && (
           <div className="space-y-6">
-            {fromCache && (
-              <div className="p-3 rounded-xl bg-accent/30 border border-border flex items-center gap-2">
-                <Database className="h-4 w-4 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">
-                  Výsledky z databáze (posledních 24h).{" "}
-                  <button className="text-primary underline" onClick={() => {
-                    setFromCache(false);
-                    // Force fresh search by clearing cache flag — edge function will be updated to support this
-                  }}>
-                    Hledat znovu
-                  </button>
-                </p>
-              </div>
-            )}
+            {/* Stats banner */}
+            <div className="flex flex-wrap gap-3">
+              {fromCache && (
+                <div className="flex items-center gap-2 rounded-lg bg-accent/30 border border-border px-3 py-2">
+                  <Database className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Z databáze (24h cache)</span>
+                  <Button variant="ghost" size="sm" onClick={() => searchEshops(query.trim())} className="h-6 px-2 gap-1">
+                    <RefreshCw className="h-3 w-3" />
+                    Znovu
+                  </Button>
+                </div>
+              )}
 
-            {lowestPrice !== null && (
-              <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/20">
-                <p className="text-sm font-medium text-green-600">
-                  🏆 Nejnižší nalezená cena:{" "}
-                  <span className="text-lg font-bold">{formatPrice(lowestPrice)}</span>
-                </p>
+              <div className="flex items-center gap-2 rounded-lg bg-primary/10 border border-primary/20 px-3 py-2">
+                <Sparkles className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium text-primary">
+                  {grouped.length} produktů · {products.length} nabídek
+                </span>
               </div>
-            )}
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {filteredProducts.map((product, i) => {
-                const eshopInfo = ESHOP_LOGOS[product.eshop] || {
-                  name: product.eshop,
-                  color: "bg-muted text-muted-foreground",
-                };
-                const isCheapest = product.price === lowestPrice;
+              {totalPromos > 0 && (
+                <div className="flex items-center gap-2 rounded-lg bg-purple-500/10 border border-purple-500/20 px-3 py-2">
+                  <Tag className="h-4 w-4 text-purple-400" />
+                  <span className="text-sm font-medium text-purple-400">
+                    {totalPromos} promo kódů nalezeno
+                  </span>
+                </div>
+              )}
+
+              {totalHiddenDeals > 0 && (
+                <div className="flex items-center gap-2 rounded-lg bg-amber-500/10 border border-amber-500/20 px-3 py-2">
+                  <Target className="h-4 w-4 text-amber-400" />
+                  <span className="text-sm font-medium text-amber-400">
+                    {totalHiddenDeals} skrytých slev
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Product grid */}
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {grouped.map((product, i) => {
+                const lowestPrice = Math.min(...product.shops.map(s => s.price));
+                const hasPromo = product.shops.some(s => s.promoCode);
+                const hasHiddenDeal = product.shops.some(s => s.condition && s.condition !== "new");
 
                 return (
-                  <Card
+                  <div
                     key={i}
-                    className={`overflow-hidden transition-all hover:shadow-lg ${
-                      isCheapest ? "ring-2 ring-green-500/50" : ""
-                    }`}
+                    className="group overflow-hidden rounded-2xl border border-border bg-gradient-card transition-all duration-300 hover:border-primary/50 hover:shadow-glow animate-fade-in"
+                    style={{ animationDelay: `${i * 0.06}s` }}
                   >
-                    <div className="relative aspect-square bg-secondary/30">
+                    {/* Image */}
+                    <div className="relative aspect-[4/3] overflow-hidden bg-secondary/50 p-6">
                       {product.imageUrl ? (
                         <img
                           src={product.imageUrl}
                           alt={product.name}
-                          className="h-full w-full object-contain p-4"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = "none";
-                          }}
+                          className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                         />
                       ) : (
                         <div className="flex h-full items-center justify-center">
                           <ShoppingBag className="h-12 w-12 text-muted-foreground/30" />
                         </div>
                       )}
-                      <Badge className={`absolute top-2 left-2 ${eshopInfo.color}`}>
-                        {eshopInfo.name}
-                      </Badge>
-                      {isCheapest && (
-                        <Badge className="absolute top-2 right-2 bg-green-600 text-white">
-                          Nejlevnější!
-                        </Badge>
-                      )}
-                    </div>
 
-                    <CardContent className="p-4 space-y-3">
-                      <h3 className="font-semibold text-sm line-clamp-2 leading-tight">
-                        {product.name}
-                      </h3>
-
-                      {product.category && (
-                        <Badge
-                          variant="outline"
-                          className="text-xs cursor-pointer hover:bg-secondary"
-                          onClick={() => {
-                            toggleCategory(product.category!);
-                            setShowFilters(true);
-                          }}
-                        >
-                          {product.category}
-                        </Badge>
-                      )}
-
-                      <div className="flex items-baseline gap-2">
-                        <span
-                          className={`text-xl font-bold ${isCheapest ? "text-green-600" : ""}`}
-                        >
-                          {formatPrice(product.price)}
-                        </span>
-                        {product.originalPrice && product.originalPrice > product.price && (
-                          <>
-                            <span className="text-sm text-muted-foreground line-through">
-                              {formatPrice(product.originalPrice)}
-                            </span>
-                            <span className="text-xs text-green-600 font-medium">
-                              -
-                              {Math.round(
-                                ((product.originalPrice - product.price) /
-                                  product.originalPrice) *
-                                  100
-                              )}
-                              %
-                            </span>
-                          </>
+                      {/* Badges */}
+                      <div className="absolute top-2 left-2 flex flex-col gap-1">
+                        {hasPromo && (
+                          <Badge className="bg-purple-500/20 text-purple-400 border border-purple-500/30 text-[10px]">
+                            <Tag className="h-3 w-3 mr-1" />
+                            Promo kód
+                          </Badge>
+                        )}
+                        {hasHiddenDeal && (
+                          <Badge className="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px]">
+                            🔍 Skrytá sleva
+                          </Badge>
                         )}
                       </div>
 
-                      {product.condition && product.condition !== "new" && (
-                        <Badge variant="secondary" className="text-xs">
-                          {product.condition === "used"
-                            ? "Použité"
-                            : product.condition === "open_box"
-                            ? "Rozbaleno"
-                            : product.condition === "refurbished"
-                            ? "Repasované"
-                            : product.condition}
-                        </Badge>
+                      {/* Analyze link */}
+                      {product.shops[0]?.productUrl && (
+                        <Link
+                          to={`/analyzer?url=${encodeURIComponent(product.shops[0].productUrl)}`}
+                          className="absolute top-2 right-2"
+                        >
+                          <Badge className="bg-primary/90 text-primary-foreground text-[10px] cursor-pointer hover:bg-primary">
+                            <Sparkles className="h-3 w-3 mr-1" />
+                            Deep Analyze
+                          </Badge>
+                        </Link>
                       )}
+                    </div>
 
-                      {product.promoCode && (
-                        <div className="flex items-center gap-2">
-                          <Tag className="h-3 w-3 text-primary" />
-                          <code className="text-xs font-mono font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">
-                            {product.promoCode}
-                          </code>
-                          <button onClick={() => copyCode(product.promoCode!)}>
-                            {copiedCode === product.promoCode ? (
-                              <Check className="h-3 w-3 text-green-600" />
-                            ) : (
-                              <Copy className="h-3 w-3 text-muted-foreground" />
+                    {/* Name */}
+                    <div className="px-5 pt-4 pb-2">
+                      <h3 className="line-clamp-2 text-sm font-semibold leading-snug">
+                        {product.name}
+                      </h3>
+                    </div>
+
+                    {/* Shop prices - always show all 3 shops */}
+                    <div className="grid grid-cols-3 gap-2 px-5 pb-3">
+                      {["alza", "datart", "smarty"].map((eshopKey) => {
+                        const shopOffer = product.shops.find(s => s.eshop === eshopKey);
+                        const meta = ESHOP_META[eshopKey];
+                        const isLowest = shopOffer && shopOffer.price === lowestPrice;
+
+                        return (
+                          <div
+                            key={eshopKey}
+                            className={`relative flex flex-col items-center gap-1.5 rounded-xl p-2.5 transition-all duration-200 ${
+                              shopOffer
+                                ? isLowest
+                                  ? "bg-[hsl(54,100%,50%)]/15 ring-2 ring-[hsl(54,100%,50%)] shadow-[0_0_20px_-4px_hsl(54,100%,50%/0.4)]"
+                                  : "bg-secondary/50 hover:bg-secondary/80"
+                                : "bg-secondary/20 opacity-40"
+                            }`}
+                          >
+                            {isLowest && (
+                              <div className="absolute -top-1 left-1/2 -translate-x-1/2 flex items-center gap-0.5 rounded-full bg-[hsl(54,100%,50%)] px-1.5 py-0.5 text-[9px] font-bold text-black whitespace-nowrap shadow-md">
+                                <Target className="h-2.5 w-2.5" />
+                                Úlovek
+                              </div>
                             )}
-                          </button>
-                        </div>
-                      )}
 
-                      {product.productUrl && (
-                        <div className="flex gap-2">
-                          <Button asChild size="sm" variant="outline" className="flex-1">
+                            <div className="mt-1 flex flex-col items-center gap-0.5">
+                              <img src={meta.logo} alt={meta.name} className="h-5 w-5 rounded" />
+                              <span className="text-[10px] text-muted-foreground">{meta.name}</span>
+                            </div>
+
+                            {shopOffer ? (
+                              <>
+                                <span className={`text-sm font-bold ${isLowest ? "text-[hsl(54,100%,50%)]" : "text-foreground"}`}>
+                                  {formatPrice(shopOffer.price)}
+                                </span>
+                                {shopOffer.originalPrice && shopOffer.originalPrice > shopOffer.price && (
+                                  <span className="text-[10px] text-muted-foreground line-through">
+                                    {formatPrice(shopOffer.originalPrice)}
+                                  </span>
+                                )}
+                              </>
+                            ) : (
+                              <span className="text-[10px] text-muted-foreground">—</span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Promo codes & conditions */}
+                    {(hasPromo || hasHiddenDeal) && (
+                      <div className="px-5 pb-3 flex flex-wrap gap-1.5">
+                        {product.shops.map((s, j) => {
+                          const condInfo = getConditionLabel(s.condition);
+                          return (
+                            <div key={j} className="contents">
+                              {s.promoCode && (
+                                <button
+                                  onClick={() => copyCode(s.promoCode!)}
+                                  className="inline-flex items-center gap-1 rounded-md bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 text-[10px] font-medium text-purple-400 hover:bg-purple-500/20 transition-colors"
+                                >
+                                  <Tag className="h-3 w-3" />
+                                  {s.promoCode}
+                                  {copiedCode === s.promoCode ? (
+                                    <Check className="h-3 w-3 text-green-400" />
+                                  ) : (
+                                    <Copy className="h-3 w-3" />
+                                  )}
+                                </button>
+                              )}
+                              {condInfo && (
+                                <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${condInfo.color}`}>
+                                  {condInfo.label} · {ESHOP_META[s.eshop]?.name}
+                                </Badge>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Action buttons */}
+                    <div className="px-5 pb-4 flex gap-2">
+                      {product.shops.find(s => s.price === lowestPrice)?.productUrl && (
+                        <>
+                          <Button size="sm" className="flex-1 gap-1" asChild>
                             <a
-                              href={product.productUrl}
+                              href={product.shops.find(s => s.price === lowestPrice)!.productUrl!}
                               target="_blank"
                               rel="noopener noreferrer"
                             >
-                              {eshopInfo.name}
-                              <ExternalLink className="ml-1 h-3 w-3" />
+                              Koupit za {formatPrice(lowestPrice)}
+                              <ExternalLink className="h-3.5 w-3.5" />
                             </a>
                           </Button>
-                          <Button asChild size="sm" variant="default" className="flex-1">
-                            <Link
-                              to={`/analyzer?url=${encodeURIComponent(product.productUrl)}`}
-                            >
-                              <Sparkles className="mr-1 h-3 w-3" />
+                          <Button size="sm" variant="outline" className="gap-1" asChild>
+                            <Link to={`/analyzer?url=${encodeURIComponent(product.shops.find(s => s.price === lowestPrice)!.productUrl!)}`}>
+                              <Sparkles className="h-3.5 w-3.5" />
                               Analyzovat
                             </Link>
                           </Button>
-                        </div>
+                        </>
                       )}
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 );
               })}
             </div>
           </div>
         )}
 
-        {/* No results after filtering */}
-        {!isLoading && products.length > 0 && filteredProducts.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <SlidersHorizontal className="h-12 w-12 text-muted-foreground/30 mb-4" />
-            <h3 className="font-heading text-lg font-semibold">
-              Žádné produkty neodpovídají filtrům
-            </h3>
-            <Button variant="ghost" size="sm" onClick={clearFilters} className="mt-3">
-              Zrušit filtry
-            </Button>
-          </div>
-        )}
-
-        {/* No results at all */}
+        {/* No results */}
         {!isLoading && products.length === 0 && query && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <ShoppingBag className="h-16 w-16 text-muted-foreground/30 mb-4" />
