@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Heart, ExternalLink, Package, Clock, Tag } from "lucide-react";
+import { Heart, ExternalLink, Package, Clock, Tag, Sparkles } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
@@ -201,12 +201,20 @@ export const ProductCard = ({ product, onFavorite, isFavorited = false }: Produc
         )}
 
         {bestPrice?.product_url && (
-          <Button className="mt-3 w-full" size="sm" asChild>
-            <a href={bestPrice.product_url} target="_blank" rel="noopener noreferrer">
-              View Deal
-              <ExternalLink className="ml-2 h-3.5 w-3.5" />
-            </a>
-          </Button>
+          <div className="mt-3 flex gap-2">
+            <Button className="flex-1" size="sm" asChild>
+              <a href={bestPrice.product_url} target="_blank" rel="noopener noreferrer">
+                View Deal
+                <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
+              </a>
+            </Button>
+            <Button variant="outline" size="sm" className="flex-1" asChild>
+              <Link to={`/analyzer?url=${encodeURIComponent(bestPrice.product_url)}`}>
+                <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+                Analyzovat
+              </Link>
+            </Button>
+          </div>
         )}
       </div>
     </div>
