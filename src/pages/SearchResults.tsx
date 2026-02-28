@@ -57,36 +57,84 @@ const getConditionLabel = (condition?: string) => {
   }
 };
 
+function normalizeForGrouping(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-záčďéěíňóřšťúůýž0-9\s]/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getGroupingTokens(name: string): string[] {
+  const normalized = normalizeForGrouping(name);
+  // Remove common filler words
+  const stopWords = new Set(["barva", "barev", "cerny", "cerna", "bila", "bily", "modra", "modry", "cervena", "cerveny", "zelena", "zeleny", "seda", "sedy", "ruzova", "ruzovy", "zlata", "zlaty", "stribrna", "stribrny", "bezova", "bezovy"]);
+  return normalized.split(" ").filter(t => t.length > 1 && !stopWords.has(t));
+}
+
+function tokensOverlap(a: string[], b: string[]): number {
+  const setA = new Set(a);
+  let overlap = 0;
+  for (const token of b) {
+    if (setA.has(token)) overlap++;
+  }
+  return overlap;
+}
+
 function groupProducts(products: EshopProduct[]): GroupedProduct[] {
-  const groups: Record<string, GroupedProduct> = {};
+  const groups: GroupedProduct[] = [];
+  const groupTokens: string[][] = [];
 
   for (const p of products) {
-    const key = p.name.toLowerCase().replace(/\s+/g, " ").trim();
+    const tokens = getGroupingTokens(p.name);
+    let bestGroupIdx = -1;
+    let bestScore = 0;
 
-    if (!groups[key]) {
-      groups[key] = {
+    for (let i = 0; i < groups.length; i++) {
+      // Don't merge if same eshop already present
+      if (groups[i].shops.some(s => s.eshop === p.eshop)) continue;
+
+      const overlap = tokensOverlap(tokens, groupTokens[i]);
+      const minLen = Math.min(tokens.length, groupTokens[i].length);
+      const score = minLen > 0 ? overlap / minLen : 0;
+
+      // Need at least 60% token overlap and at least 2 matching tokens
+      if (score > bestScore && score >= 0.6 && overlap >= 2) {
+        bestScore = score;
+        bestGroupIdx = i;
+      }
+    }
+
+    if (bestGroupIdx >= 0) {
+      const g = groups[bestGroupIdx];
+      if (!g.imageUrl && p.imageUrl) g.imageUrl = p.imageUrl;
+      g.shops.push({
+        eshop: p.eshop,
+        price: p.price,
+        originalPrice: p.originalPrice,
+        productUrl: p.productUrl,
+        promoCode: p.promoCode,
+        condition: p.condition,
+      });
+    } else {
+      groups.push({
         name: p.name,
         imageUrl: p.imageUrl || null,
         category: p.category || null,
-        shops: [],
-      };
+        shops: [{
+          eshop: p.eshop,
+          price: p.price,
+          originalPrice: p.originalPrice,
+          productUrl: p.productUrl,
+          promoCode: p.promoCode,
+          condition: p.condition,
+        }],
+      });
+      groupTokens.push(tokens);
     }
-
-    if (!groups[key].imageUrl && p.imageUrl) {
-      groups[key].imageUrl = p.imageUrl;
-    }
-
-    groups[key].shops.push({
-      eshop: p.eshop,
-      price: p.price,
-      originalPrice: p.originalPrice,
-      productUrl: p.productUrl,
-      promoCode: p.promoCode,
-      condition: p.condition,
-    });
   }
 
-  return Object.values(groups).sort((a, b) => {
+  return groups.sort((a, b) => {
     const minA = Math.min(...a.shops.map(s => s.price));
     const minB = Math.min(...b.shops.map(s => s.price));
     return minA - minB;
