@@ -43,11 +43,16 @@ async function getCachedResults(supabase: any, query: string) {
 
   if (error || !products || products.length === 0) return null;
 
-  // Filter by query match (case-insensitive)
+  // Filter by query match (case-insensitive) — check name AND category
   const q = query.toLowerCase();
-  const matched = products.filter((p: any) => 
-    p.products?.name?.toLowerCase().includes(q)
-  );
+  const queryTokens = q.split(/\s+/).filter((t: string) => t.length > 1);
+  const matched = products.filter((p: any) => {
+    const name = p.products?.name?.toLowerCase() || '';
+    const category = p.products?.category?.toLowerCase() || '';
+    // Match if name contains query OR category contains query OR all query tokens match name
+    return name.includes(q) || category.includes(q) || 
+      queryTokens.every((t: string) => name.includes(t));
+  });
 
   if (matched.length === 0) return null;
 
@@ -307,30 +312,24 @@ serve(async (req) => {
     // Use AI to extract structured product data
     const systemPrompt = `You are an expert at extracting product listings from Czech e-shop search results.
 
-Given search results from multiple Czech e-shops (Alza.cz, Datart.cz, Smarty.cz), extract ALL products found.
+Given search results from multiple Czech e-shops (Alza.cz, Datart.cz, Smarty.cz), extract products from EVERY e-shop section.
+
+CRITICAL RULE: You MUST extract products from ALL e-shops that have data. The sections are marked "=== ALZA ===", "=== DATART ===", "=== SMARTY ===". Extract at least 5 products from EACH section that contains product listings. If a section has products, you MUST include them — do NOT skip any e-shop.
 
 For each product, extract:
 - name: full product name (exact as shown on the page)
 - price: the lowest/main price in CZK (as a number, no currency symbol)
 - originalPrice: the original/crossed-out price if shown (number or null)
-- eshop: which e-shop it's from ("alza", "datart", "smarty")
-- productUrl: the full product URL. For Alza, prepend "https://www.alza.cz" if path starts with "/". For Datart, prepend "https://www.datart.cz". For Smarty, prepend "https://www.smarty.cz".
-- imageUrl: the DIRECT product image URL. CRITICAL RULES for imageUrl:
-  1. It MUST be the actual product photo URL (ending in .jpg, .jpeg, .png, .webp, or containing /img/, /image/, /foto/, /photo/)
-  2. It MUST belong to THIS specific product, not a generic banner or category image
-  3. For Alza: look for URLs containing "cdn.alza.cz/Foto" or "cdn.alza.cz/ImgW.ashx" — these are product images
-  4. For Datart: look for URLs containing "datart.cz" and image file extensions
-  5. For Smarty: look for URLs containing "smarty.cz" and image file extensions
-  6. If you are NOT 100% sure the image belongs to this exact product, set imageUrl to null
-  7. NEVER assign the same image URL to multiple different products
-  8. Markdown image syntax: ![alt](url) — extract the url part
+- eshop: which e-shop it's from ("alza", "datart", "smarty") — MUST match the section header
+- productUrl: the full product URL. For Alza prepend "https://www.alza.cz" if path starts with "/". For Datart prepend "https://www.datart.cz". For Smarty prepend "https://www.smarty.cz".
+- imageUrl: the DIRECT product image URL (must end in .jpg/.jpeg/.png/.webp or contain /img//foto//photo/). If unsure, set to null. Never assign same image to multiple products.
 - category: detected category (mobily, sluchátka, tv, reproduktory, chytré hodinky, chytré prsteny, tablety, herní konzole, pc, příslušenství, jiné)
 - promoCode: any visible promo/discount code (or null)
 - condition: "new", "used", "open_box", or "refurbished"
 
 Parse Czech price format: "11 590,-" → 11590, "9 272 Kč" → 9272.
 
-Return a JSON array of products. Maximum 10 products per e-shop, sorted by relevance.
+Return a JSON array with up to 10 products per e-shop (up to 30 total). Products MUST come from all available e-shops.
 
 IMPORTANT: Return ONLY valid JSON array, no markdown code fences.`;
 
