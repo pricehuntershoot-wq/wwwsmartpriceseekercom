@@ -11,7 +11,6 @@ const CACHE_HOURS = 24;
 const ESHOP_SEARCH_URLS = {
   alza: (q: string) => `https://www.alza.cz/search.htm?exps=${encodeURIComponent(q)}`,
   datart: (q: string) => `https://www.datart.cz/vyhledavani?q=${encodeURIComponent(q)}`,
-  smarty: (q: string) => `https://www.smarty.cz/hledej?q=${encodeURIComponent(q)}`,
 };
 
 function getSupabaseAdmin() {
@@ -236,6 +235,76 @@ async function scrapeEshop(eshopName: string, url: string, apiKey: string, maxRe
   return { eshop: eshopName, markdown: null, imageLinks: [], error: 'Max retries exceeded' };
 }
 
+async function searchSmartyViaFirecrawl(query: string, apiKey: string): Promise<{ eshop: string; markdown: string | null; imageLinks: string[]; error?: string }> {
+  try {
+    console.log(`Searching Smarty.cz via Firecrawl search API for: "${query}"`);
+    const response = await fetch('https://api.firecrawl.dev/v1/search', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: `site:smarty.cz ${query}`,
+        limit: 15,
+        lang: 'cs',
+        country: 'CZ',
+        scrapeOptions: { formats: ['markdown'] },
+      }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      console.error('Smarty Firecrawl search failed:', data);
+      return { eshop: 'smarty', markdown: null, imageLinks: [], error: data.error || 'Search failed' };
+    }
+
+    const results = data.data || [];
+    console.log(`Smarty search returned ${results.length} results`);
+
+    if (results.length === 0) {
+      return { eshop: 'smarty', markdown: null, imageLinks: [], error: 'No results found' };
+    }
+
+    // Build markdown from search results — each result has title, description, url, and optionally markdown
+    let combinedMarkdown = '';
+    const imageLinks: string[] = [];
+
+    for (const r of results) {
+      const url = r.url || '';
+      // Skip non-product pages
+      if (!url.includes('smarty.cz') || url.includes('/vyhledavani') || url.includes('/img/')) continue;
+
+      const title = r.title || '';
+      const description = r.description || '';
+      const pageMarkdown = r.markdown || '';
+
+      // Extract image URLs from the page markdown
+      const imgMatches = pageMarkdown.match(/!\[.*?\]\((https?:\/\/[^\s)]+)\)/g) || [];
+      for (const imgMatch of imgMatches) {
+        const urlMatch = imgMatch.match(/\((https?:\/\/[^\s)]+)\)/);
+        if (urlMatch && (urlMatch[1].includes('doc.smarty.cz') || urlMatch[1].includes('files.smarty.cz') || /\.(jpg|jpeg|png|webp)/i.test(urlMatch[1]))) {
+          imageLinks.push(urlMatch[1]);
+        }
+      }
+
+      // Build a structured section for this product
+      combinedMarkdown += `### ${title}\nURL: ${url}\n${description}\n`;
+      // Include first 2000 chars of page markdown for price extraction
+      if (pageMarkdown) {
+        combinedMarkdown += pageMarkdown.substring(0, 2000) + '\n';
+      }
+      combinedMarkdown += '\n---\n\n';
+    }
+
+    console.log(`Smarty combined markdown length: ${combinedMarkdown.length}, image links: ${imageLinks.length}`);
+    return { eshop: 'smarty', markdown: combinedMarkdown || null, imageLinks };
+  } catch (err) {
+    console.error('Smarty search error:', err);
+    return { eshop: 'smarty', markdown: null, imageLinks: [], error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -283,12 +352,13 @@ serve(async (req) => {
       );
     }
 
-    // Scrape all 3 e-shops in parallel
-    const scrapeResults = await Promise.all(
-      Object.entries(ESHOP_SEARCH_URLS).map(([name, urlFn]) =>
+    // Scrape Alza + Datart via URL scraping, Smarty via Firecrawl search API (their search is JS-only)
+    const scrapeResults = await Promise.all([
+      ...Object.entries(ESHOP_SEARCH_URLS).map(([name, urlFn]) =>
         scrapeEshop(name, urlFn(trimmedQuery), FIRECRAWL_API_KEY)
-      )
-    );
+      ),
+      searchSmartyViaFirecrawl(trimmedQuery, FIRECRAWL_API_KEY),
+    ]);
 
     // Build combined content for AI analysis
     const combinedContent = scrapeResults
