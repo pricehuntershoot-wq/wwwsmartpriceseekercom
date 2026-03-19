@@ -16,6 +16,7 @@ import { toast } from "sonner";
 
 interface EshopProduct {
   name: string;
+  normalizedName?: string;
   price: number;
   originalPrice?: number | null;
   eshop: string;
