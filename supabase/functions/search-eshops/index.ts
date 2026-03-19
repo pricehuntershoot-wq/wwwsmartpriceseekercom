@@ -379,32 +379,60 @@ serve(async (req) => {
       );
     }
 
-    // Use AI to extract structured product data
+    // Use AI to extract structured product data via tool calling
     const systemPrompt = `You are an expert at extracting product listings from Czech e-shop search results.
 
 Given search results from multiple Czech e-shops (Alza.cz, Datart.cz, Smarty.cz), extract products from EVERY e-shop section.
 
-CRITICAL RULE: You MUST extract products from ALL e-shops that have data. The sections are marked "=== ALZA ===", "=== DATART ===", "=== SMARTY ===". Extract at least 5 products from EACH section that contains product listings. If a section has products, you MUST include them — do NOT skip any e-shop.
+CRITICAL RULES:
+1. You MUST extract products from ALL e-shops that have data. Sections are marked "=== ALZA ===", "=== DATART ===", "=== SMARTY ===".
+2. Extract at least 5 products from EACH section that has product listings. Do NOT skip any e-shop.
+3. Only extract products that are RELEVANT to the search query. Skip unrelated products (e.g. accessories, cables when searching for headphones).
+4. For the "normalizedName" field: create a canonical product name without color/variant info, e.g. "Sony WH-1000XM5 bezdrátová sluchátka černá" → "Sony WH-1000XM5". This helps match same products across shops.
+5. Parse Czech prices: "11 590,-" → 11590, "9 272 Kč" → 9272, "od 5 990 Kč" → 5990.
+6. For URLs: Alza prepend "https://www.alza.cz", Datart "https://www.datart.cz", Smarty "https://www.smarty.cz" if path starts with "/".
+7. For imageUrl: must be a direct image URL (ending in .jpg/.jpeg/.png/.webp or containing /img//foto//photo/). If unsure, null. Never assign same image to multiple products.
+8. Skip duplicate listings (same product appearing twice in same e-shop).
 
-For each product, extract:
-- name: full product name (exact as shown on the page)
-- price: the lowest/main price in CZK (as a number, no currency symbol)
-- originalPrice: the original/crossed-out price if shown (number or null)
-- eshop: which e-shop it's from ("alza", "datart", "smarty") — MUST match the section header
-- productUrl: the full product URL. For Alza prepend "https://www.alza.cz" if path starts with "/". For Datart prepend "https://www.datart.cz". For Smarty prepend "https://www.smarty.cz".
-- imageUrl: the DIRECT product image URL (must end in .jpg/.jpeg/.png/.webp or contain /img//foto//photo/). If unsure, set to null. Never assign same image to multiple products.
-- category: detected category (mobily, sluchátka, tv, reproduktory, chytré hodinky, chytré prsteny, tablety, herní konzole, pc, příslušenství, jiné)
-- promoCode: any visible promo/discount code (or null)
-- condition: "new", "used", "open_box", or "refurbished"
+Call the extract_products function with ALL found products.`;
 
-Parse Czech price format: "11 590,-" → 11590, "9 272 Kč" → 9272.
-
-Return a JSON array with up to 10 products per e-shop (up to 30 total). Products MUST come from all available e-shops.
-
-IMPORTANT: Return ONLY valid JSON array, no markdown code fences.`;
+    const tools = [{
+      type: "function" as const,
+      function: {
+        name: "extract_products",
+        description: "Extract structured product data from e-shop search results",
+        parameters: {
+          type: "object",
+          properties: {
+            products: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  name: { type: "string", description: "Full product name as shown on page" },
+                  normalizedName: { type: "string", description: "Canonical name without color/variant, e.g. 'Sony WH-1000XM5'" },
+                  price: { type: "number", description: "Current price in CZK" },
+                  originalPrice: { type: ["number", "null"], description: "Original/crossed-out price or null" },
+                  eshop: { type: "string", enum: ["alza", "datart", "smarty"] },
+                  productUrl: { type: ["string", "null"], description: "Full product URL" },
+                  imageUrl: { type: ["string", "null"], description: "Direct product image URL or null" },
+                  category: { type: "string", enum: ["mobily", "sluchátka", "tv", "reproduktory", "chytré hodinky", "chytré prsteny", "tablety", "herní konzole", "pc", "příslušenství", "jiné"] },
+                  promoCode: { type: ["string", "null"], description: "Visible promo/discount code or null" },
+                  condition: { type: "string", enum: ["new", "used", "open_box", "refurbished"] },
+                },
+                required: ["name", "normalizedName", "price", "eshop", "category", "condition"],
+                additionalProperties: false,
+              },
+            },
+          },
+          required: ["products"],
+          additionalProperties: false,
+        },
+      },
+    }];
 
     const models = [
-      { name: 'google/gemini-2.5-flash-lite', temperature: 0.1 },
+      { name: 'google/gemini-3-flash-preview', temperature: 0.1 },
       { name: 'google/gemini-2.5-flash', temperature: 0.1 },
       { name: 'openai/gpt-5-mini', temperature: 1 },
     ];
@@ -426,6 +454,8 @@ IMPORTANT: Return ONLY valid JSON array, no markdown code fences.`;
                 { role: 'system', content: systemPrompt },
                 { role: 'user', content: `Search query: "${trimmedQuery}"\n\nSearch results:\n${combinedContent}` },
               ],
+              tools,
+              tool_choice: { type: "function", function: { name: "extract_products" } },
               temperature,
             }),
           });
@@ -439,6 +469,10 @@ IMPORTANT: Return ONLY valid JSON array, no markdown code fences.`;
 
           const errorText = await response.text();
           console.error(`AI ${model} attempt ${attempt + 1} failed:`, response.status, errorText);
+          if (response.status === 429 || response.status === 402) {
+            // Rate limit or credits — skip to next model
+            break;
+          }
           if (attempt < 1) await new Promise(r => setTimeout(r, 1000));
         } catch (err) {
           console.error(`AI ${model} fetch error:`, err);
@@ -453,16 +487,26 @@ IMPORTANT: Return ONLY valid JSON array, no markdown code fences.`;
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-    const content = aiResponse.choices?.[0]?.message?.content;
 
-    let products = [];
+    // Parse tool call response
+    let products: any[] = [];
     try {
-      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
-      const jsonStr = jsonMatch ? jsonMatch[1].trim() : content.trim();
-      products = JSON.parse(jsonStr);
-      if (!Array.isArray(products)) products = [];
-    } catch {
-      console.error('Failed to parse AI response:', content?.substring(0, 500));
+      const toolCall = aiResponse.choices?.[0]?.message?.tool_calls?.[0];
+      if (toolCall?.function?.arguments) {
+        const parsed = JSON.parse(toolCall.function.arguments);
+        products = parsed.products || [];
+      } else {
+        // Fallback: try parsing content directly (some models may not use tool calls)
+        const content = aiResponse.choices?.[0]?.message?.content;
+        if (content) {
+          const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+          const jsonStr = jsonMatch ? jsonMatch[1].trim() : content.trim();
+          const parsed = JSON.parse(jsonStr);
+          products = Array.isArray(parsed) ? parsed : (parsed.products || []);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to parse AI response:', e);
       products = [];
     }
 
