@@ -141,6 +141,7 @@ function groupProducts(products: EshopProduct[]): GroupedProduct[] {
         }],
       });
       groupTokens.push(tokens);
+      groupNormNames.push(normName);
     }
   }
 
