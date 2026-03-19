@@ -11,7 +11,6 @@ const CACHE_HOURS = 24;
 const ESHOP_SEARCH_URLS = {
   alza: (q: string) => `https://www.alza.cz/search.htm?exps=${encodeURIComponent(q)}`,
   datart: (q: string) => `https://www.datart.cz/vyhledavani?q=${encodeURIComponent(q)}`,
-  smarty: (q: string) => `https://www.smarty.cz/hledej?q=${encodeURIComponent(q)}`,
 };
 
 function getSupabaseAdmin() {
