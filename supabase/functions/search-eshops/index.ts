@@ -352,12 +352,13 @@ serve(async (req) => {
       );
     }
 
-    // Scrape all 3 e-shops in parallel
-    const scrapeResults = await Promise.all(
-      Object.entries(ESHOP_SEARCH_URLS).map(([name, urlFn]) =>
+    // Scrape Alza + Datart via URL scraping, Smarty via Firecrawl search API (their search is JS-only)
+    const scrapeResults = await Promise.all([
+      ...Object.entries(ESHOP_SEARCH_URLS).map(([name, urlFn]) =>
         scrapeEshop(name, urlFn(trimmedQuery), FIRECRAWL_API_KEY)
-      )
-    );
+      ),
+      searchSmartyViaFirecrawl(trimmedQuery, FIRECRAWL_API_KEY),
+    ]);
 
     // Build combined content for AI analysis
     const combinedContent = scrapeResults
