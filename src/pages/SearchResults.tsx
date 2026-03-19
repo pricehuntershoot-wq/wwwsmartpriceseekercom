@@ -85,8 +85,10 @@ function tokensOverlap(a: string[], b: string[]): number {
 function groupProducts(products: EshopProduct[]): GroupedProduct[] {
   const groups: GroupedProduct[] = [];
   const groupTokens: string[][] = [];
+  const groupNormNames: string[] = [];
 
   for (const p of products) {
+    const normName = (p.normalizedName || p.name).toLowerCase().trim();
     const tokens = getGroupingTokens(p.name);
     let bestGroupIdx = -1;
     let bestScore = 0;
@@ -95,11 +97,18 @@ function groupProducts(products: EshopProduct[]): GroupedProduct[] {
       // Don't merge if same eshop already present
       if (groups[i].shops.some(s => s.eshop === p.eshop)) continue;
 
+      // Priority 1: exact normalizedName match
+      if (normName === groupNormNames[i]) {
+        bestGroupIdx = i;
+        bestScore = 1;
+        break;
+      }
+
+      // Priority 2: fuzzy token overlap
       const overlap = tokensOverlap(tokens, groupTokens[i]);
       const minLen = Math.min(tokens.length, groupTokens[i].length);
       const score = minLen > 0 ? overlap / minLen : 0;
 
-      // Need at least 60% token overlap and at least 2 matching tokens
       if (score > bestScore && score >= 0.6 && overlap >= 2) {
         bestScore = score;
         bestGroupIdx = i;
