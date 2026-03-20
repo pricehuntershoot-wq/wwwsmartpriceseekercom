@@ -385,15 +385,15 @@ serve(async (req) => {
     // Use AI to extract structured product data via tool calling
     const systemPrompt = `You are an expert at extracting product listings from Czech e-shop search results.
 
-Given search results from multiple Czech e-shops (Alza.cz, Datart.cz, Smarty.cz), extract products from EVERY e-shop section.
+Given search results from multiple Czech e-shops (Alza.cz, Datart.cz, Smarty.cz, Mironet.cz), extract products from EVERY e-shop section.
 
 CRITICAL RULES:
-1. You MUST extract products from ALL e-shops that have data. Sections are marked "=== ALZA ===", "=== DATART ===", "=== SMARTY ===".
+1. You MUST extract products from ALL e-shops that have data. Sections are marked "=== ALZA ===", "=== DATART ===", "=== SMARTY ===", "=== MIRONET ===".
 2. Extract at least 5 products from EACH section that has product listings. Do NOT skip any e-shop.
 3. Only extract products that are RELEVANT to the search query. Skip unrelated products (e.g. accessories, cables when searching for headphones).
 4. For the "normalizedName" field: create a canonical product name without color/variant info, e.g. "Sony WH-1000XM5 bezdrátová sluchátka černá" → "Sony WH-1000XM5". This helps match same products across shops.
 5. Parse Czech prices: "11 590,-" → 11590, "9 272 Kč" → 9272, "od 5 990 Kč" → 5990.
-6. For URLs: Alza prepend "https://www.alza.cz", Datart "https://www.datart.cz", Smarty "https://www.smarty.cz" if path starts with "/".
+6. For URLs: Alza prepend "https://www.alza.cz", Datart "https://www.datart.cz", Smarty "https://www.smarty.cz", Mironet "https://www.mironet.cz" if path starts with "/".
 7. For imageUrl: must be a direct image URL (ending in .jpg/.jpeg/.png/.webp or containing /img//foto//photo/). If unsure, null. Never assign same image to multiple products.
 8. Skip duplicate listings (same product appearing twice in same e-shop).
 
