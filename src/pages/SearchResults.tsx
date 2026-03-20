@@ -184,8 +184,51 @@ const SearchResults = () => {
   const [searchProgress, setSearchProgress] = useState(0);
   const [showWittyMessage, setShowWittyMessage] = useState(false);
   const [fromCache, setFromCache] = useState(false);
+  const [analyzingIdx, setAnalyzingIdx] = useState<number | null>(null);
+  const [analyzeStep, setAnalyzeStep] = useState<"idle" | "scraping" | "analyzing">("idle");
+  const [analysisResults, setAnalysisResults] = useState<Record<number, InlineAnalysis>>({});
+  const [expandedAnalysis, setExpandedAnalysis] = useState<number | null>(null);
   const wittyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const runInlineAnalysis = async (cardIdx: number, url: string) => {
+    if (analyzingIdx !== null) return;
+    setAnalyzingIdx(cardIdx);
+    setExpandedAnalysis(cardIdx);
+    setAnalyzeStep("scraping");
+
+    try {
+      const scrapeResult = await firecrawlApi.scrape(url, {
+        formats: ["markdown", "html"],
+        waitFor: 3000,
+        location: { country: "CZ", languages: ["cs"] },
+      });
+
+      if (!scrapeResult.success) throw new Error(scrapeResult.error || "Nepodařilo se načíst stránku");
+
+      const markdown = scrapeResult.data?.markdown || scrapeResult.markdown;
+      const html = scrapeResult.data?.html || scrapeResult.html;
+      if (!markdown && !html) throw new Error("Stránka nevrátila žádný obsah");
+
+      setAnalyzeStep("analyzing");
+
+      const { data, error } = await supabase.functions.invoke("analyze-product-page", {
+        body: { url, markdownContent: markdown, htmlContent: html },
+      });
+
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || "Analýza selhala");
+
+      setAnalysisResults(prev => ({ ...prev, [cardIdx]: data.analysis }));
+      toast.success(`Nalezeno ${data.analysis.priceTiers?.length || 0} cenových úrovní!`);
+    } catch (err) {
+      console.error("Inline analysis error:", err);
+      toast.error(err instanceof Error ? err.message : "Analýza selhala");
+    } finally {
+      setAnalyzingIdx(null);
+      setAnalyzeStep("idle");
+    }
+  };
 
   useEffect(() => {
     if (query.trim().length >= 2) {
