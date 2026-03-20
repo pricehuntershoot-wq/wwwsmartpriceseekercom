@@ -43,6 +43,24 @@ interface GroupedProduct {
   }[];
 }
 
+interface PriceTier {
+  tierType: string;
+  price: number;
+  originalPrice?: number | null;
+  condition: string;
+  promoCode?: string | null;
+  promoDescription?: string | null;
+  label: string;
+  confidence: string;
+}
+
+interface InlineAnalysis {
+  productName: string | null;
+  priceTiers: PriceTier[];
+  promoCodes: { code: string; discount: string; description: string }[];
+  recommendations: string[];
+}
+
 const ESHOP_META: Record<string, { name: string; logo: string; color: string }> = {
   alza: { name: "Alza.cz", logo: "https://cdn.alza.cz/Foto/favicon/android-chrome-192x192.png", color: "bg-green-600" },
   datart: { name: "Datart.cz", logo: "https://www.datart.cz/favicon.ico", color: "bg-red-600" },
