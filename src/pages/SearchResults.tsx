@@ -173,7 +173,7 @@ const SearchResults = () => {
     }
   }, [query]);
 
-  const searchEshops = async (q: string) => {
+  const searchEshops = async (q: string, forceRefresh = false) => {
     setIsLoading(true);
     setProducts([]);
     setErrors([]);
@@ -189,7 +189,7 @@ const SearchResults = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke("search-eshops", {
-        body: { query: q },
+        body: { query: q, forceRefresh },
       });
 
       if (error) throw error;
