@@ -92,7 +92,6 @@ function getSupabaseAdmin() {
 async function getCachedResults(supabase: any, query: string) {
   const cutoff = new Date(Date.now() - CACHE_HOURS * 60 * 60 * 1000).toISOString();
   
-  // Search for products matching the query that have recent prices
   const { data: products, error } = await supabase
     .from('prices')
     .select(`
@@ -111,20 +110,23 @@ async function getCachedResults(supabase: any, query: string) {
 
   if (error || !products || products.length === 0) return null;
 
-  // Filter by query match (case-insensitive) — check name AND category
+  // Filter by query match — only match on product NAME, not category
   const q = query.toLowerCase();
-  const queryTokens = q.split(/\s+/).filter((t: string) => t.length > 1);
+  const queryTokens = q.split(/\s+/).filter((t: string) => t.length > 2);
   const matched = products.filter((p: any) => {
     const name = p.products?.name?.toLowerCase() || '';
-    const category = p.products?.category?.toLowerCase() || '';
-    // Match if name contains query OR category contains query OR all query tokens match name
-    return name.includes(q) || category.includes(q) || 
-      queryTokens.every((t: string) => name.includes(t));
+    // Require name to contain the full query OR all tokens (min 3 chars each)
+    return name.includes(q) || 
+      (queryTokens.length >= 2 && queryTokens.every((t: string) => name.includes(t)));
   });
 
-  if (matched.length === 0) return null;
+  // Require minimum 3 results from at least 2 different shops to serve cache
+  if (matched.length < 3) return null;
+  
+  const uniqueShops = new Set(matched.map((p: any) => p.shops?.name));
+  if (uniqueShops.size < 2) return null;
 
-  console.log(`Found ${matched.length} cached results for "${query}"`);
+  console.log(`Found ${matched.length} cached results from ${uniqueShops.size} shops for "${query}"`);
 
   return matched.map((p: any) => ({
     name: p.products?.name || '',
