@@ -13,6 +13,75 @@ const ESHOP_SEARCH_URLS = {
   datart: (q: string) => `https://www.datart.cz/vyhledavani?q=${encodeURIComponent(q)}`,
 };
 
+async function searchViaFirecrawl(eshopName: string, domain: string, query: string, apiKey: string, imageHostPatterns: string[] = []): Promise<{ eshop: string; markdown: string | null; imageLinks: string[]; error?: string }> {
+  try {
+    console.log(`Searching ${domain} via Firecrawl search API for: "${query}"`);
+    const response = await fetch('https://api.firecrawl.dev/v1/search', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: `site:${domain} ${query}`,
+        limit: 15,
+        lang: 'cs',
+        country: 'CZ',
+        scrapeOptions: { formats: ['markdown'] },
+      }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      console.error(`${eshopName} Firecrawl search failed:`, data);
+      return { eshop: eshopName, markdown: null, imageLinks: [], error: data.error || 'Search failed' };
+    }
+
+    const results = data.data || [];
+    console.log(`${eshopName} search returned ${results.length} results`);
+
+    if (results.length === 0) {
+      return { eshop: eshopName, markdown: null, imageLinks: [], error: 'No results found' };
+    }
+
+    let combinedMarkdown = '';
+    const imageLinks: string[] = [];
+
+    for (const r of results) {
+      const url = r.url || '';
+      if (!url.includes(domain) || url.includes('/vyhledavani') || url.includes('/img/') || url.includes('/search')) continue;
+
+      const title = r.title || '';
+      const description = r.description || '';
+      const pageMarkdown = r.markdown || '';
+
+      const imgMatches = pageMarkdown.match(/!\[.*?\]\((https?:\/\/[^\s)]+)\)/g) || [];
+      for (const imgMatch of imgMatches) {
+        const urlMatch = imgMatch.match(/\((https?:\/\/[^\s)]+)\)/);
+        if (urlMatch) {
+          const imgUrl = urlMatch[1];
+          const isHostMatch = imageHostPatterns.length === 0 || imageHostPatterns.some(p => imgUrl.includes(p));
+          if (isHostMatch || /\.(jpg|jpeg|png|webp)/i.test(imgUrl)) {
+            imageLinks.push(imgUrl);
+          }
+        }
+      }
+
+      combinedMarkdown += `### ${title}\nURL: ${url}\n${description}\n`;
+      if (pageMarkdown) {
+        combinedMarkdown += pageMarkdown.substring(0, 2000) + '\n';
+      }
+      combinedMarkdown += '\n---\n\n';
+    }
+
+    console.log(`${eshopName} combined markdown length: ${combinedMarkdown.length}, image links: ${imageLinks.length}`);
+    return { eshop: eshopName, markdown: combinedMarkdown || null, imageLinks };
+  } catch (err) {
+    console.error(`${eshopName} search error:`, err);
+    return { eshop: eshopName, markdown: null, imageLinks: [], error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 function getSupabaseAdmin() {
   return createClient(
     Deno.env.get('SUPABASE_URL')!,
