@@ -354,12 +354,13 @@ serve(async (req) => {
       );
     }
 
-    // Scrape Alza + Datart via URL scraping, Smarty via Firecrawl search API (their search is JS-only)
+    // Scrape Alza + Datart via URL scraping; Smarty + Mironet via Firecrawl search API (JS-only search)
     const scrapeResults = await Promise.all([
       ...Object.entries(ESHOP_SEARCH_URLS).map(([name, urlFn]) =>
         scrapeEshop(name, urlFn(trimmedQuery), FIRECRAWL_API_KEY)
       ),
-      searchSmartyViaFirecrawl(trimmedQuery, FIRECRAWL_API_KEY),
+      searchViaFirecrawl('smarty', 'smarty.cz', trimmedQuery, FIRECRAWL_API_KEY, ['doc.smarty.cz', 'files.smarty.cz']),
+      searchViaFirecrawl('mironet', 'mironet.cz', trimmedQuery, FIRECRAWL_API_KEY, ['img.mironet.cz']),
     ]);
 
     // Build combined content for AI analysis
