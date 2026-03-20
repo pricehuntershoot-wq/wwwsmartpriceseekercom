@@ -45,6 +45,7 @@ const ESHOP_META: Record<string, { name: string; logo: string; color: string }> 
   alza: { name: "Alza.cz", logo: "https://cdn.alza.cz/Foto/favicon/android-chrome-192x192.png", color: "bg-green-600" },
   datart: { name: "Datart.cz", logo: "https://www.datart.cz/favicon.ico", color: "bg-red-600" },
   smarty: { name: "Smarty.cz", logo: "https://www.smarty.cz/favicon.ico", color: "bg-blue-600" },
+  mironet: { name: "Mironet.cz", logo: "https://www.mironet.cz/favicon.ico", color: "bg-orange-600" },
 };
 
 const formatPrice = (price: number) => price.toLocaleString("cs-CZ") + " Kč";
