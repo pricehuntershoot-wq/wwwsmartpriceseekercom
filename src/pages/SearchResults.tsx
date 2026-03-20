@@ -173,7 +173,7 @@ const SearchResults = () => {
     }
   }, [query]);
 
-  const searchEshops = async (q: string) => {
+  const searchEshops = async (q: string, forceRefresh = false) => {
     setIsLoading(true);
     setProducts([]);
     setErrors([]);
@@ -189,7 +189,7 @@ const SearchResults = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke("search-eshops", {
-        body: { query: q },
+        body: { query: q, forceRefresh },
       });
 
       if (error) throw error;
@@ -204,7 +204,7 @@ const SearchResults = () => {
         toast.success(
           data.fromCache
             ? `Nalezeno ${data.products.length} nabídek z databáze`
-            : `Nalezeno ${data.products.length} nabídek ze 3 e-shopů`
+            : `Nalezeno ${data.products.length} nabídek ze 4 e-shopů`
         );
       } else {
         toast.info("Žádné produkty nenalezeny");
@@ -249,9 +249,21 @@ const SearchResults = () => {
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
             AI agenti prohledávají <span className="font-semibold text-foreground">Alza.cz</span>,{" "}
-            <span className="font-semibold text-foreground">Datart.cz</span> a{" "}
-            <span className="font-semibold text-foreground">Smarty.cz</span>
+            <span className="font-semibold text-foreground">Datart.cz</span>,{" "}
+            <span className="font-semibold text-foreground">Smarty.cz</span> a{" "}
+            <span className="font-semibold text-foreground">Mironet.cz</span>
           </p>
+          {fromCache && !isLoading && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-2 gap-1.5"
+              onClick={() => searchEshops(query, true)}
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              Aktualizovat ceny
+            </Button>
+          )}
         </div>
 
         {/* Sort bar */}

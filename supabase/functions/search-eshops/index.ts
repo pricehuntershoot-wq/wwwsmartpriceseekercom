@@ -315,7 +315,7 @@ serve(async (req) => {
   }
 
   try {
-    const { query } = await req.json();
+    const { query, forceRefresh } = await req.json();
 
     if (!query || query.trim().length < 2) {
       return new Response(
@@ -325,18 +325,21 @@ serve(async (req) => {
     }
 
     const trimmedQuery = query.trim();
-    console.log(`Searching for "${trimmedQuery}" across e-shops...`);
+    console.log(`Searching for "${trimmedQuery}" across e-shops...${forceRefresh ? ' (force refresh)' : ''}`);
 
-    // Step 1: Check database cache first
+    // Step 1: Check database cache first (skip if force refresh)
     const supabase = getSupabaseAdmin();
-    const cachedResults = await getCachedResults(supabase, trimmedQuery);
+    
+    if (!forceRefresh) {
+      const cachedResults = await getCachedResults(supabase, trimmedQuery);
 
-    if (cachedResults && cachedResults.length > 0) {
-      console.log(`Returning ${cachedResults.length} cached results for "${trimmedQuery}"`);
-      return new Response(
-        JSON.stringify({ success: true, products: cachedResults, errors: [], fromCache: true }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      if (cachedResults && cachedResults.length > 0) {
+        console.log(`Returning ${cachedResults.length} cached results for "${trimmedQuery}"`);
+        return new Response(
+          JSON.stringify({ success: true, products: cachedResults, errors: [], fromCache: true }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     // Step 2: No cache — scrape live
