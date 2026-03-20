@@ -9,9 +9,11 @@ import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Loader2, ExternalLink, Tag, Copy, Check, AlertCircle, ShoppingBag,
-  Sparkles, SlidersHorizontal, X, Bot, Database, Target, RefreshCw
+  Sparkles, SlidersHorizontal, X, Bot, Database, Target, RefreshCw,
+  ShoppingCart, Package, ChevronDown, ChevronUp
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { firecrawlApi } from "@/lib/api/firecrawl";
 import { toast } from "sonner";
 
 interface EshopProduct {
