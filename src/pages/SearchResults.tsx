@@ -190,6 +190,16 @@ const SearchResults = () => {
   const [expandedAnalysis, setExpandedAnalysis] = useState<number | null>(null);
   const wittyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const analysisPanelRefs = useRef<Record<number, HTMLDivElement | null>>({});
+
+  // Auto-scroll to analysis panel when expanded
+  useEffect(() => {
+    if (expandedAnalysis !== null && analysisResults[expandedAnalysis]) {
+      setTimeout(() => {
+        analysisPanelRefs.current[expandedAnalysis]?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }, 100);
+    }
+  }, [expandedAnalysis, analysisResults]);
 
   const runInlineAnalysis = async (cardIdx: number, url: string) => {
     if (analyzingIdx !== null) return;
@@ -608,7 +618,10 @@ const SearchResults = () => {
 
                     {/* Inline Deep Analysis Panel */}
                     {expandedAnalysis === i && analysisResults[i] && (
-                      <div className="mx-4 mb-3 rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3 animate-fade-in">
+                      <div
+                        ref={(el) => { analysisPanelRefs.current[i] = el; }}
+                        className="mx-4 mb-3 rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3 animate-fade-in"
+                      >
                         <div className="flex items-center justify-between">
                           <h4 className="text-xs font-semibold flex items-center gap-1.5 text-primary">
                             <Sparkles className="h-3.5 w-3.5" />
