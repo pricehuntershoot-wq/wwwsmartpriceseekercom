@@ -13,6 +13,75 @@ const ESHOP_SEARCH_URLS = {
   datart: (q: string) => `https://www.datart.cz/vyhledavani?q=${encodeURIComponent(q)}`,
 };
 
+async function searchViaFirecrawl(eshopName: string, domain: string, query: string, apiKey: string, imageHostPatterns: string[] = []): Promise<{ eshop: string; markdown: string | null; imageLinks: string[]; error?: string }> {
+  try {
+    console.log(`Searching ${domain} via Firecrawl search API for: "${query}"`);
+    const response = await fetch('https://api.firecrawl.dev/v1/search', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: `site:${domain} ${query}`,
+        limit: 15,
+        lang: 'cs',
+        country: 'CZ',
+        scrapeOptions: { formats: ['markdown'] },
+      }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      console.error(`${eshopName} Firecrawl search failed:`, data);
+      return { eshop: eshopName, markdown: null, imageLinks: [], error: data.error || 'Search failed' };
+    }
+
+    const results = data.data || [];
+    console.log(`${eshopName} search returned ${results.length} results`);
+
+    if (results.length === 0) {
+      return { eshop: eshopName, markdown: null, imageLinks: [], error: 'No results found' };
+    }
+
+    let combinedMarkdown = '';
+    const imageLinks: string[] = [];
+
+    for (const r of results) {
+      const url = r.url || '';
+      if (!url.includes(domain) || url.includes('/vyhledavani') || url.includes('/img/') || url.includes('/search')) continue;
+
+      const title = r.title || '';
+      const description = r.description || '';
+      const pageMarkdown = r.markdown || '';
+
+      const imgMatches = pageMarkdown.match(/!\[.*?\]\((https?:\/\/[^\s)]+)\)/g) || [];
+      for (const imgMatch of imgMatches) {
+        const urlMatch = imgMatch.match(/\((https?:\/\/[^\s)]+)\)/);
+        if (urlMatch) {
+          const imgUrl = urlMatch[1];
+          const isHostMatch = imageHostPatterns.length === 0 || imageHostPatterns.some(p => imgUrl.includes(p));
+          if (isHostMatch || /\.(jpg|jpeg|png|webp)/i.test(imgUrl)) {
+            imageLinks.push(imgUrl);
+          }
+        }
+      }
+
+      combinedMarkdown += `### ${title}\nURL: ${url}\n${description}\n`;
+      if (pageMarkdown) {
+        combinedMarkdown += pageMarkdown.substring(0, 2000) + '\n';
+      }
+      combinedMarkdown += '\n---\n\n';
+    }
+
+    console.log(`${eshopName} combined markdown length: ${combinedMarkdown.length}, image links: ${imageLinks.length}`);
+    return { eshop: eshopName, markdown: combinedMarkdown || null, imageLinks };
+  } catch (err) {
+    console.error(`${eshopName} search error:`, err);
+    return { eshop: eshopName, markdown: null, imageLinks: [], error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 function getSupabaseAdmin() {
   return createClient(
     Deno.env.get('SUPABASE_URL')!,
@@ -80,7 +149,8 @@ async function saveResultsToDB(supabase: any, products: any[]) {
       // 1. Upsert shop
       const shopName = product.eshop === 'alza' ? 'Alza.cz' : 
                         product.eshop === 'datart' ? 'Datart.cz' :
-                        product.eshop === 'smarty' ? 'Smarty.cz' : product.eshop;
+                        product.eshop === 'smarty' ? 'Smarty.cz' :
+                        product.eshop === 'mironet' ? 'Mironet.cz' : product.eshop;
       
       let shopId = shopCache[shopName];
       if (!shopId) {
@@ -235,75 +305,7 @@ async function scrapeEshop(eshopName: string, url: string, apiKey: string, maxRe
   return { eshop: eshopName, markdown: null, imageLinks: [], error: 'Max retries exceeded' };
 }
 
-async function searchSmartyViaFirecrawl(query: string, apiKey: string): Promise<{ eshop: string; markdown: string | null; imageLinks: string[]; error?: string }> {
-  try {
-    console.log(`Searching Smarty.cz via Firecrawl search API for: "${query}"`);
-    const response = await fetch('https://api.firecrawl.dev/v1/search', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        query: `site:smarty.cz ${query}`,
-        limit: 15,
-        lang: 'cs',
-        country: 'CZ',
-        scrapeOptions: { formats: ['markdown'] },
-      }),
-    });
-
-    const data = await response.json();
-    if (!response.ok) {
-      console.error('Smarty Firecrawl search failed:', data);
-      return { eshop: 'smarty', markdown: null, imageLinks: [], error: data.error || 'Search failed' };
-    }
-
-    const results = data.data || [];
-    console.log(`Smarty search returned ${results.length} results`);
-
-    if (results.length === 0) {
-      return { eshop: 'smarty', markdown: null, imageLinks: [], error: 'No results found' };
-    }
-
-    // Build markdown from search results — each result has title, description, url, and optionally markdown
-    let combinedMarkdown = '';
-    const imageLinks: string[] = [];
-
-    for (const r of results) {
-      const url = r.url || '';
-      // Skip non-product pages
-      if (!url.includes('smarty.cz') || url.includes('/vyhledavani') || url.includes('/img/')) continue;
-
-      const title = r.title || '';
-      const description = r.description || '';
-      const pageMarkdown = r.markdown || '';
-
-      // Extract image URLs from the page markdown
-      const imgMatches = pageMarkdown.match(/!\[.*?\]\((https?:\/\/[^\s)]+)\)/g) || [];
-      for (const imgMatch of imgMatches) {
-        const urlMatch = imgMatch.match(/\((https?:\/\/[^\s)]+)\)/);
-        if (urlMatch && (urlMatch[1].includes('doc.smarty.cz') || urlMatch[1].includes('files.smarty.cz') || /\.(jpg|jpeg|png|webp)/i.test(urlMatch[1]))) {
-          imageLinks.push(urlMatch[1]);
-        }
-      }
-
-      // Build a structured section for this product
-      combinedMarkdown += `### ${title}\nURL: ${url}\n${description}\n`;
-      // Include first 2000 chars of page markdown for price extraction
-      if (pageMarkdown) {
-        combinedMarkdown += pageMarkdown.substring(0, 2000) + '\n';
-      }
-      combinedMarkdown += '\n---\n\n';
-    }
-
-    console.log(`Smarty combined markdown length: ${combinedMarkdown.length}, image links: ${imageLinks.length}`);
-    return { eshop: 'smarty', markdown: combinedMarkdown || null, imageLinks };
-  } catch (err) {
-    console.error('Smarty search error:', err);
-    return { eshop: 'smarty', markdown: null, imageLinks: [], error: err instanceof Error ? err.message : String(err) };
-  }
-}
+// Smarty and Mironet use the generic searchViaFirecrawl function defined above
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -352,12 +354,13 @@ serve(async (req) => {
       );
     }
 
-    // Scrape Alza + Datart via URL scraping, Smarty via Firecrawl search API (their search is JS-only)
+    // Scrape Alza + Datart via URL scraping; Smarty + Mironet via Firecrawl search API (JS-only search)
     const scrapeResults = await Promise.all([
       ...Object.entries(ESHOP_SEARCH_URLS).map(([name, urlFn]) =>
         scrapeEshop(name, urlFn(trimmedQuery), FIRECRAWL_API_KEY)
       ),
-      searchSmartyViaFirecrawl(trimmedQuery, FIRECRAWL_API_KEY),
+      searchViaFirecrawl('smarty', 'smarty.cz', trimmedQuery, FIRECRAWL_API_KEY, ['doc.smarty.cz', 'files.smarty.cz']),
+      searchViaFirecrawl('mironet', 'mironet.cz', trimmedQuery, FIRECRAWL_API_KEY, ['img.mironet.cz']),
     ]);
 
     // Build combined content for AI analysis
@@ -382,15 +385,15 @@ serve(async (req) => {
     // Use AI to extract structured product data via tool calling
     const systemPrompt = `You are an expert at extracting product listings from Czech e-shop search results.
 
-Given search results from multiple Czech e-shops (Alza.cz, Datart.cz, Smarty.cz), extract products from EVERY e-shop section.
+Given search results from multiple Czech e-shops (Alza.cz, Datart.cz, Smarty.cz, Mironet.cz), extract products from EVERY e-shop section.
 
 CRITICAL RULES:
-1. You MUST extract products from ALL e-shops that have data. Sections are marked "=== ALZA ===", "=== DATART ===", "=== SMARTY ===".
+1. You MUST extract products from ALL e-shops that have data. Sections are marked "=== ALZA ===", "=== DATART ===", "=== SMARTY ===", "=== MIRONET ===".
 2. Extract at least 5 products from EACH section that has product listings. Do NOT skip any e-shop.
 3. Only extract products that are RELEVANT to the search query. Skip unrelated products (e.g. accessories, cables when searching for headphones).
 4. For the "normalizedName" field: create a canonical product name without color/variant info, e.g. "Sony WH-1000XM5 bezdrátová sluchátka černá" → "Sony WH-1000XM5". This helps match same products across shops.
 5. Parse Czech prices: "11 590,-" → 11590, "9 272 Kč" → 9272, "od 5 990 Kč" → 5990.
-6. For URLs: Alza prepend "https://www.alza.cz", Datart "https://www.datart.cz", Smarty "https://www.smarty.cz" if path starts with "/".
+6. For URLs: Alza prepend "https://www.alza.cz", Datart "https://www.datart.cz", Smarty "https://www.smarty.cz", Mironet "https://www.mironet.cz" if path starts with "/".
 7. For imageUrl: must be a direct image URL (ending in .jpg/.jpeg/.png/.webp or containing /img//foto//photo/). If unsure, null. Never assign same image to multiple products.
 8. Skip duplicate listings (same product appearing twice in same e-shop).
 
@@ -413,7 +416,7 @@ Call the extract_products function with ALL found products.`;
                   normalizedName: { type: "string", description: "Canonical name without color/variant, e.g. 'Sony WH-1000XM5'" },
                   price: { type: "number", description: "Current price in CZK" },
                   originalPrice: { type: ["number", "null"], description: "Original/crossed-out price or null" },
-                  eshop: { type: "string", enum: ["alza", "datart", "smarty"] },
+                  eshop: { type: "string", enum: ["alza", "datart", "smarty", "mironet"] },
                   productUrl: { type: ["string", "null"], description: "Full product URL" },
                   imageUrl: { type: ["string", "null"], description: "Direct product image URL or null" },
                   category: { type: "string", enum: ["mobily", "sluchátka", "tv", "reproduktory", "chytré hodinky", "chytré prsteny", "tablety", "herní konzole", "pc", "příslušenství", "jiné"] },
