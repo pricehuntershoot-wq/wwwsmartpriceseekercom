@@ -483,17 +483,38 @@ const SearchResults = () => {
                         )}
                       </div>
 
-                      {/* Analyze link */}
+                      {/* Analyze badge */}
                       {product.shops[0]?.productUrl && (
-                        <Link
-                          to={`/analyzer?url=${encodeURIComponent(product.shops[0].productUrl)}`}
+                        <button
+                          onClick={() => {
+                            const analysis = analysisResults[i];
+                            if (analysis) {
+                              setExpandedAnalysis(expandedAnalysis === i ? null : i);
+                            } else {
+                              runInlineAnalysis(i, product.shops[0].productUrl!);
+                            }
+                          }}
+                          disabled={analyzingIdx !== null && analyzingIdx !== i}
                           className="absolute top-2 right-2"
                         >
-                          <Badge className="bg-primary/90 text-primary-foreground text-[10px] cursor-pointer hover:bg-primary">
-                            <Sparkles className="h-3 w-3 mr-1" />
-                            Deep Analyze
+                          <Badge className={`text-[10px] cursor-pointer transition-colors ${
+                            analyzingIdx === i
+                              ? "bg-primary/70 text-primary-foreground animate-pulse"
+                              : analysisResults[i]
+                                ? "bg-green-600 text-white hover:bg-green-700"
+                                : "bg-primary/90 text-primary-foreground hover:bg-primary"
+                          }`}>
+                            {analyzingIdx === i ? (
+                              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                            ) : (
+                              <Sparkles className="h-3 w-3 mr-1" />
+                            )}
+                            {analyzingIdx === i
+                              ? analyzeStep === "scraping" ? "Stahuji..." : "Analyzuji..."
+                              : analysisResults[i] ? "Analyzováno ✓" : "Deep Analyze"
+                            }
                           </Badge>
-                        </Link>
+                        </button>
                       )}
                     </div>
 
@@ -504,9 +525,9 @@ const SearchResults = () => {
                       </h3>
                     </div>
 
-                    {/* Shop prices - always show all 3 shops */}
-                    <div className="grid grid-cols-3 gap-2 px-5 pb-3">
-                      {["alza", "datart", "smarty"].map((eshopKey) => {
+                    {/* Shop prices - show all 4 shops */}
+                    <div className="grid grid-cols-4 gap-1.5 px-4 pb-3">
+                      {["alza", "datart", "smarty", "mironet"].map((eshopKey) => {
                         const shopOffer = product.shops.find(s => s.eshop === eshopKey);
                         const meta = ESHOP_META[eshopKey];
                         const isLowest = shopOffer && shopOffer.price === lowestPrice;
@@ -514,7 +535,7 @@ const SearchResults = () => {
                         return (
                           <div
                             key={eshopKey}
-                            className={`relative flex flex-col items-center gap-1.5 rounded-xl p-2.5 transition-all duration-200 ${
+                            className={`relative flex flex-col items-center gap-1 rounded-xl p-2 transition-all duration-200 ${
                               shopOffer
                                 ? isLowest
                                   ? "bg-[hsl(54,100%,50%)]/15 ring-2 ring-[hsl(54,100%,50%)] shadow-[0_0_20px_-4px_hsl(54,100%,50%/0.4)]"
@@ -530,23 +551,23 @@ const SearchResults = () => {
                             )}
 
                             <div className="mt-1 flex flex-col items-center gap-0.5">
-                              <img src={meta.logo} alt={meta.name} className="h-5 w-5 rounded" />
-                              <span className="text-[10px] text-muted-foreground">{meta.name}</span>
+                              <img src={meta.logo} alt={meta.name} className="h-4 w-4 rounded" />
+                              <span className="text-[9px] text-muted-foreground">{meta.name}</span>
                             </div>
 
                             {shopOffer ? (
                               <>
-                                <span className={`text-sm font-bold ${isLowest ? "text-[hsl(54,100%,50%)]" : "text-foreground"}`}>
+                                <span className={`text-xs font-bold ${isLowest ? "text-[hsl(54,100%,50%)]" : "text-foreground"}`}>
                                   {formatPrice(shopOffer.price)}
                                 </span>
                                 {shopOffer.originalPrice && shopOffer.originalPrice > shopOffer.price && (
-                                  <span className="text-[10px] text-muted-foreground line-through">
+                                  <span className="text-[9px] text-muted-foreground line-through">
                                     {formatPrice(shopOffer.originalPrice)}
                                   </span>
                                 )}
                               </>
                             ) : (
-                              <span className="text-[10px] text-muted-foreground">—</span>
+                              <span className="text-[9px] text-muted-foreground">—</span>
                             )}
                           </div>
                         );
@@ -585,6 +606,111 @@ const SearchResults = () => {
                       </div>
                     )}
 
+                    {/* Inline Deep Analysis Panel */}
+                    {expandedAnalysis === i && analysisResults[i] && (
+                      <div className="mx-4 mb-3 rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3 animate-fade-in">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-xs font-semibold flex items-center gap-1.5 text-primary">
+                            <Sparkles className="h-3.5 w-3.5" />
+                            Hloubková analýza cen
+                          </h4>
+                          <button onClick={() => setExpandedAnalysis(null)} className="text-muted-foreground hover:text-foreground">
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+
+                        {/* Price tiers */}
+                        {analysisResults[i].priceTiers?.map((tier, ti) => {
+                          const tierLowest = Math.min(...analysisResults[i].priceTiers.map(t => t.price));
+                          const isTierLowest = tier.price === tierLowest;
+                          return (
+                            <div
+                              key={ti}
+                              className={`rounded-lg border p-3 ${
+                                isTierLowest
+                                  ? "border-green-500/40 bg-green-500/5"
+                                  : "border-border bg-background"
+                              }`}
+                            >
+                              <div className="flex items-center gap-2 mb-1">
+                                {tier.tierType === "promo_code" || tier.tierType === "used_promo" ? (
+                                  <Tag className="h-3.5 w-3.5 text-primary" />
+                                ) : tier.tierType === "cart" ? (
+                                  <ShoppingCart className="h-3.5 w-3.5 text-amber-500" />
+                                ) : tier.tierType === "used" || tier.tierType === "open_box" || tier.tierType === "refurbished" ? (
+                                  <Package className="h-3.5 w-3.5 text-orange-500" />
+                                ) : (
+                                  <Sparkles className="h-3.5 w-3.5 text-muted-foreground" />
+                                )}
+                                <span className="text-[11px] font-medium">{tier.label}</span>
+                                {isTierLowest && (
+                                  <Badge className="bg-green-600 text-white text-[9px] px-1.5 py-0">
+                                    Nejlevnější!
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="flex items-baseline gap-2">
+                                <span className={`text-lg font-bold ${isTierLowest ? "text-green-500" : ""}`}>
+                                  {formatPrice(tier.price)}
+                                </span>
+                                {tier.originalPrice && tier.originalPrice > tier.price && (
+                                  <>
+                                    <span className="text-xs text-muted-foreground line-through">
+                                      {formatPrice(tier.originalPrice)}
+                                    </span>
+                                    <span className="text-xs text-green-500 font-medium">
+                                      -{Math.round(((tier.originalPrice - tier.price) / tier.originalPrice) * 100)}%
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                              {tier.promoCode && (
+                                <button
+                                  onClick={() => copyCode(tier.promoCode!)}
+                                  className="mt-1.5 inline-flex items-center gap-1.5 rounded-md bg-primary/10 border border-primary/20 px-2 py-1 text-xs font-mono font-bold text-primary hover:bg-primary/20 transition-colors"
+                                >
+                                  {tier.promoCode}
+                                  {copiedCode === tier.promoCode ? (
+                                    <Check className="h-3 w-3 text-green-400" />
+                                  ) : (
+                                    <Copy className="h-3 w-3" />
+                                  )}
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
+
+                        {/* Recommendations */}
+                        {analysisResults[i].recommendations?.length > 0 && (
+                          <div className="text-[11px] text-muted-foreground space-y-0.5">
+                            {analysisResults[i].recommendations.map((r, ri) => (
+                              <p key={ri}>💡 {r}</p>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Inline analysis loading */}
+                    {analyzingIdx === i && !analysisResults[i] && (
+                      <div className="mx-4 mb-3 rounded-xl border border-primary/20 bg-primary/5 p-4 animate-fade-in">
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                          <div>
+                            <p className="text-xs font-medium">
+                              {analyzeStep === "scraping" ? "Načítám stránku produktu..." : "AI analyzuje cenové úrovně..."}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground">
+                              {analyzeStep === "scraping"
+                                ? "Stahujeme obsah z e-shopu"
+                                : "Hledáme skryté promo kódy, slevy v košíku a rozbalené zboží"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Action buttons */}
                     <div className="px-5 pb-4 flex gap-2">
                       {product.shops.find(s => s.price === lowestPrice)?.productUrl && (
@@ -599,11 +725,29 @@ const SearchResults = () => {
                               <ExternalLink className="h-3.5 w-3.5" />
                             </a>
                           </Button>
-                          <Button size="sm" variant="outline" className="gap-1" asChild>
-                            <Link to={`/analyzer?url=${encodeURIComponent(product.shops.find(s => s.price === lowestPrice)!.productUrl!)}`}>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-1"
+                            onClick={() => {
+                              const analysis = analysisResults[i];
+                              if (analysis) {
+                                setExpandedAnalysis(expandedAnalysis === i ? null : i);
+                              } else {
+                                runInlineAnalysis(i, product.shops.find(s => s.price === lowestPrice)!.productUrl!);
+                              }
+                            }}
+                            disabled={analyzingIdx !== null && analyzingIdx !== i}
+                          >
+                            {analyzingIdx === i ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
                               <Sparkles className="h-3.5 w-3.5" />
-                              Analyzovat
-                            </Link>
+                            )}
+                            {analysisResults[i]
+                              ? expandedAnalysis === i ? "Skrýt" : "Zobrazit"
+                              : "Analyzovat"
+                            }
                           </Button>
                         </>
                       )}
