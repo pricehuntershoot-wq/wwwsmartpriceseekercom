@@ -249,9 +249,21 @@ const SearchResults = () => {
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
             AI agenti prohledávají <span className="font-semibold text-foreground">Alza.cz</span>,{" "}
-            <span className="font-semibold text-foreground">Datart.cz</span> a{" "}
-            <span className="font-semibold text-foreground">Smarty.cz</span>
+            <span className="font-semibold text-foreground">Datart.cz</span>,{" "}
+            <span className="font-semibold text-foreground">Smarty.cz</span> a{" "}
+            <span className="font-semibold text-foreground">Mironet.cz</span>
           </p>
+          {fromCache && !isLoading && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-2 gap-1.5"
+              onClick={() => searchEshops(query, true)}
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              Aktualizovat ceny
+            </Button>
+          )}
         </div>
 
         {/* Sort bar */}
