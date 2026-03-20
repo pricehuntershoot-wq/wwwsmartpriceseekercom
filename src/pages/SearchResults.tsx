@@ -190,6 +190,16 @@ const SearchResults = () => {
   const [expandedAnalysis, setExpandedAnalysis] = useState<number | null>(null);
   const wittyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const analysisPanelRefs = useRef<Record<number, HTMLDivElement | null>>({});
+
+  // Auto-scroll to analysis panel when expanded
+  useEffect(() => {
+    if (expandedAnalysis !== null && analysisResults[expandedAnalysis]) {
+      setTimeout(() => {
+        analysisPanelRefs.current[expandedAnalysis]?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }, 100);
+    }
+  }, [expandedAnalysis, analysisResults]);
 
   const runInlineAnalysis = async (cardIdx: number, url: string) => {
     if (analyzingIdx !== null) return;
