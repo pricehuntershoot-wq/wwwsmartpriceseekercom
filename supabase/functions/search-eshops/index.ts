@@ -10,6 +10,7 @@ const CACHE_HOURS = 24;
 
 const ESHOP_SEARCH_URLS = {
   datart: (q: string) => `https://www.datart.cz/vyhledavani?q=${encodeURIComponent(q)}`,
+  czc: (q: string) => `https://www.czc.cz/vysledky-vyhledavani?q=${encodeURIComponent(q)}`,
 };
 
 async function searchViaFirecrawl(eshopName: string, domain: string, query: string, apiKey: string, imageHostPatterns: string[] = []): Promise<{ eshop: string; markdown: string | null; imageLinks: string[]; error?: string }> {
