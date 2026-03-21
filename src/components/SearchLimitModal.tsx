@@ -37,7 +37,7 @@ export const SearchLimitModal = ({ searchesUsed, limit, onClose }: SearchLimitMo
           {[
             "Neomezené vyhledávání napříč e-shopy",
             "Hloubková AI analýza skrytých slev",
-            "Upozornění na pokles cen o hodinu dříve",
+            "Porovnání cen ze všech e-shopů najednou",
           ].map((feature) => (
             <div key={feature} className="flex items-center gap-3 text-sm">
               <Crown className="h-4 w-4 text-accent shrink-0" />
