@@ -419,7 +419,7 @@ CRITICAL RULES:
    - Skip accessories, cases, chargers, and unrelated products entirely.
 4. For the "normalizedName" field: create a canonical product name without color/variant info, e.g. "Sony WH-1000XM5 bezdrátová sluchátka černá" → "Sony WH-1000XM5". This helps match same products across shops.
 5. Parse Czech prices: "11 590,-" → 11590, "9 272 Kč" → 9272, "od 5 990 Kč" → 5990.
-6. For URLs: Alza prepend "https://www.alza.cz", Datart "https://www.datart.cz", Smarty "https://www.smarty.cz", Mironet "https://www.mironet.cz" if path starts with "/".
+6. For URLs: Alza prepend "https://www.alza.cz", CZC "https://www.czc.cz", Datart "https://www.datart.cz", Smarty "https://www.smarty.cz", Mironet "https://www.mironet.cz" if path starts with "/".
 7. For imageUrl: must be a direct image URL (ending in .jpg/.jpeg/.png/.webp or containing /img//foto//photo/). If unsure, null. Never assign same image to multiple products.
 8. Skip duplicate listings (same product appearing twice in same e-shop).
 
