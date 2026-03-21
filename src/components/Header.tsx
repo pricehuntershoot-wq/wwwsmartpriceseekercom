@@ -100,6 +100,13 @@ export const Header = () => {
                     <Heart className="h-5 w-5" />
                     {t('favorites')}
                   </button>
+                  <button
+                    onClick={() => handleNavigation('/premium')}
+                    className="flex items-center gap-3 text-lg font-heading font-medium text-primary"
+                  >
+                    <Crown className="h-5 w-5" />
+                    Premium
+                  </button>
                 </nav>
                 <div className="h-px bg-border/50" />
                 {user ? (
