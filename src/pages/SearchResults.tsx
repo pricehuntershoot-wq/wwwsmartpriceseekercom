@@ -647,14 +647,17 @@ const SearchResults = () => {
                         const isLowest = shopOffer && shopOffer.price === lowestPrice;
 
                         return (
-                          <div
+                          <a
                             key={eshopKey}
+                            href={shopOffer?.productUrl || undefined}
+                            target={shopOffer?.productUrl ? "_blank" : undefined}
+                            rel={shopOffer?.productUrl ? "noopener noreferrer" : undefined}
                             className={`relative flex flex-col items-center gap-1 rounded-xl p-2 transition-all duration-200 ${
                               shopOffer
                                 ? isLowest
-                                  ? "bg-[hsl(54,100%,50%)]/15 ring-2 ring-[hsl(54,100%,50%)] shadow-[0_0_20px_-4px_hsl(54,100%,50%/0.4)]"
-                                  : "bg-secondary/50 hover:bg-secondary/80"
-                                : "bg-secondary/20 opacity-40"
+                                  ? "bg-[hsl(54,100%,50%)]/15 ring-2 ring-[hsl(54,100%,50%)] shadow-[0_0_20px_-4px_hsl(54,100%,50%/0.4)] cursor-pointer hover:scale-105"
+                                  : "bg-secondary/50 hover:bg-secondary/80 cursor-pointer hover:scale-105"
+                                : "bg-secondary/20 opacity-40 pointer-events-none"
                             }`}
                           >
                             {isLowest && (
@@ -683,7 +686,7 @@ const SearchResults = () => {
                             ) : (
                               <span className="text-[9px] text-muted-foreground">—</span>
                             )}
-                          </div>
+                          </a>
                         );
                       })}
                     </div>
@@ -830,28 +833,19 @@ const SearchResults = () => {
 
                     {/* Action buttons */}
                     <div className="px-5 pb-4 flex gap-2">
-                      {product.shops.find(s => s.price === lowestPrice)?.productUrl && (
-                        <>
-                          <Button size="sm" className="flex-1 gap-1" asChild>
-                            <a
-                              href={product.shops.find(s => s.price === lowestPrice)!.productUrl!}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              Koupit za {formatPrice(lowestPrice)}
-                              <ExternalLink className="h-3.5 w-3.5" />
-                            </a>
-                          </Button>
+                      {(() => {
+                        const anyUrl = product.shops.find(s => s.productUrl)?.productUrl;
+                        return anyUrl ? (
                           <Button
                             size="sm"
                             variant="outline"
-                            className="gap-1"
+                            className="flex-1 gap-1"
                             onClick={() => {
                               const analysis = analysisResults[i];
                               if (analysis) {
                                 setExpandedAnalysis(expandedAnalysis === i ? null : i);
                               } else {
-                                runInlineAnalysis(i, product.shops.find(s => s.price === lowestPrice)!.productUrl!);
+                                runInlineAnalysis(i, anyUrl);
                               }
                             }}
                             disabled={analyzingIdx !== null && analyzingIdx !== i}
@@ -862,12 +856,12 @@ const SearchResults = () => {
                               <Sparkles className="h-3.5 w-3.5" />
                             )}
                             {analysisResults[i]
-                              ? expandedAnalysis === i ? "Skrýt" : "Zobrazit"
+                              ? expandedAnalysis === i ? "Skrýt analýzu" : "Zobrazit analýzu"
                               : "Analyzovat"
                             }
                           </Button>
-                        </>
-                      )}
+                        ) : null;
+                      })()}
                     </div>
                   </div>
                 );
