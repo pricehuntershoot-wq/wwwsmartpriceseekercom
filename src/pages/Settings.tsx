@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings as SettingsIcon, User, Bell, ArrowLeft, Save, Palette, Sun, Moon, Monitor } from "lucide-react";
+import { Settings as SettingsIcon, User, Bell, ArrowLeft, Save, Palette, Sun, Moon, Monitor, Crown, ExternalLink, Loader2 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -11,13 +11,16 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
 import { useCurrencyPreference } from "@/hooks/useCurrencyPreference";
 import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 const Settings = () => {
-  const { user, loading: authLoading } = useAuth();
+  const { user, session, loading: authLoading } = useAuth();
+  const { isPremium, subscriptionEnd, loading: subLoading } = useSubscription();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { preferredCurrency, setPreferredCurrency } = useCurrencyPreference();
@@ -28,6 +31,7 @@ const Settings = () => {
   const [emailAlerts, setEmailAlerts] = useState(true);
   const [priceDropAlerts, setPriceDropAlerts] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [portalLoading, setPortalLoading] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -79,6 +83,21 @@ const Settings = () => {
       });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    setPortalLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("customer-portal", {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      });
+      if (error) throw error;
+      if (data?.url) window.open(data.url, "_blank");
+    } catch (error) {
+      toast({ title: "Chyba", description: "Nepodařilo se otevřít správu předplatného.", variant: "destructive" });
+    } finally {
+      setPortalLoading(false);
     }
   };
 
@@ -201,6 +220,78 @@ const Settings = () => {
                   {t('languageSyncNote')}
                 </p>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Subscription Settings */}
+          <Card className={isPremium ? "border-primary/50" : ""}>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Crown className="h-5 w-5 text-primary" />
+                <CardTitle>Předplatné</CardTitle>
+                {isPremium && (
+                  <Badge className="ml-auto bg-primary text-primary-foreground">Aktivní</Badge>
+                )}
+              </div>
+              <CardDescription>
+                Správa vašeho Premium předplatného
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {subLoading ? (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Načítání...
+                </div>
+              ) : isPremium ? (
+                <div className="space-y-4">
+                  <div className="rounded-lg bg-primary/5 border border-primary/20 p-4 space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Plán</span>
+                      <span className="text-sm font-semibold text-primary">Premium – 99 Kč/měsíc</span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Další obnovení</span>
+                      <span className="text-sm">
+                        {subscriptionEnd
+                          ? new Date(subscriptionEnd).toLocaleDateString("cs-CZ")
+                          : "—"}
+                      </span>
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={handleManageSubscription}
+                    disabled={portalLoading}
+                  >
+                    {portalLoading ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                    )}
+                    Spravovat předplatné
+                  </Button>
+                  <p className="text-xs text-muted-foreground text-center">
+                    Změna platební metody, zrušení nebo fakturace přes Stripe
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Nemáte aktivní předplatné. S Premium získáte neomezené vyhledávání a AI analýzu cen.
+                  </p>
+                  <Button
+                    variant="default"
+                    className="w-full"
+                    onClick={() => navigate("/premium")}
+                  >
+                    <Crown className="mr-2 h-4 w-4" />
+                    Zobrazit Premium nabídku
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
 

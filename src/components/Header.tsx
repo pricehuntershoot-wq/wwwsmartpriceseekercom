@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Zap, LogOut, Heart, Menu, Crosshair, Crown } from "lucide-react";
+import { Zap, LogOut, Heart, Menu, Crosshair, Crown, Settings } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -61,10 +61,18 @@ export const Header = () => {
           <LanguageSelector />
           <CurrencySelector />
           {user ? (
-            <Button variant="ghost" size="sm" onClick={handleSignOut}>
-              <LogOut className="h-4 w-4 mr-1" />
-              {t('signOut')}
-            </Button>
+             <>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/settings" className="flex items-center gap-1.5">
+                  <Settings className="h-4 w-4" />
+                  {t('settings')}
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                <LogOut className="h-4 w-4 mr-1" />
+                {t('signOut')}
+              </Button>
+            </>
           ) : (
             <>
               <Button variant="ghost" size="sm" asChild>
@@ -110,10 +118,19 @@ export const Header = () => {
                 </nav>
                 <div className="h-px bg-border/50" />
                 {user ? (
+                <div className="flex flex-col gap-3">
+                  <button
+                    onClick={() => handleNavigation('/settings')}
+                    className="flex items-center gap-3 text-lg font-heading font-medium text-foreground"
+                  >
+                    <Settings className="h-5 w-5" />
+                    {t('settings')}
+                  </button>
                   <Button variant="ghost" className="justify-start" onClick={handleSignOut}>
                     <LogOut className="h-5 w-5 mr-3" />
                     {t('signOut')}
                   </Button>
+                </div>
                 ) : (
                   <div className="flex flex-col gap-3">
                     <Button variant="outline" className="w-full" onClick={() => handleNavigation('/auth')}>
