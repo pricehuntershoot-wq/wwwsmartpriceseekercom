@@ -132,7 +132,7 @@ const Auth = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="signin-password">Password</Label>
+                  <Label htmlFor="signin-password">Heslo</Label>
                   <div className="relative">
                     <Input
                       id="signin-password"
