@@ -54,7 +54,7 @@ export const SearchLimitModal = ({ searchesUsed, limit, onClose }: SearchLimitMo
             onClick={() => navigate("/premium")}
           >
             <Zap className="h-4 w-4" />
-            Přejít na Premium — 10 €/měsíc
+            Přejít na Premium — 199 Kč/měsíc
           </Button>
           <Button variant="ghost" size="sm" onClick={onClose}>
             Zavřít
