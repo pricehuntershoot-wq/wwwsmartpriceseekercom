@@ -10,8 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Loader2, ExternalLink, Tag, Copy, Check, AlertCircle, ShoppingBag,
   Sparkles, SlidersHorizontal, X, Bot, Database, Target, RefreshCw,
-  ShoppingCart, Package, ChevronDown, ChevronUp
+  ShoppingCart, Package, ChevronDown, ChevronUp, Heart
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { firecrawlApi } from "@/lib/api/firecrawl";
 import { toast } from "sonner";
