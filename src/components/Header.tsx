@@ -37,9 +37,6 @@ export const Header = () => {
               <span className="text-foreground">Price</span>
               <span className="text-gradient-primary">Hunter</span>
             </span>
-            <span className="rounded-md bg-accent/15 border border-accent/20 px-1.5 py-0.5 text-[9px] font-bold text-accent uppercase tracking-widest">
-              Beta
-            </span>
           </div>
         </Link>
 
