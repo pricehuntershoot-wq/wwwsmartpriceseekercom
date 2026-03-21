@@ -644,7 +644,7 @@ const SearchResults = () => {
                               if (analysis) {
                                 setExpandedAnalysis(expandedAnalysis === i ? null : i);
                               } else {
-                                runInlineAnalysis(i, product.shops[0].productUrl!);
+                                runInlineAnalysis(i, product.shops);
                               }
                             }}
                             disabled={analyzingIdx !== null && analyzingIdx !== i}
