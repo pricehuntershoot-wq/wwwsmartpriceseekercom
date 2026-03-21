@@ -459,9 +459,11 @@ const SearchResults = () => {
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
             AI agenti prohledávají <span className="font-semibold text-foreground">Alza.cz</span>,{" "}
+            <span className="font-semibold text-foreground">CZC.cz</span>,{" "}
             <span className="font-semibold text-foreground">Datart.cz</span>,{" "}
-            <span className="font-semibold text-foreground">Smarty.cz</span> a{" "}
-            <span className="font-semibold text-foreground">Mironet.cz</span>
+            <span className="font-semibold text-foreground">Smarty.cz</span>,{" "}
+            <span className="font-semibold text-foreground">Mironet.cz</span> a{" "}
+            <span className="font-semibold text-foreground">MP.cz</span>
           </p>
           {!isPremium && (
             <p className="mt-1 text-xs text-muted-foreground">

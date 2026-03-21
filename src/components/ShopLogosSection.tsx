@@ -6,6 +6,7 @@ const shops = [
   { name: "Datart.cz", color: "text-red-400" },
   { name: "Smarty.cz", color: "text-blue-400" },
   { name: "Mironet.cz", color: "text-orange-400" },
+  { name: "MP.cz", color: "text-violet-400" },
 ];
 
 export const ShopLogosSection = () => {
