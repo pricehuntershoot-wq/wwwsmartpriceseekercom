@@ -647,14 +647,17 @@ const SearchResults = () => {
                         const isLowest = shopOffer && shopOffer.price === lowestPrice;
 
                         return (
-                          <div
+                          <a
                             key={eshopKey}
+                            href={shopOffer?.productUrl || undefined}
+                            target={shopOffer?.productUrl ? "_blank" : undefined}
+                            rel={shopOffer?.productUrl ? "noopener noreferrer" : undefined}
                             className={`relative flex flex-col items-center gap-1 rounded-xl p-2 transition-all duration-200 ${
                               shopOffer
                                 ? isLowest
-                                  ? "bg-[hsl(54,100%,50%)]/15 ring-2 ring-[hsl(54,100%,50%)] shadow-[0_0_20px_-4px_hsl(54,100%,50%/0.4)]"
-                                  : "bg-secondary/50 hover:bg-secondary/80"
-                                : "bg-secondary/20 opacity-40"
+                                  ? "bg-[hsl(54,100%,50%)]/15 ring-2 ring-[hsl(54,100%,50%)] shadow-[0_0_20px_-4px_hsl(54,100%,50%/0.4)] cursor-pointer hover:scale-105"
+                                  : "bg-secondary/50 hover:bg-secondary/80 cursor-pointer hover:scale-105"
+                                : "bg-secondary/20 opacity-40 pointer-events-none"
                             }`}
                           >
                             {isLowest && (
@@ -683,7 +686,7 @@ const SearchResults = () => {
                             ) : (
                               <span className="text-[9px] text-muted-foreground">—</span>
                             )}
-                          </div>
+                          </a>
                         );
                       })}
                     </div>
