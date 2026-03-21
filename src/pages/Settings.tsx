@@ -86,6 +86,21 @@ const Settings = () => {
     }
   };
 
+  const handleManageSubscription = async () => {
+    setPortalLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("customer-portal", {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      });
+      if (error) throw error;
+      if (data?.url) window.open(data.url, "_blank");
+    } catch (error) {
+      toast({ title: "Chyba", description: "Nepodařilo se otevřít správu předplatného.", variant: "destructive" });
+    } finally {
+      setPortalLoading(false);
+    }
+  };
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
