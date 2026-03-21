@@ -9,8 +9,8 @@ const features = [
   },
   {
     icon: TrendingDown,
-    title: "Sledování cen",
-    description: "Automatické upozornění na pokles ceny u vašich sledovaných produktů.",
+    title: "Porovnání cen",
+    description: "Okamžité srovnání cen stejného produktu napříč všemi podporovanými e-shopy.",
   },
   {
     icon: Shield,
