@@ -119,8 +119,8 @@ const Premium = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="text-center">
-                <span className="text-4xl font-bold">€10</span>
-                <span className="text-muted-foreground">/month</span>
+                <span className="text-4xl font-bold">99 Kč</span>
+                <span className="text-muted-foreground">/měsíc</span>
               </div>
 
               <ul className="space-y-3">
