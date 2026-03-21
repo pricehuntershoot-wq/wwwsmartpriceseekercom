@@ -48,6 +48,12 @@ export const Header = () => {
               {t('favorites')}
             </Link>
           </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/premium" className="flex items-center gap-1.5 text-primary">
+              <Crown className="h-4 w-4" />
+              Premium
+            </Link>
+          </Button>
         </nav>
 
         {/* Desktop Actions */}
