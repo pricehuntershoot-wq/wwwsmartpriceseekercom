@@ -381,6 +381,7 @@ serve(async (req) => {
         scrapeEshop(name, urlFn(trimmedQuery), FIRECRAWL_API_KEY)
       ),
       searchViaFirecrawl('alza', 'alza.cz', trimmedQuery, FIRECRAWL_API_KEY, ['cdn.alza.cz', 'image.alza.cz', 'i.alza.cz']),
+      searchViaFirecrawl('czc', 'czc.cz', trimmedQuery, FIRECRAWL_API_KEY, ['czc.cz']),
       searchViaFirecrawl('smarty', 'smarty.cz', trimmedQuery, FIRECRAWL_API_KEY, ['doc.smarty.cz', 'files.smarty.cz']),
       searchViaFirecrawl('mironet', 'mironet.cz', trimmedQuery, FIRECRAWL_API_KEY, ['img.mironet.cz']),
       searchViaFirecrawl('mp', 'mp.cz', trimmedQuery, FIRECRAWL_API_KEY, ['mp.cz']),
