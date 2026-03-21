@@ -958,6 +958,13 @@ const SearchResults = () => {
         )}
       </main>
       <Footer />
+      {showLimitModal && (
+        <SearchLimitModal
+          searchesUsed={searchesUsed}
+          limit={limit}
+          onClose={() => setShowLimitModal(false)}
+        />
+      )}
     </div>
   );
 };
