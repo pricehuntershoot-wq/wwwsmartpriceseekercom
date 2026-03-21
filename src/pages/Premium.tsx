@@ -145,9 +145,9 @@ const Premium = () => {
               ) : isPremium ? (
                 <div className="space-y-3">
                   <p className="text-center text-sm text-muted-foreground">
-                    Your subscription renews on{" "}
+                    Předplatné se obnoví{" "}
                     {subscriptionEnd
-                      ? new Date(subscriptionEnd).toLocaleDateString()
+                      ? new Date(subscriptionEnd).toLocaleDateString("cs-CZ")
                       : "—"}
                   </p>
                   <Button
