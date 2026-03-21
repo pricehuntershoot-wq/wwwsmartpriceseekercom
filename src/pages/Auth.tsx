@@ -162,7 +162,7 @@ const Auth = () => {
                 )}
                 
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? 'Signing in...' : 'Sign In'}
+                  {isLoading ? 'Přihlašování...' : 'Přihlásit se'}
                 </Button>
 
                 <div className="relative my-4">
