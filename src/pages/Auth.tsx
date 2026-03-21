@@ -104,9 +104,9 @@ const Auth = () => {
             </div>
             <span className="text-xl font-bold text-primary">CenaBuddy</span>
           </div>
-          <CardTitle className="text-2xl">Welcome</CardTitle>
+          <CardTitle className="text-2xl">Vítejte</CardTitle>
           <CardDescription>
-            Sign in to save favorites and set price alerts
+            Přihlaste se pro ukládání oblíbených a porovnávání cen
           </CardDescription>
         </CardHeader>
         
