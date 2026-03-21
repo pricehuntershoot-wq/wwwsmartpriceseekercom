@@ -267,6 +267,7 @@ const SearchResults = () => {
     setAnalyzingIdx(cardIdx);
     setExpandedAnalysis(cardIdx);
     setAnalyzeStep("scraping");
+    setAnalyzeProgress({ current: 0, total: shopsWithUrl.length, shopName: "" });
 
     try {
       const allTiers: PriceTier[] = [];
