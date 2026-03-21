@@ -884,7 +884,7 @@ const SearchResults = () => {
                               if (analysis) {
                                 setExpandedAnalysis(expandedAnalysis === i ? null : i);
                               } else {
-                                runInlineAnalysis(i, anyUrl);
+                                runInlineAnalysis(i, product.shops);
                               }
                             }}
                             disabled={analyzingIdx !== null && analyzingIdx !== i}
