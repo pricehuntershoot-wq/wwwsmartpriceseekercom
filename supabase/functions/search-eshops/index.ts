@@ -9,7 +9,6 @@ const corsHeaders = {
 const CACHE_HOURS = 24;
 
 const ESHOP_SEARCH_URLS = {
-  alza: (q: string) => `https://www.alza.cz/search.htm?exps=${encodeURIComponent(q)}`,
   datart: (q: string) => `https://www.datart.cz/vyhledavani?q=${encodeURIComponent(q)}`,
 };
 
@@ -364,6 +363,7 @@ serve(async (req) => {
       ...Object.entries(ESHOP_SEARCH_URLS).map(([name, urlFn]) =>
         scrapeEshop(name, urlFn(trimmedQuery), FIRECRAWL_API_KEY)
       ),
+      searchViaFirecrawl('alza', 'alza.cz', trimmedQuery, FIRECRAWL_API_KEY, ['cdn.alza.cz', 'image.alza.cz', 'i.alza.cz']),
       searchViaFirecrawl('smarty', 'smarty.cz', trimmedQuery, FIRECRAWL_API_KEY, ['doc.smarty.cz', 'files.smarty.cz']),
       searchViaFirecrawl('mironet', 'mironet.cz', trimmedQuery, FIRECRAWL_API_KEY, ['img.mironet.cz']),
     ]);
