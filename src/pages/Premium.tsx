@@ -93,10 +93,10 @@ const Premium = () => {
             Premium
           </Badge>
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-            Get Early Deal Alerts
+            Premium předplatné
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
-            Be the first to know about price drops and hidden discounts. Premium members get alerts 1 hour before everyone else.
+            Neomezené vyhledávání, hloubková AI analýza cen a prioritní přístup k novým funkcím.
           </p>
         </div>
 
