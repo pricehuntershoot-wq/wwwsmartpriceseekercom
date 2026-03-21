@@ -266,58 +266,56 @@ const SearchResults = () => {
 
     setAnalyzingIdx(cardIdx);
     setExpandedAnalysis(cardIdx);
-    setAnalyzeStep("scraping");
-    setAnalyzeProgress({ current: 0, total: shopsWithUrl.length, shopName: "" });
+    setAnalyzeStep("analyzing");
+    const completed = { count: 0 };
+    setAnalyzeProgress({ current: 0, total: shopsWithUrl.length, shopName: shopsWithUrl.map(s => ESHOP_META[s.eshop]?.name || s.eshop).join(", ") });
 
     try {
-      const allTiers: PriceTier[] = [];
-      const allPromos: InlineAnalysis["promoCodes"] = [];
-      const allRecs: string[] = [];
+      const results = await Promise.allSettled(
+        shopsWithUrl.map(async (shop) => {
+          const url = shop.productUrl!;
+          const shopMeta = ESHOP_META[shop.eshop];
+          const shopName = shopMeta?.name || shop.eshop;
 
-      for (let si = 0; si < shopsWithUrl.length; si++) {
-        const shop = shopsWithUrl[si];
-        const url = shop.productUrl!;
-        const shopMeta = ESHOP_META[shop.eshop];
-        const shopName = shopMeta?.name || shop.eshop;
-
-        try {
-          setAnalyzeProgress({ current: si + 1, total: shopsWithUrl.length, shopName });
-          setAnalyzeStep("scraping");
           const scrapeResult = await firecrawlApi.scrape(url, {
             formats: ["markdown", "html"],
             waitFor: 3000,
             location: { country: "CZ", languages: ["cs"] },
           });
 
-          if (!scrapeResult.success) continue;
+          completed.count++;
+          setAnalyzeProgress(prev => ({ ...prev, current: completed.count, shopName }));
+
+          if (!scrapeResult.success) return null;
 
           const markdown = scrapeResult.data?.markdown || scrapeResult.markdown;
           const html = scrapeResult.data?.html || scrapeResult.html;
-          if (!markdown && !html) continue;
-
-          setAnalyzeStep("analyzing");
+          if (!markdown && !html) return null;
 
           const { data, error } = await supabase.functions.invoke("analyze-product-page", {
             body: { url, markdownContent: markdown, htmlContent: html },
           });
 
-          if (error || !data?.success) continue;
+          if (error || !data?.success) return null;
 
           const analysis = data.analysis;
-          // Tag each tier with the shop URL and name
-          if (analysis.priceTiers) {
-            for (const tier of analysis.priceTiers) {
-              allTiers.push({
-                ...tier,
-                shopUrl: url,
-                shopName: shopMeta?.name || shop.eshop,
-              });
-            }
-          }
-          if (analysis.promoCodes) allPromos.push(...analysis.promoCodes);
-          if (analysis.recommendations) allRecs.push(...analysis.recommendations);
-        } catch {
-          // Skip failed shop
+          return {
+            tiers: (analysis.priceTiers || []).map((tier: any) => ({ ...tier, shopUrl: url, shopName })),
+            promos: analysis.promoCodes || [],
+            recs: analysis.recommendations || [],
+          };
+        })
+      );
+
+      const allTiers: PriceTier[] = [];
+      const allPromos: InlineAnalysis["promoCodes"] = [];
+      const allRecs: string[] = [];
+
+      for (const r of results) {
+        if (r.status === "fulfilled" && r.value) {
+          allTiers.push(...r.value.tiers);
+          allPromos.push(...r.value.promos);
+          allRecs.push(...r.value.recs);
         }
       }
 
