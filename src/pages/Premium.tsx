@@ -77,10 +77,10 @@ const Premium = () => {
   };
 
   const features = [
-    { icon: Clock, text: "Early deal alerts - 1 hour before others", highlight: true },
-    { icon: Zap, text: "Instant 20%+ price drop notifications", highlight: true },
-    { icon: Bell, text: "Priority email notifications" },
-    { icon: Crown, text: "Premium member badge" },
+    { icon: Zap, text: "Neomezené vyhledávání across e-shops", highlight: true },
+    { icon: Clock, text: "Hloubková AI analýza cen a slev", highlight: true },
+    { icon: Bell, text: "Prioritní upozornění na slevy" },
+    { icon: Crown, text: "Premium členský přístup" },
   ];
 
   return (
