@@ -258,36 +258,73 @@ const SearchResults = () => {
     }
   };
 
-  const runInlineAnalysis = async (cardIdx: number, url: string) => {
+  const runInlineAnalysis = async (cardIdx: number, shops: GroupedProduct["shops"]) => {
     if (analyzingIdx !== null) return;
+    const shopsWithUrl = shops.filter(s => s.productUrl);
+    if (shopsWithUrl.length === 0) return;
+
     setAnalyzingIdx(cardIdx);
     setExpandedAnalysis(cardIdx);
     setAnalyzeStep("scraping");
 
     try {
-      const scrapeResult = await firecrawlApi.scrape(url, {
-        formats: ["markdown", "html"],
-        waitFor: 3000,
-        location: { country: "CZ", languages: ["cs"] },
-      });
+      const allTiers: PriceTier[] = [];
+      const allPromos: InlineAnalysis["promoCodes"] = [];
+      const allRecs: string[] = [];
 
-      if (!scrapeResult.success) throw new Error(scrapeResult.error || "Nepodařilo se načíst stránku");
+      for (const shop of shopsWithUrl) {
+        const url = shop.productUrl!;
+        const shopMeta = ESHOP_META[shop.eshop];
 
-      const markdown = scrapeResult.data?.markdown || scrapeResult.markdown;
-      const html = scrapeResult.data?.html || scrapeResult.html;
-      if (!markdown && !html) throw new Error("Stránka nevrátila žádný obsah");
+        try {
+          setAnalyzeStep("scraping");
+          const scrapeResult = await firecrawlApi.scrape(url, {
+            formats: ["markdown", "html"],
+            waitFor: 3000,
+            location: { country: "CZ", languages: ["cs"] },
+          });
 
-      setAnalyzeStep("analyzing");
+          if (!scrapeResult.success) continue;
 
-      const { data, error } = await supabase.functions.invoke("analyze-product-page", {
-        body: { url, markdownContent: markdown, htmlContent: html },
-      });
+          const markdown = scrapeResult.data?.markdown || scrapeResult.markdown;
+          const html = scrapeResult.data?.html || scrapeResult.html;
+          if (!markdown && !html) continue;
 
-      if (error) throw error;
-      if (!data?.success) throw new Error(data?.error || "Analýza selhala");
+          setAnalyzeStep("analyzing");
 
-      setAnalysisResults(prev => ({ ...prev, [cardIdx]: data.analysis }));
-      toast.success(`Nalezeno ${data.analysis.priceTiers?.length || 0} cenových úrovní!`);
+          const { data, error } = await supabase.functions.invoke("analyze-product-page", {
+            body: { url, markdownContent: markdown, htmlContent: html },
+          });
+
+          if (error || !data?.success) continue;
+
+          const analysis = data.analysis;
+          // Tag each tier with the shop URL and name
+          if (analysis.priceTiers) {
+            for (const tier of analysis.priceTiers) {
+              allTiers.push({
+                ...tier,
+                shopUrl: url,
+                shopName: shopMeta?.name || shop.eshop,
+              });
+            }
+          }
+          if (analysis.promoCodes) allPromos.push(...analysis.promoCodes);
+          if (analysis.recommendations) allRecs.push(...analysis.recommendations);
+        } catch {
+          // Skip failed shop
+        }
+      }
+
+      const combinedAnalysis: InlineAnalysis = {
+        productName: null,
+        priceTiers: allTiers.sort((a, b) => a.price - b.price),
+        promoCodes: allPromos,
+        recommendations: [...new Set(allRecs)],
+      };
+
+      setAnalysisResults(prev => ({ ...prev, [cardIdx]: combinedAnalysis }));
+      toast.success(`Nalezeno ${allTiers.length} cenových úrovní z ${shopsWithUrl.length} obchodů!`);
     } catch (err) {
       console.error("Inline analysis error:", err);
       toast.error(err instanceof Error ? err.message : "Analýza selhala");
