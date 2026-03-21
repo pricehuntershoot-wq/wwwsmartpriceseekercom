@@ -28,12 +28,19 @@ export const Header = () => {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/30">
       <div className="container flex h-16 items-center justify-between">
-        <Link to="/" className="flex items-center gap-2.5">
-          <img src={pricehunterLogo} alt="PriceHunter Logo" className="h-14 w-14 -my-2" />
-          <span className="text-xl font-bold text-yellow-400 font-display tracking-tight italic" style={{ WebkitTextStroke: '0.5px white' }}>Price Hunter</span>
-          <span className="-ml-1 rounded bg-accent/90 px-1.5 py-0.5 text-[10px] font-bold text-accent-foreground uppercase tracking-wider rotate-[-6deg]">
-            Beta
-          </span>
+        <Link to="/" className="flex items-center gap-3 group">
+          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 border border-primary/20 group-hover:bg-primary/20 transition-colors">
+            <Crosshair className="h-5 w-5 text-primary" strokeWidth={2.5} />
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-lg font-heading font-bold tracking-tight">
+              <span className="text-foreground">Price</span>
+              <span className="text-gradient-primary">Hunter</span>
+            </span>
+            <span className="rounded-md bg-accent/15 border border-accent/20 px-1.5 py-0.5 text-[9px] font-bold text-accent uppercase tracking-widest">
+              Beta
+            </span>
+          </div>
         </Link>
 
         {/* Desktop Navigation */}
