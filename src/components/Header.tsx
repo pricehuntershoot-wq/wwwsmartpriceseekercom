@@ -118,10 +118,19 @@ export const Header = () => {
                 </nav>
                 <div className="h-px bg-border/50" />
                 {user ? (
+                <div className="flex flex-col gap-3">
+                  <button
+                    onClick={() => handleNavigation('/settings')}
+                    className="flex items-center gap-3 text-lg font-heading font-medium text-foreground"
+                  >
+                    <Settings className="h-5 w-5" />
+                    {t('settings')}
+                  </button>
                   <Button variant="ghost" className="justify-start" onClick={handleSignOut}>
                     <LogOut className="h-5 w-5 mr-3" />
                     {t('signOut')}
                   </Button>
+                </div>
                 ) : (
                   <div className="flex flex-col gap-3">
                     <Button variant="outline" className="w-full" onClick={() => handleNavigation('/auth')}>
