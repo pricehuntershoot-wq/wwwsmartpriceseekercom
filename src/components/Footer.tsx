@@ -6,8 +6,9 @@ export const Footer = () => {
   const { t } = useLanguage();
 
   return (
-    <footer className="border-t border-border bg-card/50 py-16">
-      <div className="container">
+    <footer className="relative border-t border-border/50 py-16">
+      <div className="absolute inset-0 bg-gradient-surface opacity-50" />
+      <div className="container relative z-10">
         <div className="grid gap-12 md:grid-cols-4">
           {/* Brand */}
           <div className="md:col-span-2">
@@ -18,46 +19,44 @@ export const Footer = () => {
             <p className="mb-6 max-w-sm text-sm text-muted-foreground leading-relaxed">
               {t('footerDesc')}
             </p>
-            <div className="flex items-center gap-3">
-              <a href="#" className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
-                <Twitter className="h-4 w-4" />
-              </a>
-              <a href="#" className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
-                <Github className="h-4 w-4" />
-              </a>
-              <a href="#" className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
-                <Linkedin className="h-4 w-4" />
-              </a>
+            <div className="flex items-center gap-2">
+              {[Twitter, Github, Linkedin].map((Icon, i) => (
+                <a key={i} href="#" className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/50 text-muted-foreground transition-all hover:bg-primary/10 hover:border-primary/20 hover:text-primary">
+                  <Icon className="h-4 w-4" />
+                </a>
+              ))}
             </div>
           </div>
 
           {/* Links */}
           <div>
-            <h4 className="mb-4 font-heading text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t('footerProduct')}</h4>
-            <ul className="space-y-2.5">
-              <li><a href="#" className="text-sm text-foreground/70 transition-colors hover:text-foreground">{t('features')}</a></li>
-              <li><a href="#" className="text-sm text-foreground/70 transition-colors hover:text-foreground">{t('footerPricing')}</a></li>
-              <li><a href="#" className="text-sm text-foreground/70 transition-colors hover:text-foreground">{t('footerApi')}</a></li>
-              <li><a href="#" className="text-sm text-foreground/70 transition-colors hover:text-foreground">{t('footerExtension')}</a></li>
+            <h4 className="mb-4 font-heading text-xs font-semibold uppercase tracking-widest text-muted-foreground/70">{t('footerProduct')}</h4>
+            <ul className="space-y-3">
+              {[t('features'), t('footerPricing'), t('footerApi'), t('footerExtension')].map((label, i) => (
+                <li key={i}>
+                  <a href="#" className="text-sm text-foreground/60 transition-colors hover:text-foreground">{label}</a>
+                </li>
+              ))}
             </ul>
           </div>
 
           <div>
-            <h4 className="mb-4 font-heading text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t('footerCompany')}</h4>
-            <ul className="space-y-2.5">
-              <li><a href="#" className="text-sm text-foreground/70 transition-colors hover:text-foreground">{t('footerAbout')}</a></li>
-              <li><a href="#" className="text-sm text-foreground/70 transition-colors hover:text-foreground">{t('footerBlog')}</a></li>
-              <li><a href="#" className="text-sm text-foreground/70 transition-colors hover:text-foreground">{t('footerCareers')}</a></li>
-              <li><a href="#" className="text-sm text-foreground/70 transition-colors hover:text-foreground">{t('footerContact')}</a></li>
+            <h4 className="mb-4 font-heading text-xs font-semibold uppercase tracking-widest text-muted-foreground/70">{t('footerCompany')}</h4>
+            <ul className="space-y-3">
+              {[t('footerAbout'), t('footerBlog'), t('footerCareers'), t('footerContact')].map((label, i) => (
+                <li key={i}>
+                  <a href="#" className="text-sm text-foreground/60 transition-colors hover:text-foreground">{label}</a>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 md:flex-row">
-          <p className="text-xs text-muted-foreground">
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border/50 pt-8 md:flex-row">
+          <p className="text-xs text-muted-foreground/60">
             {t('footerRights')}
           </p>
-          <div className="flex items-center gap-6 text-xs text-muted-foreground">
+          <div className="flex items-center gap-6 text-xs text-muted-foreground/60">
             <a href="#" className="transition-colors hover:text-foreground">{t('footerPrivacy')}</a>
             <a href="#" className="transition-colors hover:text-foreground">{t('footerTerms')}</a>
           </div>
