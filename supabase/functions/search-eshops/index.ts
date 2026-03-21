@@ -109,14 +109,29 @@ async function getCachedResults(supabase: any, query: string) {
 
   if (error || !products || products.length === 0) return null;
 
-  // Filter by query match — only match on product NAME, not category
+  // Build variant exclusion list based on query
   const q = query.toLowerCase();
+  const variantSuffixes = ['ultra', 'plus', '+', 'fe', 'lite', 'neo'];
+  const queryHasVariant = variantSuffixes.filter(v => q.includes(v));
+  const excludeVariants = variantSuffixes.filter(v => !q.includes(v));
+
+  // Filter by query match — only match on product NAME, not category
   const queryTokens = q.split(/\s+/).filter((t: string) => t.length > 2);
   const matched = products.filter((p: any) => {
     const name = p.products?.name?.toLowerCase() || '';
-    // Require name to contain the full query OR all tokens (min 3 chars each)
-    return name.includes(q) || 
+    // Must contain query string or all tokens
+    const basicMatch = name.includes(q) || 
       (queryTokens.length >= 2 && queryTokens.every((t: string) => name.includes(t)));
+    if (!basicMatch) return false;
+    
+    // Exclude variant models not in query (e.g. if searching "s24", exclude "s24 ultra")
+    for (const variant of excludeVariants) {
+      if (name.includes(variant) || name.includes(variant + ' ')) return false;
+    }
+    // Special: exclude "+" suffix like "S24+" when not in query
+    if (!q.includes('+') && /s\d{2}\+/i.test(name)) return false;
+    
+    return true;
   });
 
   // Require minimum 3 results from at least 2 different shops to serve cache

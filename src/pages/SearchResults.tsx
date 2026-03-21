@@ -374,7 +374,21 @@ const SearchResults = () => {
   };
 
   const grouped = useMemo(() => {
-    const g = groupProducts(products);
+    // Client-side variant filtering
+    const q = searchQuery.toLowerCase();
+    const variantSuffixes = ['ultra', 'plus', 'fe', 'lite', 'neo'];
+    const excludeVariants = variantSuffixes.filter(v => !q.includes(v));
+    
+    const filtered = products.filter(p => {
+      const name = p.name.toLowerCase();
+      for (const variant of excludeVariants) {
+        if (name.includes(variant)) return false;
+      }
+      if (!q.includes('+') && /s\d{2}\+/i.test(name)) return false;
+      return true;
+    });
+    
+    const g = groupProducts(filtered);
     if (sortOrder === "price-desc") return [...g].reverse();
     return g;
   }, [products, sortOrder]);
