@@ -19,7 +19,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 
 const Settings = () => {
-  const { user, loading: authLoading } = useAuth();
+  const { user, session, loading: authLoading } = useAuth();
+  const { isPremium, subscriptionEnd, loading: subLoading } = useSubscription();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { preferredCurrency, setPreferredCurrency } = useCurrencyPreference();
@@ -30,6 +31,7 @@ const Settings = () => {
   const [emailAlerts, setEmailAlerts] = useState(true);
   const [priceDropAlerts, setPriceDropAlerts] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [portalLoading, setPortalLoading] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
