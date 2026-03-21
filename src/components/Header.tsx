@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Zap, LogOut, Heart, Menu } from "lucide-react";
+import { Zap, LogOut, Heart, Menu, Crosshair } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,7 +7,6 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import { LanguageSelector } from "./LanguageSelector";
 import { CurrencySelector } from "./CurrencySelector";
-import pricehunterLogo from "@/assets/pricehunter-logo.png";
 
 export const Header = () => {
   const { user, signOut } = useAuth();
