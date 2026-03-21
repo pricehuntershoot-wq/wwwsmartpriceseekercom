@@ -316,7 +316,7 @@ const SearchResults = () => {
       });
   }, [user]);
 
-
+  const searchEshops = async (q: string, forceRefresh = false) => {
     setIsLoading(true);
     setProducts([]);
     setErrors([]);
