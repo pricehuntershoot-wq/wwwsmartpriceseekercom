@@ -11,8 +11,8 @@ import { Eye, EyeOff, Zap, AlertCircle } from 'lucide-react';
 import { z } from 'zod';
 
 const authSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  email: z.string().email('Zadejte platnou e-mailovou adresu'),
+  password: z.string().min(6, 'Heslo musí mít alespoň 6 znaků'),
 });
 
 const Auth = () => {
@@ -54,7 +54,7 @@ const Auth = () => {
     
     if (error) {
       if (error.message.includes('Invalid login credentials')) {
-        setError('Invalid email or password. Please try again.');
+        setError('Nesprávný e-mail nebo heslo. Zkuste to znovu.');
       } else {
         setError(error.message);
       }
@@ -73,12 +73,12 @@ const Auth = () => {
     
     if (error) {
       if (error.message.includes('User already registered')) {
-        setError('An account with this email already exists. Please sign in instead.');
+        setError('Účet s tímto e-mailem již existuje. Přihlaste se.');
       } else {
         setError(error.message);
       }
     } else {
-      setSuccess('Account created successfully! You can now sign in.');
+      setSuccess('Účet byl úspěšně vytvořen! Nyní se můžete přihlásit.');
     }
   };
 
@@ -104,17 +104,17 @@ const Auth = () => {
             </div>
             <span className="text-xl font-bold text-primary">CenaBuddy</span>
           </div>
-          <CardTitle className="text-2xl">Welcome</CardTitle>
+          <CardTitle className="text-2xl">Vítejte</CardTitle>
           <CardDescription>
-            Sign in to save favorites and set price alerts
+            Přihlaste se pro ukládání oblíbených a porovnávání cen
           </CardDescription>
         </CardHeader>
         
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              <TabsTrigger value="signin">Přihlášení</TabsTrigger>
+              <TabsTrigger value="signup">Registrace</TabsTrigger>
             </TabsList>
             
             <TabsContent value="signin">
@@ -132,7 +132,7 @@ const Auth = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="signin-password">Password</Label>
+                  <Label htmlFor="signin-password">Heslo</Label>
                   <div className="relative">
                     <Input
                       id="signin-password"
@@ -162,7 +162,7 @@ const Auth = () => {
                 )}
                 
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? 'Signing in...' : 'Sign In'}
+                  {isLoading ? 'Přihlašování...' : 'Přihlásit se'}
                 </Button>
 
                 <div className="relative my-4">
@@ -192,7 +192,7 @@ const Auth = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
+                  <Label htmlFor="signup-password">Heslo</Label>
                   <div className="relative">
                     <Input
                       id="signup-password"
@@ -228,7 +228,7 @@ const Auth = () => {
                 )}
                 
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? 'Creating account...' : 'Create Account'}
+                  {isLoading ? 'Vytváření účtu...' : 'Vytvořit účet'}
                 </Button>
 
                 <div className="relative my-4">
