@@ -53,6 +53,8 @@ interface PriceTier {
   promoDescription?: string | null;
   label: string;
   confidence: string;
+  shopUrl?: string | null;
+  shopName?: string | null;
 }
 
 interface InlineAnalysis {
