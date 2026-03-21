@@ -167,7 +167,8 @@ async function saveResultsToDB(supabase: any, products: any[]) {
       const shopName = product.eshop === 'alza' ? 'Alza.cz' : 
                         product.eshop === 'datart' ? 'Datart.cz' :
                         product.eshop === 'smarty' ? 'Smarty.cz' :
-                        product.eshop === 'mironet' ? 'Mironet.cz' : product.eshop;
+                        product.eshop === 'mironet' ? 'Mironet.cz' :
+                        product.eshop === 'czc' ? 'CZC.cz' : product.eshop;
       
       let shopId = shopCache[shopName];
       if (!shopId) {
