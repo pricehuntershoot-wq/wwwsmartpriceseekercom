@@ -223,6 +223,78 @@ const Settings = () => {
             </CardContent>
           </Card>
 
+          {/* Subscription Settings */}
+          <Card className={isPremium ? "border-primary/50" : ""}>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Crown className="h-5 w-5 text-primary" />
+                <CardTitle>Předplatné</CardTitle>
+                {isPremium && (
+                  <Badge className="ml-auto bg-primary text-primary-foreground">Aktivní</Badge>
+                )}
+              </div>
+              <CardDescription>
+                Správa vašeho Premium předplatného
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {subLoading ? (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Načítání...
+                </div>
+              ) : isPremium ? (
+                <div className="space-y-4">
+                  <div className="rounded-lg bg-primary/5 border border-primary/20 p-4 space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Plán</span>
+                      <span className="text-sm font-semibold text-primary">Premium – 99 Kč/měsíc</span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Další obnovení</span>
+                      <span className="text-sm">
+                        {subscriptionEnd
+                          ? new Date(subscriptionEnd).toLocaleDateString("cs-CZ")
+                          : "—"}
+                      </span>
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={handleManageSubscription}
+                    disabled={portalLoading}
+                  >
+                    {portalLoading ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                    )}
+                    Spravovat předplatné
+                  </Button>
+                  <p className="text-xs text-muted-foreground text-center">
+                    Změna platební metody, zrušení nebo fakturace přes Stripe
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Nemáte aktivní předplatné. S Premium získáte neomezené vyhledávání a AI analýzu cen.
+                  </p>
+                  <Button
+                    variant="default"
+                    className="w-full"
+                    onClick={() => navigate("/premium")}
+                  >
+                    <Crown className="mr-2 h-4 w-4" />
+                    Zobrazit Premium nabídku
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Appearance Settings */}
           <Card>
             <CardHeader>
