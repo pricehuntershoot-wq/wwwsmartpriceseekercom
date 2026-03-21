@@ -91,7 +91,7 @@ export const HeroSection = () => {
   const stats = [
     { value: "4", label: "E-shopy", icon: Store },
     { value: "AI", label: "Analýza cen", icon: Sparkles },
-    { value: "100%", label: "Zdarma", icon: Tag },
+    { value: "3×", label: "Zdarma denně", icon: Tag },
   ];
 
   return (

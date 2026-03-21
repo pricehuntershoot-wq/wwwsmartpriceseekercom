@@ -13,9 +13,11 @@ import {
   ShoppingCart, Package, ChevronDown, ChevronUp, Heart
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useSearchLimit } from "@/hooks/useSearchLimit";
 import { supabase } from "@/integrations/supabase/client";
 import { firecrawlApi } from "@/lib/api/firecrawl";
 import { toast } from "sonner";
+import { SearchLimitModal } from "@/components/SearchLimitModal";
 
 interface EshopProduct {
   name: string;
@@ -181,6 +183,8 @@ const SearchResults = () => {
   const query = searchParams.get("q") || "";
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { canSearch, remaining, searchesUsed, isPremium, incrementSearch, limit } = useSearchLimit();
+  const [showLimitModal, setShowLimitModal] = useState(false);
   const [products, setProducts] = useState<EshopProduct[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
@@ -339,6 +343,11 @@ const SearchResults = () => {
 
   useEffect(() => {
     if (query.trim().length >= 2) {
+      if (!canSearch) {
+        setShowLimitModal(true);
+        return;
+      }
+      incrementSearch();
       searchEshops(query.trim());
     }
   }, [query]);
@@ -452,6 +461,11 @@ const SearchResults = () => {
             <span className="font-semibold text-foreground">Smarty.cz</span> a{" "}
             <span className="font-semibold text-foreground">Mironet.cz</span>
           </p>
+          {!isPremium && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              Zbývá {remaining} z {limit} bezplatných vyhledávání dnes
+            </p>
+          )}
           {fromCache && !isLoading && (
             <Button
               variant="outline"
@@ -949,6 +963,13 @@ const SearchResults = () => {
         )}
       </main>
       <Footer />
+      {showLimitModal && (
+        <SearchLimitModal
+          searchesUsed={searchesUsed}
+          limit={limit}
+          onClose={() => setShowLimitModal(false)}
+        />
+      )}
     </div>
   );
 };
