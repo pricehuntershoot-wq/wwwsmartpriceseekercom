@@ -461,6 +461,11 @@ const SearchResults = () => {
             <span className="font-semibold text-foreground">Smarty.cz</span> a{" "}
             <span className="font-semibold text-foreground">Mironet.cz</span>
           </p>
+          {!isPremium && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              Zbývá {remaining} z {limit} bezplatných vyhledávání dnes
+            </p>
+          )}
           {fromCache && !isLoading && (
             <Button
               variant="outline"
