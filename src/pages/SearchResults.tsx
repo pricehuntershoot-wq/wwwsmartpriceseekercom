@@ -177,6 +177,8 @@ function groupProducts(products: EshopProduct[]): GroupedProduct[] {
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q") || "";
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [products, setProducts] = useState<EshopProduct[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
@@ -189,6 +191,8 @@ const SearchResults = () => {
   const [analyzeStep, setAnalyzeStep] = useState<"idle" | "scraping" | "analyzing">("idle");
   const [analysisResults, setAnalysisResults] = useState<Record<number, InlineAnalysis>>({});
   const [expandedAnalysis, setExpandedAnalysis] = useState<number | null>(null);
+  const [favoritedNames, setFavoritedNames] = useState<Set<string>>(new Set());
+  const [savingFavorite, setSavingFavorite] = useState<string | null>(null);
   const wittyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const analysisPanelRefs = useRef<Record<number, HTMLDivElement | null>>({});
