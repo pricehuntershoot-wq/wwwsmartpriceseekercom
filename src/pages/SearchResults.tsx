@@ -191,6 +191,7 @@ const SearchResults = () => {
   const [fromCache, setFromCache] = useState(false);
   const [analyzingIdx, setAnalyzingIdx] = useState<number | null>(null);
   const [analyzeStep, setAnalyzeStep] = useState<"idle" | "scraping" | "analyzing">("idle");
+  const [analyzeProgress, setAnalyzeProgress] = useState<{ current: number; total: number; shopName: string }>({ current: 0, total: 0, shopName: "" });
   const [analysisResults, setAnalysisResults] = useState<Record<number, InlineAnalysis>>({});
   const [expandedAnalysis, setExpandedAnalysis] = useState<number | null>(null);
   const [favoritedNames, setFavoritedNames] = useState<Set<string>>(new Set());
