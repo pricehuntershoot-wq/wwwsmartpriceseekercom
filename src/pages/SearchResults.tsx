@@ -206,7 +206,57 @@ const SearchResults = () => {
     }
   }, [expandedAnalysis, analysisResults]);
 
-  const runInlineAnalysis = async (cardIdx: number, url: string) => {
+  const toggleFavorite = async (productName: string, imageUrl: string | null, category: string | null) => {
+    if (!user) {
+      toast.error("Pro uložení do oblíbených se přihlaste");
+      navigate("/auth");
+      return;
+    }
+    if (savingFavorite) return;
+    setSavingFavorite(productName);
+
+    try {
+      // Find or create product in DB
+      const { data: existing } = await supabase
+        .from("products")
+        .select("id")
+        .eq("name", productName)
+        .maybeSingle();
+
+      let productId: string;
+      if (existing) {
+        productId = existing.id;
+      } else {
+        const { data: created, error } = await supabase
+          .from("products")
+          .insert({ name: productName, image_url: imageUrl, category })
+          .select("id")
+          .single();
+        if (error || !created) throw new Error("Nepodařilo se uložit produkt");
+        productId = created.id;
+      }
+
+      if (favoritedNames.has(productName)) {
+        // Remove
+        await supabase.from("favorites").delete().eq("user_id", user.id).eq("product_id", productId);
+        setFavoritedNames(prev => { const n = new Set(prev); n.delete(productName); return n; });
+        toast.success("Odebráno z oblíbených");
+      } else {
+        // Add
+        const { error } = await supabase.from("favorites").insert({ user_id: user.id, product_id: productId });
+        if (error) throw error;
+        setFavoritedNames(prev => new Set(prev).add(productName));
+        toast.success("Přidáno do oblíbených ❤️");
+      }
+    } catch (err) {
+      console.error("Favorite error:", err);
+      toast.error("Nepodařilo se uložit");
+    } finally {
+      setSavingFavorite(null);
+    }
+  };
+
+
     if (analyzingIdx !== null) return;
     setAnalyzingIdx(cardIdx);
     setExpandedAnalysis(cardIdx);
