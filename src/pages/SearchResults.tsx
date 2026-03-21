@@ -783,12 +783,17 @@ const SearchResults = () => {
                           const tierLowest = Math.min(...analysisResults[i].priceTiers.map(t => t.price));
                           const isTierLowest = tier.price === tierLowest;
                           return (
-                            <div
+                            <a
                               key={ti}
-                              className={`rounded-lg border p-3 ${
+                              href={tier.shopUrl || undefined}
+                              target={tier.shopUrl ? "_blank" : undefined}
+                              rel={tier.shopUrl ? "noopener noreferrer" : undefined}
+                              className={`block rounded-lg border p-3 transition-all hover:scale-[1.02] ${
+                                tier.shopUrl ? "cursor-pointer" : ""
+                              } ${
                                 isTierLowest
                                   ? "border-green-500/40 bg-green-500/5"
-                                  : "border-border bg-background"
+                                  : "border-border bg-background hover:border-primary/30"
                               }`}
                             >
                               <div className="flex items-center gap-2 mb-1">
@@ -802,6 +807,11 @@ const SearchResults = () => {
                                   <Sparkles className="h-3.5 w-3.5 text-muted-foreground" />
                                 )}
                                 <span className="text-[11px] font-medium">{tier.label}</span>
+                                {tier.shopName && (
+                                  <Badge variant="outline" className="text-[9px] px-1.5 py-0">
+                                    {tier.shopName}
+                                  </Badge>
+                                )}
                                 {isTierLowest && (
                                   <Badge className="bg-green-600 text-white text-[9px] px-1.5 py-0">
                                     Nejlevnější!
@@ -822,10 +832,13 @@ const SearchResults = () => {
                                     </span>
                                   </>
                                 )}
+                                {tier.shopUrl && (
+                                  <ExternalLink className="h-3 w-3 text-muted-foreground ml-auto" />
+                                )}
                               </div>
                               {tier.promoCode && (
                                 <button
-                                  onClick={() => copyCode(tier.promoCode!)}
+                                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); copyCode(tier.promoCode!); }}
                                   className="mt-1.5 inline-flex items-center gap-1.5 rounded-md bg-primary/10 border border-primary/20 px-2 py-1 text-xs font-mono font-bold text-primary hover:bg-primary/20 transition-colors"
                                 >
                                   {tier.promoCode}
@@ -836,7 +849,7 @@ const SearchResults = () => {
                                   )}
                                 </button>
                               )}
-                            </div>
+                            </a>
                           );
                         })}
 
