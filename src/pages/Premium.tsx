@@ -114,8 +114,8 @@ const Premium = () => {
               <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-primary">
                 <Crown className="h-6 w-6 text-primary-foreground" />
               </div>
-              <CardTitle className="text-2xl">Premium Plan</CardTitle>
-              <CardDescription>Everything you need to catch the best deals</CardDescription>
+              <CardTitle className="text-2xl">Premium</CardTitle>
+              <CardDescription>Vše pro chytré nakupování</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="text-center">
