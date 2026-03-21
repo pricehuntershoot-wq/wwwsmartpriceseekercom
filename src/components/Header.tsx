@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Zap, LogOut, Heart, Menu, Crosshair } from "lucide-react";
+import { Zap, LogOut, Heart, Menu, Crosshair, Crown } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -48,6 +48,12 @@ export const Header = () => {
               {t('favorites')}
             </Link>
           </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/premium" className="flex items-center gap-1.5 text-primary">
+              <Crown className="h-4 w-4" />
+              Premium
+            </Link>
+          </Button>
         </nav>
 
         {/* Desktop Actions */}
@@ -93,6 +99,13 @@ export const Header = () => {
                   >
                     <Heart className="h-5 w-5" />
                     {t('favorites')}
+                  </button>
+                  <button
+                    onClick={() => handleNavigation('/premium')}
+                    className="flex items-center gap-3 text-lg font-heading font-medium text-primary"
+                  >
+                    <Crown className="h-5 w-5" />
+                    Premium
                   </button>
                 </nav>
                 <div className="h-px bg-border/50" />
