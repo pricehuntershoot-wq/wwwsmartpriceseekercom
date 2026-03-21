@@ -11,8 +11,8 @@ import { Eye, EyeOff, Zap, AlertCircle } from 'lucide-react';
 import { z } from 'zod';
 
 const authSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  email: z.string().email('Zadejte platnou e-mailovou adresu'),
+  password: z.string().min(6, 'Heslo musí mít alespoň 6 znaků'),
 });
 
 const Auth = () => {
