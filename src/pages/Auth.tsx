@@ -228,7 +228,7 @@ const Auth = () => {
                 )}
                 
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? 'Creating account...' : 'Create Account'}
+                  {isLoading ? 'Vytváření účtu...' : 'Vytvořit účet'}
                 </Button>
 
                 <div className="relative my-4">
