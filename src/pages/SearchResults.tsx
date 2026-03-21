@@ -548,39 +548,59 @@ const SearchResults = () => {
                         )}
                       </div>
 
-                      {/* Analyze badge */}
-                      {product.shops[0]?.productUrl && (
+                      {/* Top-right buttons */}
+                      <div className="absolute top-2 right-2 flex flex-col gap-1">
+                        {/* Favorite heart */}
                         <button
-                          onClick={() => {
-                            const analysis = analysisResults[i];
-                            if (analysis) {
-                              setExpandedAnalysis(expandedAnalysis === i ? null : i);
-                            } else {
-                              runInlineAnalysis(i, product.shops[0].productUrl!);
-                            }
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite(product.name, product.imageUrl, product.category);
                           }}
-                          disabled={analyzingIdx !== null && analyzingIdx !== i}
-                          className="absolute top-2 right-2"
+                          disabled={savingFavorite === product.name}
+                          className="flex items-center justify-center h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm border border-border hover:bg-background transition-colors"
                         >
-                          <Badge className={`text-[10px] cursor-pointer transition-colors ${
-                            analyzingIdx === i
-                              ? "bg-primary/70 text-primary-foreground animate-pulse"
-                              : analysisResults[i]
-                                ? "bg-green-600 text-white hover:bg-green-700"
-                                : "bg-primary/90 text-primary-foreground hover:bg-primary"
-                          }`}>
-                            {analyzingIdx === i ? (
-                              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                            ) : (
-                              <Sparkles className="h-3 w-3 mr-1" />
-                            )}
-                            {analyzingIdx === i
-                              ? analyzeStep === "scraping" ? "Stahuji..." : "Analyzuji..."
-                              : analysisResults[i] ? "Analyzováno ✓" : "Deep Analyze"
-                            }
-                          </Badge>
+                          <Heart
+                            className={`h-4 w-4 transition-colors ${
+                              favoritedNames.has(product.name)
+                                ? "fill-red-500 text-red-500"
+                                : "text-muted-foreground hover:text-red-400"
+                            }`}
+                          />
                         </button>
-                      )}
+
+                        {/* Analyze badge */}
+                        {product.shops[0]?.productUrl && (
+                          <button
+                            onClick={() => {
+                              const analysis = analysisResults[i];
+                              if (analysis) {
+                                setExpandedAnalysis(expandedAnalysis === i ? null : i);
+                              } else {
+                                runInlineAnalysis(i, product.shops[0].productUrl!);
+                              }
+                            }}
+                            disabled={analyzingIdx !== null && analyzingIdx !== i}
+                          >
+                            <Badge className={`text-[10px] cursor-pointer transition-colors ${
+                              analyzingIdx === i
+                                ? "bg-primary/70 text-primary-foreground animate-pulse"
+                                : analysisResults[i]
+                                  ? "bg-green-600 text-white hover:bg-green-700"
+                                  : "bg-primary/90 text-primary-foreground hover:bg-primary"
+                            }`}>
+                              {analyzingIdx === i ? (
+                                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                              ) : (
+                                <Sparkles className="h-3 w-3 mr-1" />
+                              )}
+                              {analyzingIdx === i
+                                ? analyzeStep === "scraping" ? "Stahuji..." : "Analyzuji..."
+                                : analysisResults[i] ? "Analyzováno ✓" : "Deep Analyze"
+                              }
+                            </Badge>
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                     {/* Name */}
