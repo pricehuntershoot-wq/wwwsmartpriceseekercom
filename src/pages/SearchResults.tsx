@@ -833,28 +833,19 @@ const SearchResults = () => {
 
                     {/* Action buttons */}
                     <div className="px-5 pb-4 flex gap-2">
-                      {product.shops.find(s => s.price === lowestPrice)?.productUrl && (
-                        <>
-                          <Button size="sm" className="flex-1 gap-1" asChild>
-                            <a
-                              href={product.shops.find(s => s.price === lowestPrice)!.productUrl!}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              Koupit za {formatPrice(lowestPrice)}
-                              <ExternalLink className="h-3.5 w-3.5" />
-                            </a>
-                          </Button>
+                      {(() => {
+                        const anyUrl = product.shops.find(s => s.productUrl)?.productUrl;
+                        return anyUrl ? (
                           <Button
                             size="sm"
                             variant="outline"
-                            className="gap-1"
+                            className="flex-1 gap-1"
                             onClick={() => {
                               const analysis = analysisResults[i];
                               if (analysis) {
                                 setExpandedAnalysis(expandedAnalysis === i ? null : i);
                               } else {
-                                runInlineAnalysis(i, product.shops.find(s => s.price === lowestPrice)!.productUrl!);
+                                runInlineAnalysis(i, anyUrl);
                               }
                             }}
                             disabled={analyzingIdx !== null && analyzingIdx !== i}
@@ -865,12 +856,12 @@ const SearchResults = () => {
                               <Sparkles className="h-3.5 w-3.5" />
                             )}
                             {analysisResults[i]
-                              ? expandedAnalysis === i ? "Skrýt" : "Zobrazit"
+                              ? expandedAnalysis === i ? "Skrýt analýzu" : "Zobrazit analýzu"
                               : "Analyzovat"
                             }
                           </Button>
-                        </>
-                      )}
+                        ) : null;
+                      })()}
                     </div>
                   </div>
                 );
