@@ -375,7 +375,7 @@ const SearchResults = () => {
 
   const grouped = useMemo(() => {
     // Client-side variant filtering
-    const q = searchQuery.toLowerCase();
+    const q = query.toLowerCase();
     const variantSuffixes = ['ultra', 'plus', 'fe', 'lite', 'neo'];
     const excludeVariants = variantSuffixes.filter(v => !q.includes(v));
     
