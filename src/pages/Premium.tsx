@@ -77,10 +77,10 @@ const Premium = () => {
   };
 
   const features = [
-    { icon: Clock, text: "Early deal alerts - 1 hour before others", highlight: true },
-    { icon: Zap, text: "Instant 20%+ price drop notifications", highlight: true },
-    { icon: Bell, text: "Priority email notifications" },
-    { icon: Crown, text: "Premium member badge" },
+    { icon: Zap, text: "Neomezené vyhledávání across e-shops", highlight: true },
+    { icon: Clock, text: "Hloubková AI analýza cen a slev", highlight: true },
+    { icon: Bell, text: "Prioritní upozornění na slevy" },
+    { icon: Crown, text: "Premium členský přístup" },
   ];
 
   return (
@@ -93,10 +93,10 @@ const Premium = () => {
             Premium
           </Badge>
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-            Get Early Deal Alerts
+            Premium předplatné
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
-            Be the first to know about price drops and hidden discounts. Premium members get alerts 1 hour before everyone else.
+            Neomezené vyhledávání, hloubková AI analýza cen a prioritní přístup k novým funkcím.
           </p>
         </div>
 
@@ -114,13 +114,13 @@ const Premium = () => {
               <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-primary">
                 <Crown className="h-6 w-6 text-primary-foreground" />
               </div>
-              <CardTitle className="text-2xl">Premium Plan</CardTitle>
-              <CardDescription>Everything you need to catch the best deals</CardDescription>
+              <CardTitle className="text-2xl">Premium</CardTitle>
+              <CardDescription>Vše pro chytré nakupování</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="text-center">
-                <span className="text-4xl font-bold">€10</span>
-                <span className="text-muted-foreground">/month</span>
+                <span className="text-4xl font-bold">99 Kč</span>
+                <span className="text-muted-foreground">/měsíc</span>
               </div>
 
               <ul className="space-y-3">
@@ -145,9 +145,9 @@ const Premium = () => {
               ) : isPremium ? (
                 <div className="space-y-3">
                   <p className="text-center text-sm text-muted-foreground">
-                    Your subscription renews on{" "}
+                    Předplatné se obnoví{" "}
                     {subscriptionEnd
-                      ? new Date(subscriptionEnd).toLocaleDateString()
+                      ? new Date(subscriptionEnd).toLocaleDateString("cs-CZ")
                       : "—"}
                   </p>
                   <Button
@@ -161,7 +161,7 @@ const Premium = () => {
                     ) : (
                       <ExternalLink className="mr-2 h-4 w-4" />
                     )}
-                    Manage Subscription
+                    Spravovat předplatné
                   </Button>
                 </div>
               ) : (
@@ -176,7 +176,7 @@ const Premium = () => {
                   ) : (
                     <Zap className="mr-2 h-4 w-4" />
                   )}
-                  {user ? "Subscribe Now" : "Sign In to Subscribe"}
+                  {user ? "Předplatit nyní" : "Přihlaste se pro předplatné"}
                 </Button>
               )}
             </CardContent>
