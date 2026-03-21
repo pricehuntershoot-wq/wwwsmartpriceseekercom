@@ -82,6 +82,16 @@ const Auth = () => {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setError(null);
+    const { error } = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+    });
+    if (error) {
+      setError(error.message || 'Přihlášení přes Google selhalo');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
