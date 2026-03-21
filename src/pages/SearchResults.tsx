@@ -13,9 +13,11 @@ import {
   ShoppingCart, Package, ChevronDown, ChevronUp, Heart
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useSearchLimit } from "@/hooks/useSearchLimit";
 import { supabase } from "@/integrations/supabase/client";
 import { firecrawlApi } from "@/lib/api/firecrawl";
 import { toast } from "sonner";
+import { SearchLimitModal } from "@/components/SearchLimitModal";
 
 interface EshopProduct {
   name: string;
