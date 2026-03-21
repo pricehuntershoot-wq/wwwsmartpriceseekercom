@@ -176,7 +176,7 @@ const Premium = () => {
                   ) : (
                     <Zap className="mr-2 h-4 w-4" />
                   )}
-                  {user ? "Subscribe Now" : "Sign In to Subscribe"}
+                  {user ? "Předplatit nyní" : "Přihlaste se pro předplatné"}
                 </Button>
               )}
             </CardContent>
