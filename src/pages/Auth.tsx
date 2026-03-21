@@ -54,7 +54,7 @@ const Auth = () => {
     
     if (error) {
       if (error.message.includes('Invalid login credentials')) {
-        setError('Invalid email or password. Please try again.');
+        setError('Nesprávný e-mail nebo heslo. Zkuste to znovu.');
       } else {
         setError(error.message);
       }
