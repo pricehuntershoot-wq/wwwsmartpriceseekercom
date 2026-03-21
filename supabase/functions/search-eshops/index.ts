@@ -395,7 +395,11 @@ Given search results from multiple Czech e-shops (Alza.cz, Datart.cz, Smarty.cz,
 CRITICAL RULES:
 1. You MUST extract products from ALL e-shops that have data. Sections are marked "=== ALZA ===", "=== DATART ===", "=== SMARTY ===", "=== MIRONET ===".
 2. Extract at least 5 products from EACH section that has product listings. Do NOT skip any e-shop.
-3. Only extract products that are RELEVANT to the search query. Skip unrelated products (e.g. accessories, cables when searching for headphones).
+3. **STRICT RELEVANCE**: Only extract products that EXACTLY match the searched model. 
+   - If query is "Galaxy S24", extract ONLY Galaxy S24 (base model). Do NOT include Galaxy S24 Ultra, S24+, S24 FE, S25, or any other variant.
+   - If query is "Galaxy S24 Ultra", extract ONLY Galaxy S24 Ultra. Do NOT include Galaxy S24 (base), S24+, S24 FE.
+   - Different storage/RAM/color variants of the SAME model ARE allowed (e.g. "Galaxy S24 128GB" and "Galaxy S24 256GB" are both valid for query "Galaxy S24").
+   - Skip accessories, cases, chargers, and unrelated products entirely.
 4. For the "normalizedName" field: create a canonical product name without color/variant info, e.g. "Sony WH-1000XM5 bezdrátová sluchátka černá" → "Sony WH-1000XM5". This helps match same products across shops.
 5. Parse Czech prices: "11 590,-" → 11590, "9 272 Kč" → 9272, "od 5 990 Kč" → 5990.
 6. For URLs: Alza prepend "https://www.alza.cz", Datart "https://www.datart.cz", Smarty "https://www.smarty.cz", Mironet "https://www.mironet.cz" if path starts with "/".
