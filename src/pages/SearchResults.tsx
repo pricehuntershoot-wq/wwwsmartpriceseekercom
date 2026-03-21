@@ -256,7 +256,7 @@ const SearchResults = () => {
     }
   };
 
-
+  const runInlineAnalysis = async (cardIdx: number, url: string) => {
     if (analyzingIdx !== null) return;
     setAnalyzingIdx(cardIdx);
     setExpandedAnalysis(cardIdx);
