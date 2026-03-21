@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
@@ -10,8 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Loader2, ExternalLink, Tag, Copy, Check, AlertCircle, ShoppingBag,
   Sparkles, SlidersHorizontal, X, Bot, Database, Target, RefreshCw,
-  ShoppingCart, Package, ChevronDown, ChevronUp
+  ShoppingCart, Package, ChevronDown, ChevronUp, Heart
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { firecrawlApi } from "@/lib/api/firecrawl";
 import { toast } from "sonner";
@@ -176,6 +177,8 @@ function groupProducts(products: EshopProduct[]): GroupedProduct[] {
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q") || "";
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [products, setProducts] = useState<EshopProduct[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
@@ -188,6 +191,8 @@ const SearchResults = () => {
   const [analyzeStep, setAnalyzeStep] = useState<"idle" | "scraping" | "analyzing">("idle");
   const [analysisResults, setAnalysisResults] = useState<Record<number, InlineAnalysis>>({});
   const [expandedAnalysis, setExpandedAnalysis] = useState<number | null>(null);
+  const [favoritedNames, setFavoritedNames] = useState<Set<string>>(new Set());
+  const [savingFavorite, setSavingFavorite] = useState<string | null>(null);
   const wittyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const analysisPanelRefs = useRef<Record<number, HTMLDivElement | null>>({});
@@ -201,7 +206,57 @@ const SearchResults = () => {
     }
   }, [expandedAnalysis, analysisResults]);
 
-  const runInlineAnalysis = async (cardIdx: number, url: string) => {
+  const toggleFavorite = async (productName: string, imageUrl: string | null, category: string | null) => {
+    if (!user) {
+      toast.error("Pro uložení do oblíbených se přihlaste");
+      navigate("/auth");
+      return;
+    }
+    if (savingFavorite) return;
+    setSavingFavorite(productName);
+
+    try {
+      // Find or create product in DB
+      const { data: existing } = await supabase
+        .from("products")
+        .select("id")
+        .eq("name", productName)
+        .maybeSingle();
+
+      let productId: string;
+      if (existing) {
+        productId = existing.id;
+      } else {
+        const { data: created, error } = await supabase
+          .from("products")
+          .insert({ name: productName, image_url: imageUrl, category })
+          .select("id")
+          .single();
+        if (error || !created) throw new Error("Nepodařilo se uložit produkt");
+        productId = created.id;
+      }
+
+      if (favoritedNames.has(productName)) {
+        // Remove
+        await supabase.from("favorites").delete().eq("user_id", user.id).eq("product_id", productId);
+        setFavoritedNames(prev => { const n = new Set(prev); n.delete(productName); return n; });
+        toast.success("Odebráno z oblíbených");
+      } else {
+        // Add
+        const { error } = await supabase.from("favorites").insert({ user_id: user.id, product_id: productId });
+        if (error) throw error;
+        setFavoritedNames(prev => new Set(prev).add(productName));
+        toast.success("Přidáno do oblíbených ❤️");
+      }
+    } catch (err) {
+      console.error("Favorite error:", err);
+      toast.error("Nepodařilo se uložit");
+    } finally {
+      setSavingFavorite(null);
+    }
+  };
+
+
     if (analyzingIdx !== null) return;
     setAnalyzingIdx(cardIdx);
     setExpandedAnalysis(cardIdx);
@@ -245,6 +300,21 @@ const SearchResults = () => {
       searchEshops(query.trim());
     }
   }, [query]);
+
+  // Load user's existing favorites
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("favorites")
+      .select("product_id, products(name)")
+      .eq("user_id", user.id)
+      .then(({ data }) => {
+        if (data) {
+          const names = new Set(data.map((f: any) => f.products?.name).filter(Boolean));
+          setFavoritedNames(names as Set<string>);
+        }
+      });
+  }, [user]);
 
   const searchEshops = async (q: string, forceRefresh = false) => {
     setIsLoading(true);
@@ -493,39 +563,59 @@ const SearchResults = () => {
                         )}
                       </div>
 
-                      {/* Analyze badge */}
-                      {product.shops[0]?.productUrl && (
+                      {/* Top-right buttons */}
+                      <div className="absolute top-2 right-2 flex flex-col gap-1">
+                        {/* Favorite heart */}
                         <button
-                          onClick={() => {
-                            const analysis = analysisResults[i];
-                            if (analysis) {
-                              setExpandedAnalysis(expandedAnalysis === i ? null : i);
-                            } else {
-                              runInlineAnalysis(i, product.shops[0].productUrl!);
-                            }
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite(product.name, product.imageUrl, product.category);
                           }}
-                          disabled={analyzingIdx !== null && analyzingIdx !== i}
-                          className="absolute top-2 right-2"
+                          disabled={savingFavorite === product.name}
+                          className="flex items-center justify-center h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm border border-border hover:bg-background transition-colors"
                         >
-                          <Badge className={`text-[10px] cursor-pointer transition-colors ${
-                            analyzingIdx === i
-                              ? "bg-primary/70 text-primary-foreground animate-pulse"
-                              : analysisResults[i]
-                                ? "bg-green-600 text-white hover:bg-green-700"
-                                : "bg-primary/90 text-primary-foreground hover:bg-primary"
-                          }`}>
-                            {analyzingIdx === i ? (
-                              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                            ) : (
-                              <Sparkles className="h-3 w-3 mr-1" />
-                            )}
-                            {analyzingIdx === i
-                              ? analyzeStep === "scraping" ? "Stahuji..." : "Analyzuji..."
-                              : analysisResults[i] ? "Analyzováno ✓" : "Deep Analyze"
-                            }
-                          </Badge>
+                          <Heart
+                            className={`h-4 w-4 transition-colors ${
+                              favoritedNames.has(product.name)
+                                ? "fill-red-500 text-red-500"
+                                : "text-muted-foreground hover:text-red-400"
+                            }`}
+                          />
                         </button>
-                      )}
+
+                        {/* Analyze badge */}
+                        {product.shops[0]?.productUrl && (
+                          <button
+                            onClick={() => {
+                              const analysis = analysisResults[i];
+                              if (analysis) {
+                                setExpandedAnalysis(expandedAnalysis === i ? null : i);
+                              } else {
+                                runInlineAnalysis(i, product.shops[0].productUrl!);
+                              }
+                            }}
+                            disabled={analyzingIdx !== null && analyzingIdx !== i}
+                          >
+                            <Badge className={`text-[10px] cursor-pointer transition-colors ${
+                              analyzingIdx === i
+                                ? "bg-primary/70 text-primary-foreground animate-pulse"
+                                : analysisResults[i]
+                                  ? "bg-green-600 text-white hover:bg-green-700"
+                                  : "bg-primary/90 text-primary-foreground hover:bg-primary"
+                            }`}>
+                              {analyzingIdx === i ? (
+                                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                              ) : (
+                                <Sparkles className="h-3 w-3 mr-1" />
+                              )}
+                              {analyzingIdx === i
+                                ? analyzeStep === "scraping" ? "Stahuji..." : "Analyzuji..."
+                                : analysisResults[i] ? "Analyzováno ✓" : "Deep Analyze"
+                              }
+                            </Badge>
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                     {/* Name */}
