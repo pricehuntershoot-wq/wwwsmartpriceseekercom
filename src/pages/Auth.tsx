@@ -78,7 +78,7 @@ const Auth = () => {
         setError(error.message);
       }
     } else {
-      setSuccess('Account created successfully! You can now sign in.');
+      setSuccess('Účet byl úspěšně vytvořen! Nyní se můžete přihlásit.');
     }
   };
 
