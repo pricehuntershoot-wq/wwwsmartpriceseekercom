@@ -210,8 +210,11 @@ const CategoryProducts = () => {
           </div>
           <p className="text-muted-foreground">
             AI agenti prohledávají <span className="font-semibold text-foreground">Alza.cz</span>,{" "}
-            <span className="font-semibold text-foreground">Datart.cz</span> a{" "}
-            <span className="font-semibold text-foreground">Smarty.cz</span> — hledáme{" "}
+            <span className="font-semibold text-foreground">CZC.cz</span>,{" "}
+            <span className="font-semibold text-foreground">Datart.cz</span>,{" "}
+            <span className="font-semibold text-foreground">Smarty.cz</span>,{" "}
+            <span className="font-semibold text-foreground">Mironet.cz</span> a{" "}
+            <span className="font-semibold text-foreground">MP.cz</span> — hledáme{" "}
             <span className="font-bold text-primary">skryté slevy</span>, promo kódy a rozbalené produkty
           </p>
         </div>
