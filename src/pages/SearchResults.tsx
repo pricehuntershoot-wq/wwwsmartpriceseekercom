@@ -343,6 +343,11 @@ const SearchResults = () => {
 
   useEffect(() => {
     if (query.trim().length >= 2) {
+      if (!canSearch) {
+        setShowLimitModal(true);
+        return;
+      }
+      incrementSearch();
       searchEshops(query.trim());
     }
   }, [query]);
