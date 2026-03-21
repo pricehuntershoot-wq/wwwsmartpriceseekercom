@@ -274,11 +274,14 @@ const SearchResults = () => {
       const allPromos: InlineAnalysis["promoCodes"] = [];
       const allRecs: string[] = [];
 
-      for (const shop of shopsWithUrl) {
+      for (let si = 0; si < shopsWithUrl.length; si++) {
+        const shop = shopsWithUrl[si];
         const url = shop.productUrl!;
         const shopMeta = ESHOP_META[shop.eshop];
+        const shopName = shopMeta?.name || shop.eshop;
 
         try {
+          setAnalyzeProgress({ current: si + 1, total: shopsWithUrl.length, shopName });
           setAnalyzeStep("scraping");
           const scrapeResult = await firecrawlApi.scrape(url, {
             formats: ["markdown", "html"],
