@@ -391,7 +391,7 @@ const SearchResults = () => {
     const g = groupProducts(filtered);
     if (sortOrder === "price-desc") return [...g].reverse();
     return g;
-  }, [products, sortOrder]);
+  }, [products, sortOrder, query]);
 
   const totalPromos = products.filter(p => p.promoCode).length;
   const totalHiddenDeals = products.filter(p => p.condition && p.condition !== "new").length;
