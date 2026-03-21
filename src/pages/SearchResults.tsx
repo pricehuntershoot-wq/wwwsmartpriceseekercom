@@ -69,7 +69,7 @@ const ESHOP_META: Record<string, { name: string; logo: string; color: string }> 
   mironet: { name: "Mironet.cz", logo: "https://www.mironet.cz/favicon.ico", color: "bg-orange-600" },
 };
 
-const formatPrice = (price: number) => price.toLocaleString("cs-CZ") + " Kč";
+const formatPrice = (price: number | null | undefined) => price != null ? price.toLocaleString("cs-CZ") + " Kč" : "–";
 
 const getConditionLabel = (condition?: string) => {
   switch (condition) {
