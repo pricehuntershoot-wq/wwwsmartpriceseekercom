@@ -301,7 +301,22 @@ const SearchResults = () => {
     }
   }, [query]);
 
-  const searchEshops = async (q: string, forceRefresh = false) => {
+  // Load user's existing favorites
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("favorites")
+      .select("product_id, products(name)")
+      .eq("user_id", user.id)
+      .then(({ data }) => {
+        if (data) {
+          const names = new Set(data.map((f: any) => f.products?.name).filter(Boolean));
+          setFavoritedNames(names as Set<string>);
+        }
+      });
+  }, [user]);
+
+
     setIsLoading(true);
     setProducts([]);
     setErrors([]);
