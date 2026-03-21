@@ -5,6 +5,7 @@ import { ShopLogosSection } from "@/components/ShopLogosSection";
 import { HowItWorksSection } from "@/components/HowItWorksSection";
 import { LiveDemoSection } from "@/components/LiveDemoSection";
 import { TrustSection } from "@/components/TrustSection";
+import { CtaSection } from "@/components/CtaSection";
 
 const Index = () => {
   return (
@@ -15,6 +16,7 @@ const Index = () => {
       <HowItWorksSection />
       <LiveDemoSection />
       <TrustSection />
+      <CtaSection />
       <Footer />
     </div>
   );
