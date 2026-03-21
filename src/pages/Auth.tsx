@@ -73,7 +73,7 @@ const Auth = () => {
     
     if (error) {
       if (error.message.includes('User already registered')) {
-        setError('An account with this email already exists. Please sign in instead.');
+        setError('Účet s tímto e-mailem již existuje. Přihlaste se.');
       } else {
         setError(error.message);
       }
