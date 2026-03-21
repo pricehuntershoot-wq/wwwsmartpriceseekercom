@@ -667,7 +667,7 @@ const SearchResults = () => {
                                 <Sparkles className="h-3 w-3 mr-1" />
                               )}
                               {analyzingIdx === i
-                                ? analyzeStep === "scraping" ? "Stahuji..." : "Analyzuji..."
+                                ? `${analyzeProgress.current}/${analyzeProgress.total} ${analyzeProgress.shopName}`
                                 : analysisResults[i] ? "Analyzováno ✓" : "Deep Analyze"
                               }
                             </Badge>
