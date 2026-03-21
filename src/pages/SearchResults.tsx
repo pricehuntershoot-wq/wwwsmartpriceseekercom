@@ -871,20 +871,21 @@ const SearchResults = () => {
 
                     {/* Inline analysis loading */}
                     {analyzingIdx === i && !analysisResults[i] && (
-                      <div className="mx-4 mb-3 rounded-xl border border-primary/20 bg-primary/5 p-4 animate-fade-in">
+                      <div className="mx-4 mb-3 rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-2 animate-fade-in">
                         <div className="flex items-center gap-2">
                           <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                          <div>
+                          <div className="flex-1">
                             <p className="text-xs font-medium">
-                              {analyzeStep === "scraping" ? "Načítám stránku produktu..." : "AI analyzuje cenové úrovně..."}
+                              {analyzeStep === "scraping"
+                                ? `Načítám ${analyzeProgress.shopName}...`
+                                : `Analyzuji ${analyzeProgress.shopName}...`}
                             </p>
                             <p className="text-[10px] text-muted-foreground">
-                              {analyzeStep === "scraping"
-                                ? "Stahujeme obsah z e-shopu"
-                                : "Hledáme skryté promo kódy, slevy v košíku a rozbalené zboží"}
+                              Obchod {analyzeProgress.current}/{analyzeProgress.total} · {analyzeStep === "scraping" ? "Stahování" : "AI analýza"}
                             </p>
                           </div>
                         </div>
+                        <Progress value={(analyzeProgress.current / analyzeProgress.total) * 100} className="h-1.5" />
                       </div>
                     )}
 
