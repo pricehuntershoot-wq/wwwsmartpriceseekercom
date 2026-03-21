@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 
 const shops = [
   { name: "Alza.cz", color: "text-green-400" },
+  { name: "CZC.cz", color: "text-yellow-400" },
   { name: "Datart.cz", color: "text-red-400" },
   { name: "Smarty.cz", color: "text-blue-400" },
   { name: "Mironet.cz", color: "text-orange-400" },

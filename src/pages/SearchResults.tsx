@@ -68,6 +68,7 @@ interface InlineAnalysis {
 
 const ESHOP_META: Record<string, { name: string; logo: string; color: string }> = {
   alza: { name: "Alza.cz", logo: "https://cdn.alza.cz/Foto/favicon/android-chrome-192x192.png", color: "bg-green-600" },
+  czc: { name: "CZC.cz", logo: "https://www.czc.cz/favicon.ico", color: "bg-yellow-600" },
   datart: { name: "Datart.cz", logo: "https://www.datart.cz/favicon.ico", color: "bg-red-600" },
   smarty: { name: "Smarty.cz", logo: "https://www.smarty.cz/favicon.ico", color: "bg-blue-600" },
   mironet: { name: "Mironet.cz", logo: "https://www.mironet.cz/favicon.ico", color: "bg-orange-600" },
@@ -695,9 +696,9 @@ const SearchResults = () => {
                       </h3>
                     </div>
 
-                    {/* Shop prices - show all 4 shops */}
-                    <div className="grid grid-cols-4 gap-1.5 px-4 pb-3">
-                      {["alza", "datart", "smarty", "mironet"].map((eshopKey) => {
+                    {/* Shop prices - show all 5 shops */}
+                    <div className="grid grid-cols-5 gap-1 px-4 pb-3">
+                      {["alza", "czc", "datart", "smarty", "mironet"].map((eshopKey) => {
                         const shopOffer = product.shops.find(s => s.eshop === eshopKey);
                         const meta = ESHOP_META[eshopKey];
                         const isLowest = shopOffer && shopOffer.price === lowestPrice;
