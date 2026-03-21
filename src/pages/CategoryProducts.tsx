@@ -161,7 +161,7 @@ const CategoryProducts = () => {
         toast.success(
           data.fromCache
             ? `Nalezeno ${data.products.length} nabídek z databáze`
-            : `Nalezeno ${data.products.length} nabídek ze 3 e-shopů`
+            : `Nalezeno ${data.products.length} nabídek ze 6 e-shopů`
         );
       }
     } catch (err) {
