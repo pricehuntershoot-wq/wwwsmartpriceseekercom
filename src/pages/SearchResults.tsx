@@ -72,6 +72,7 @@ const ESHOP_META: Record<string, { name: string; logo: string; color: string }> 
   datart: { name: "Datart.cz", logo: "https://www.datart.cz/favicon.ico", color: "bg-red-600" },
   smarty: { name: "Smarty.cz", logo: "https://www.smarty.cz/favicon.ico", color: "bg-blue-600" },
   mironet: { name: "Mironet.cz", logo: "https://www.mironet.cz/favicon.ico", color: "bg-orange-600" },
+  mp: { name: "MP.cz", logo: "https://www.mp.cz/favicon.ico", color: "bg-violet-600" },
 };
 
 const formatPrice = (price: number | null | undefined) => price != null ? price.toLocaleString("cs-CZ") + " Kč" : "–";
@@ -399,7 +400,7 @@ const SearchResults = () => {
         toast.success(
           data.fromCache
             ? `Nalezeno ${data.products.length} nabídek z databáze`
-            : `Nalezeno ${data.products.length} nabídek ze 4 e-shopů`
+            : `Nalezeno ${data.products.length} nabídek ze 6 e-shopů`
         );
       } else {
         toast.info("Žádné produkty nenalezeny");
@@ -458,9 +459,11 @@ const SearchResults = () => {
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
             AI agenti prohledávají <span className="font-semibold text-foreground">Alza.cz</span>,{" "}
+            <span className="font-semibold text-foreground">CZC.cz</span>,{" "}
             <span className="font-semibold text-foreground">Datart.cz</span>,{" "}
-            <span className="font-semibold text-foreground">Smarty.cz</span> a{" "}
-            <span className="font-semibold text-foreground">Mironet.cz</span>
+            <span className="font-semibold text-foreground">Smarty.cz</span>,{" "}
+            <span className="font-semibold text-foreground">Mironet.cz</span> a{" "}
+            <span className="font-semibold text-foreground">MP.cz</span>
           </p>
           {!isPremium && (
             <p className="mt-1 text-xs text-muted-foreground">
@@ -696,9 +699,9 @@ const SearchResults = () => {
                       </h3>
                     </div>
 
-                    {/* Shop prices - show all 5 shops */}
-                    <div className="grid grid-cols-5 gap-1 px-4 pb-3">
-                      {["alza", "czc", "datart", "smarty", "mironet"].map((eshopKey) => {
+                    {/* Shop prices - show all 6 shops */}
+                    <div className="grid grid-cols-6 gap-1 px-4 pb-3">
+                      {["alza", "czc", "datart", "smarty", "mironet", "mp"].map((eshopKey) => {
                         const shopOffer = product.shops.find(s => s.eshop === eshopKey);
                         const meta = ESHOP_META[eshopKey];
                         const isLowest = shopOffer && shopOffer.price === lowestPrice;

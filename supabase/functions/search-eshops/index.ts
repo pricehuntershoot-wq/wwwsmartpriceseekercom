@@ -168,7 +168,8 @@ async function saveResultsToDB(supabase: any, products: any[]) {
                         product.eshop === 'datart' ? 'Datart.cz' :
                         product.eshop === 'smarty' ? 'Smarty.cz' :
                         product.eshop === 'mironet' ? 'Mironet.cz' :
-                        product.eshop === 'czc' ? 'CZC.cz' : product.eshop;
+                        product.eshop === 'czc' ? 'CZC.cz' :
+                        product.eshop === 'mp' ? 'MP.cz' : product.eshop;
       
       let shopId = shopCache[shopName];
       if (!shopId) {
@@ -375,7 +376,7 @@ serve(async (req) => {
       );
     }
 
-    // Scrape Alza + Datart via URL scraping; Smarty + Mironet via Firecrawl search API (JS-only search)
+    // Scrape Alza + Datart via URL scraping; Smarty, Mironet, MP via Firecrawl search API (JS-only search)
     const scrapeResults = await Promise.all([
       ...Object.entries(ESHOP_SEARCH_URLS).map(([name, urlFn]) =>
         scrapeEshop(name, urlFn(trimmedQuery), FIRECRAWL_API_KEY)
@@ -383,6 +384,7 @@ serve(async (req) => {
       searchViaFirecrawl('alza', 'alza.cz', trimmedQuery, FIRECRAWL_API_KEY, ['cdn.alza.cz', 'image.alza.cz', 'i.alza.cz']),
       searchViaFirecrawl('smarty', 'smarty.cz', trimmedQuery, FIRECRAWL_API_KEY, ['doc.smarty.cz', 'files.smarty.cz']),
       searchViaFirecrawl('mironet', 'mironet.cz', trimmedQuery, FIRECRAWL_API_KEY, ['img.mironet.cz']),
+      searchViaFirecrawl('mp', 'mp.cz', trimmedQuery, FIRECRAWL_API_KEY, ['mp.cz']),
     ]);
 
     // Build combined content for AI analysis
@@ -407,10 +409,10 @@ serve(async (req) => {
     // Use AI to extract structured product data via tool calling
     const systemPrompt = `You are an expert at extracting product listings from Czech e-shop search results.
 
-Given search results from multiple Czech e-shops (Alza.cz, CZC.cz, Datart.cz, Smarty.cz, Mironet.cz), extract products from EVERY e-shop section.
+Given search results from multiple Czech e-shops (Alza.cz, CZC.cz, Datart.cz, Smarty.cz, Mironet.cz, MP.cz), extract products from EVERY e-shop section.
 
 CRITICAL RULES:
-1. You MUST extract products from ALL e-shops that have data. Sections are marked "=== ALZA ===", "=== CZC ===", "=== DATART ===", "=== SMARTY ===", "=== MIRONET ===".
+1. You MUST extract products from ALL e-shops that have data. Sections are marked "=== ALZA ===", "=== CZC ===", "=== DATART ===", "=== SMARTY ===", "=== MIRONET ===", "=== MP ===".
 2. Extract at least 5 products from EACH section that has product listings. Do NOT skip any e-shop.
 3. **STRICT RELEVANCE**: Only extract products that EXACTLY match the searched model. 
    - If query is "Galaxy S24", extract ONLY Galaxy S24 (base model). Do NOT include Galaxy S24 Ultra, S24+, S24 FE, S25, or any other variant.
@@ -419,7 +421,7 @@ CRITICAL RULES:
    - Skip accessories, cases, chargers, and unrelated products entirely.
 4. For the "normalizedName" field: create a canonical product name without color/variant info, e.g. "Sony WH-1000XM5 bezdrátová sluchátka černá" → "Sony WH-1000XM5". This helps match same products across shops.
 5. Parse Czech prices: "11 590,-" → 11590, "9 272 Kč" → 9272, "od 5 990 Kč" → 5990.
-6. For URLs: Alza prepend "https://www.alza.cz", CZC "https://www.czc.cz", Datart "https://www.datart.cz", Smarty "https://www.smarty.cz", Mironet "https://www.mironet.cz" if path starts with "/".
+6. For URLs: Alza prepend "https://www.alza.cz", CZC "https://www.czc.cz", Datart "https://www.datart.cz", Smarty "https://www.smarty.cz", Mironet "https://www.mironet.cz", MP "https://www.mp.cz" if path starts with "/".
 7. For imageUrl: must be a direct image URL (ending in .jpg/.jpeg/.png/.webp or containing /img//foto//photo/). If unsure, null. Never assign same image to multiple products.
 8. Skip duplicate listings (same product appearing twice in same e-shop).
 
@@ -442,7 +444,7 @@ Call the extract_products function with ALL found products.`;
                   normalizedName: { type: "string", description: "Canonical name without color/variant, e.g. 'Sony WH-1000XM5'" },
                   price: { type: "number", description: "Current price in CZK" },
                   originalPrice: { type: ["number", "null"], description: "Original/crossed-out price or null" },
-                  eshop: { type: "string", enum: ["alza", "czc", "datart", "smarty", "mironet"] },
+                  eshop: { type: "string", enum: ["alza", "czc", "datart", "smarty", "mironet", "mp"] },
                   productUrl: { type: ["string", "null"], description: "Full product URL" },
                   imageUrl: { type: ["string", "null"], description: "Direct product image URL or null" },
                   category: { type: "string", enum: ["mobily", "sluchátka", "tv", "reproduktory", "chytré hodinky", "chytré prsteny", "tablety", "herní konzole", "pc", "příslušenství", "jiné"] },
