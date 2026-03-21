@@ -696,8 +696,8 @@ const SearchResults = () => {
                       </h3>
                     </div>
 
-                    {/* Shop prices - show all 4 shops */}
-                    <div className="grid grid-cols-4 gap-1.5 px-4 pb-3">
+                    {/* Shop prices - show all 5 shops */}
+                    <div className="grid grid-cols-5 gap-1 px-4 pb-3">
                       {["alza", "czc", "datart", "smarty", "mironet"].map((eshopKey) => {
                         const shopOffer = product.shops.find(s => s.eshop === eshopKey);
                         const meta = ESHOP_META[eshopKey];
