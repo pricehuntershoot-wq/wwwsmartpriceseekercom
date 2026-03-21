@@ -191,6 +191,7 @@ const SearchResults = () => {
   const [fromCache, setFromCache] = useState(false);
   const [analyzingIdx, setAnalyzingIdx] = useState<number | null>(null);
   const [analyzeStep, setAnalyzeStep] = useState<"idle" | "scraping" | "analyzing">("idle");
+  const [analyzeProgress, setAnalyzeProgress] = useState<{ current: number; total: number; shopName: string }>({ current: 0, total: 0, shopName: "" });
   const [analysisResults, setAnalysisResults] = useState<Record<number, InlineAnalysis>>({});
   const [expandedAnalysis, setExpandedAnalysis] = useState<number | null>(null);
   const [favoritedNames, setFavoritedNames] = useState<Set<string>>(new Set());
@@ -266,17 +267,21 @@ const SearchResults = () => {
     setAnalyzingIdx(cardIdx);
     setExpandedAnalysis(cardIdx);
     setAnalyzeStep("scraping");
+    setAnalyzeProgress({ current: 0, total: shopsWithUrl.length, shopName: "" });
 
     try {
       const allTiers: PriceTier[] = [];
       const allPromos: InlineAnalysis["promoCodes"] = [];
       const allRecs: string[] = [];
 
-      for (const shop of shopsWithUrl) {
+      for (let si = 0; si < shopsWithUrl.length; si++) {
+        const shop = shopsWithUrl[si];
         const url = shop.productUrl!;
         const shopMeta = ESHOP_META[shop.eshop];
+        const shopName = shopMeta?.name || shop.eshop;
 
         try {
+          setAnalyzeProgress({ current: si + 1, total: shopsWithUrl.length, shopName });
           setAnalyzeStep("scraping");
           const scrapeResult = await firecrawlApi.scrape(url, {
             formats: ["markdown", "html"],
@@ -662,7 +667,7 @@ const SearchResults = () => {
                                 <Sparkles className="h-3 w-3 mr-1" />
                               )}
                               {analyzingIdx === i
-                                ? analyzeStep === "scraping" ? "Stahuji..." : "Analyzuji..."
+                                ? `${analyzeProgress.current}/${analyzeProgress.total} ${analyzeProgress.shopName}`
                                 : analysisResults[i] ? "Analyzováno ✓" : "Deep Analyze"
                               }
                             </Badge>
@@ -866,20 +871,21 @@ const SearchResults = () => {
 
                     {/* Inline analysis loading */}
                     {analyzingIdx === i && !analysisResults[i] && (
-                      <div className="mx-4 mb-3 rounded-xl border border-primary/20 bg-primary/5 p-4 animate-fade-in">
+                      <div className="mx-4 mb-3 rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-2 animate-fade-in">
                         <div className="flex items-center gap-2">
                           <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                          <div>
+                          <div className="flex-1">
                             <p className="text-xs font-medium">
-                              {analyzeStep === "scraping" ? "Načítám stránku produktu..." : "AI analyzuje cenové úrovně..."}
+                              {analyzeStep === "scraping"
+                                ? `Načítám ${analyzeProgress.shopName}...`
+                                : `Analyzuji ${analyzeProgress.shopName}...`}
                             </p>
                             <p className="text-[10px] text-muted-foreground">
-                              {analyzeStep === "scraping"
-                                ? "Stahujeme obsah z e-shopu"
-                                : "Hledáme skryté promo kódy, slevy v košíku a rozbalené zboží"}
+                              Obchod {analyzeProgress.current}/{analyzeProgress.total} · {analyzeStep === "scraping" ? "Stahování" : "AI analýza"}
                             </p>
                           </div>
                         </div>
+                        <Progress value={(analyzeProgress.current / analyzeProgress.total) * 100} className="h-1.5" />
                       </div>
                     )}
 
