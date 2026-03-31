@@ -20,7 +20,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Heart, ExternalLink, ShoppingCart, Package, Sparkles, Flame, Clock, ArrowLeft, Store, Bell, BellOff, Trash2, ArrowUpDown, ChevronUp, ChevronDown, Tag, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice, Currency } from "@/lib/currency";
-import { createProductCheckout } from "@/lib/checkout";
+import { trackAffiliateClick } from "@/lib/affiliate";
 import { cn } from "@/lib/utils";
 
 const getDiscountIcon = (type: string | null) => {
@@ -101,7 +101,7 @@ const ProductDetail = () => {
         (pricesData || []).map(async (price) => {
           const { data: shopData } = await supabase
             .from('shops')
-            .select('id, name, logo_url, website_url')
+            .select('id, name, logo_url, website_url, ehub_program_id')
             .eq('id', price.shop_id)
             .maybeSingle();
           
@@ -526,25 +526,18 @@ const ProductDetail = () => {
                 <Button 
                   size="lg"
                   onClick={() => {
-                    if (!user) {
-                      toast.error('Pro nákup se musíte přihlásit.');
-                      return;
-                    }
-                    createProductCheckout({
-                      productName: product.name,
-                      productImage: product.image_url,
-                      price: bestPrice.current_price,
-                      currency: bestPrice.currency || 'EUR',
-                      shopName: bestPrice.shop.name,
-                      productUrl: bestPrice.product_url!,
+                    trackAffiliateClick({
                       productId: product.id,
                       shopId: bestPrice.shop.id,
                       priceId: bestPrice.id,
+                      userId: user?.id,
+                      productUrl: bestPrice.product_url!,
+                      ehubProgramId: (bestPrice.shop as any).ehub_program_id,
                     });
                   }}
                 >
-                  Koupit přes nás
-                  <ShoppingCart className="ml-2 h-4 w-4" />
+                  Koupit – {bestPrice.shop.name}
+                  <ExternalLink className="ml-2 h-4 w-4" />
                 </Button>
               )}
               <Button 
@@ -841,25 +834,18 @@ const ProductDetail = () => {
                               size="sm" 
                               variant={isPreferred ? "default" : "outline"}
                               onClick={() => {
-                                if (!user) {
-                                  toast.error('Pro nákup se musíte přihlásit.');
-                                  return;
-                                }
-                                createProductCheckout({
-                                  productName: product.name,
-                                  productImage: product.image_url,
-                                  price: price.current_price,
-                                  currency: price.currency || 'EUR',
-                                  shopName: price.shop.name,
-                                  productUrl: price.product_url!,
+                                trackAffiliateClick({
                                   productId: product.id,
                                   shopId: price.shop.id,
                                   priceId: price.id,
+                                  userId: user?.id,
+                                  productUrl: price.product_url!,
+                                  ehubProgramId: (price.shop as any).ehub_program_id,
                                 });
                               }}
                             >
-                              Koupit přes nás
-                              <ShoppingCart className="ml-1 h-3 w-3" />
+                              Koupit
+                              <ExternalLink className="ml-1 h-3 w-3" />
                             </Button>
                           ) : (
                             <span className="text-sm text-muted-foreground">N/A</span>

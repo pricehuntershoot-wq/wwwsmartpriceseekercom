@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { Heart, ExternalLink, Package, Clock, Tag, Sparkles } from "lucide-react";
-import { createProductCheckout } from "@/lib/checkout";
+import { trackAffiliateClick } from "@/lib/affiliate";
 import { useAuth } from "@/hooks/useAuth";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "./ui/button";
@@ -25,6 +25,7 @@ interface Price {
     id: string;
     name: string;
     logo_url: string | null;
+    ehub_program_id?: string | null;
   };
 }
 
@@ -212,24 +213,17 @@ export const ProductCard = ({ product, onFavorite, isFavorited = false }: Produc
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                if (!user) {
-                  toast.error('Pro nákup se musíte přihlásit.');
-                  return;
-                }
-                createProductCheckout({
-                  productName: product.name,
-                  productImage: product.image_url,
-                  price: bestPrice.finalPrice,
-                  currency: bestPrice.currency || 'EUR',
-                  shopName: bestPrice.shop.name,
-                  productUrl: bestPrice.product_url!,
+                trackAffiliateClick({
                   productId: product.id,
                   shopId: bestPrice.shop.id,
                   priceId: bestPrice.id,
+                  userId: user?.id,
+                  productUrl: bestPrice.product_url!,
+                  ehubProgramId: bestPrice.shop.ehub_program_id,
                 });
               }}
             >
-              Koupit přes nás
+              Koupit
               <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
             </Button>
             <Button variant="outline" size="sm" className="flex-1" asChild>

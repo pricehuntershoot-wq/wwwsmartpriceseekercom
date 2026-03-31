@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings as SettingsIcon, User, Bell, ArrowLeft, Save, Palette, Sun, Moon, Monitor, Crown, ExternalLink, Loader2 } from "lucide-react";
+import { Settings as SettingsIcon, User, Bell, ArrowLeft, Save, Palette, Sun, Moon, Monitor, Crown, ExternalLink, Loader2, Link2 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -33,6 +33,8 @@ const Settings = () => {
   const [saving, setSaving] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [shops, setShops] = useState<{ id: string; name: string; ehub_program_id: string | null }[]>([]);
+  const [ehubIds, setEhubIds] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -53,6 +55,22 @@ const Settings = () => {
       if (data) {
         setDisplayName(data.display_name || "");
       }
+
+      // Load shops with eHub IDs
+      const { data: shopsData } = await supabase
+        .from("shops")
+        .select("id, name, ehub_program_id")
+        .order("name");
+      
+      if (shopsData) {
+        setShops(shopsData as any);
+        const ids: Record<string, string> = {};
+        shopsData.forEach((s: any) => {
+          if (s.ehub_program_id) ids[s.id] = s.ehub_program_id;
+        });
+        setEhubIds(ids);
+      }
+
       setLoading(false);
     };
 
@@ -70,6 +88,17 @@ const Settings = () => {
         .eq("user_id", user.id);
 
       if (error) throw error;
+
+      // Save eHub program IDs
+      for (const shop of shops) {
+        const newId = ehubIds[shop.id]?.trim() || null;
+        if (newId !== shop.ehub_program_id) {
+          await supabase
+            .from("shops")
+            .update({ ehub_program_id: newId } as any)
+            .eq("id", shop.id);
+        }
+      }
 
       toast({
         title: t('settingsSaved'),
@@ -378,6 +407,42 @@ const Settings = () => {
                   onCheckedChange={setPriceDropAlerts}
                 />
               </div>
+            </CardContent>
+          </Card>
+
+          {/* eHub Affiliate Settings */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Link2 className="h-5 w-5 text-primary" />
+                <CardTitle>eHub Affiliate</CardTitle>
+              </div>
+              <CardDescription>
+                Nastavte eHub program ID pro každý e-shop. Odkazy na produkty budou automaticky přesměrovány přes eHub.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {shops.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Žádné e-shopy k dispozici.</p>
+              ) : (
+                shops.map((shop) => (
+                  <div key={shop.id} className="flex items-center gap-3">
+                    <Label className="w-32 shrink-0 text-sm font-medium">{shop.name}</Label>
+                    <Input
+                      placeholder="např. alza-cz"
+                      value={ehubIds[shop.id] || ""}
+                      onChange={(e) => setEhubIds(prev => ({ ...prev, [shop.id]: e.target.value }))}
+                      className="flex-1"
+                    />
+                  </div>
+                ))
+              )}
+              <p className="text-xs text-muted-foreground">
+                Program ID najdete v eHub dashboardu po registraci na{" "}
+                <a href="https://www.ehub.cz" target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                  ehub.cz
+                </a>
+              </p>
             </CardContent>
           </Card>
 
