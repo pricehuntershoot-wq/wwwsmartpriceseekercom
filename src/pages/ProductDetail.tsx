@@ -184,7 +184,7 @@ const ProductDetail = () => {
         toast.error("Nepodařilo se přidat do oblíbených");
         return;
       }
-      toast.success("Added to favorites");
+      toast.success("Přidáno do oblíbených");
     }
     
     refetchFavorite();
