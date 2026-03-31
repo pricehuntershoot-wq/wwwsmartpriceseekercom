@@ -47,7 +47,7 @@ const Settings = () => {
       
       const { data } = await supabase
         .from("profiles")
-        .select("display_name")
+        .select("display_name, price_drop_threshold")
         .eq("user_id", user.id)
         .maybeSingle();
       
