@@ -275,7 +275,7 @@ const Favorites = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Bell className="h-5 w-5 text-accent" />
-                Price Alerts ({alerts.length})
+                Cenová upozornění ({alerts.length})
               </CardTitle>
             </CardHeader>
             <CardContent>
