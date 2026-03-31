@@ -546,7 +546,7 @@ const ProductDetail = () => {
                 onClick={handleFavorite}
               >
                 <Heart className={`mr-2 h-4 w-4 ${isFavorited ? 'fill-red-500 text-red-500' : ''}`} />
-                {isFavorited ? 'Saved' : 'Save'}
+                {isFavorited ? 'Uloženo' : 'Uložit'}
               </Button>
               
               {/* Price Alert Button */}
