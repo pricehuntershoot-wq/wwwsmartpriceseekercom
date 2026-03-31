@@ -174,7 +174,7 @@ const ProductDetail = () => {
         toast.error("Nepodařilo se odebrat z oblíbených");
         return;
       }
-      toast.success("Removed from favorites");
+      toast.success("Odebráno z oblíbených");
     } else {
       const { error } = await supabase
         .from('favorites')
