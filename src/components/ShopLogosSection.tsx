@@ -9,6 +9,7 @@ const shops = [
   { name: "MP.cz", color: "text-violet-400" },
   { name: "Refurbed.cz", color: "text-teal-400" },
   { name: "Amazon.de", color: "text-sky-400" },
+  { name: "Xiaomi Store", color: "text-amber-400" },
 ];
 
 export const ShopLogosSection = () => {
