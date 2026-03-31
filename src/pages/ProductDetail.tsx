@@ -532,6 +532,7 @@ const ProductDetail = () => {
                       priceId: bestPrice.id,
                       userId: user?.id,
                       productUrl: bestPrice.product_url!,
+                      cashbackUrl: bestPrice.shop.tipli_url,
                     });
                   }}
                 >
