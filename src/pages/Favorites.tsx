@@ -137,15 +137,15 @@ const Favorites = () => {
     
     if (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to remove favorite',
+        title: 'Chyba',
+        description: 'Nepodařilo se odebrat z oblíbených',
         variant: 'destructive'
       });
     } else {
       setFavorites(favorites.filter(f => f.id !== id));
       toast({
-        title: 'Removed',
-        description: 'Product removed from favorites'
+        title: 'Odebráno',
+        description: 'Produkt byl odebrán z oblíbených'
       });
     }
   };
@@ -158,15 +158,15 @@ const Favorites = () => {
     
     if (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to delete alert',
+        title: 'Chyba',
+        description: 'Nepodařilo se smazat upozornění',
         variant: 'destructive'
       });
     } else {
       setAlerts(alerts.filter(a => a.id !== id));
       toast({
-        title: 'Deleted',
-        description: 'Price alert deleted'
+        title: 'Smazáno',
+        description: 'Cenové upozornění bylo smazáno'
       });
     }
   };
@@ -183,7 +183,7 @@ const Favorites = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <main className="container pt-24 pb-16">
-        <h1 className="text-3xl font-bold mb-8">My Favorites & Alerts</h1>
+        <h1 className="text-3xl font-bold mb-8">Oblíbené a upozornění</h1>
         
         <div className="grid gap-8 lg:grid-cols-2">
           {/* Favorites Section */}
@@ -191,7 +191,7 @@ const Favorites = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Heart className="h-5 w-5 text-primary" />
-                Saved Products ({favorites.length})
+                Uložené produkty ({favorites.length})
               </CardTitle>
               {isPremiumPlus && (
                 <div className="flex items-center gap-2 rounded-md bg-primary/10 border border-primary/20 px-3 py-2 mt-2">
@@ -205,7 +205,7 @@ const Favorites = () => {
             <CardContent>
               {favorites.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">
-                  No saved products yet. Browse deals and save your favorites!
+                  Zatím nemáte žádné uložené produkty. Procházejte nabídky a uložte si oblíbené!
                 </p>
               ) : (
                 <div className="space-y-3">
@@ -275,13 +275,13 @@ const Favorites = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Bell className="h-5 w-5 text-accent" />
-                Price Alerts ({alerts.length})
+                Cenová upozornění ({alerts.length})
               </CardTitle>
             </CardHeader>
             <CardContent>
               {alerts.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">
-                  No price alerts set. Set alerts to get notified when prices drop!
+                  Nemáte nastavená žádná upozornění. Nastavte si je a budeme vás informovat o poklesu cen!
                 </p>
               ) : (
                 <div className="space-y-3">
@@ -296,13 +296,13 @@ const Favorites = () => {
                               "text-sm font-semibold",
                               preferredCurrency === 'EUR' ? "text-primary" : "text-accent"
                             )}>
-                              Target: {formatPrice(alert.target_price, preferredCurrency)}
+                              Cíl: {formatPrice(alert.target_price, preferredCurrency)}
                             </span>
                             {alert.current_best_price && (
                               <>
                                 <span className="text-muted-foreground">|</span>
                                 <span className="text-sm text-muted-foreground">
-                                  Current: {formatPrice(alert.current_best_price, preferredCurrency)}
+                                  Aktuální: {formatPrice(alert.current_best_price, preferredCurrency)}
                                 </span>
                                 {isTargetReached && (
                                   <TrendingDown className="h-4 w-4 text-green-500" />
@@ -311,7 +311,7 @@ const Favorites = () => {
                             )}
                           </div>
                           {!alert.is_active && (
-                            <Badge variant="outline" className="mt-1 text-xs">Paused</Badge>
+                            <Badge variant="outline" className="mt-1 text-xs">Pozastaveno</Badge>
                           )}
                         </Link>
                         <div className="flex items-center gap-1">
