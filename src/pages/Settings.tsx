@@ -61,7 +61,7 @@ const Settings = () => {
       // Load shops with eHub IDs
       const { data: shopsData } = await supabase
         .from("shops")
-        .select("id, name, ehub_program_id")
+        .select("id, name, ehub_program_id, tipli_url, cashback_percentage")
         .order("name");
       
       if (shopsData) {
