@@ -525,16 +525,26 @@ const ProductDetail = () => {
               {bestPrice?.product_url && (
                 <Button 
                   size="lg"
-                  onClick={() => trackAffiliateClick({
-                    productId: product.id,
-                    shopId: bestPrice.shop.id,
-                    priceId: bestPrice.id,
-                    userId: user?.id,
-                    productUrl: bestPrice.product_url!,
-                  })}
+                  onClick={() => {
+                    if (!user) {
+                      toast.error('Pro nákup se musíte přihlásit.');
+                      return;
+                    }
+                    createProductCheckout({
+                      productName: product.name,
+                      productImage: product.image_url,
+                      price: bestPrice.finalPrice,
+                      currency: bestPrice.currency || 'EUR',
+                      shopName: bestPrice.shop.name,
+                      productUrl: bestPrice.product_url!,
+                      productId: product.id,
+                      shopId: bestPrice.shop.id,
+                      priceId: bestPrice.id,
+                    });
+                  }}
                 >
-                  Koupit za nejlepší cenu
-                  <ExternalLink className="ml-2 h-4 w-4" />
+                  Koupit přes nás
+                  <ShoppingCart className="ml-2 h-4 w-4" />
                 </Button>
               )}
               <Button 
