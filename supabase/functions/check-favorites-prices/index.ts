@@ -37,7 +37,7 @@ serve(async (req) => {
 
     if (profilesError) throw profilesError;
 
-    const premiumPlusUsers: Array<{ user_id: string; email: string; display_name: string | null }> = [];
+    const premiumPlusUsers: Array<{ user_id: string; email: string; display_name: string | null; price_drop_threshold: number }> = [];
 
     for (const profile of profiles || []) {
       if (!profile.email) continue;
