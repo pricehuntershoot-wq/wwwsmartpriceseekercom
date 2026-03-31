@@ -20,7 +20,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Heart, ExternalLink, ShoppingCart, Package, Sparkles, Flame, Clock, ArrowLeft, Store, Bell, BellOff, Trash2, ArrowUpDown, ChevronUp, ChevronDown, Tag, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice, Currency } from "@/lib/currency";
-import { createProductCheckout } from "@/lib/checkout";
+import { trackAffiliateClick } from "@/lib/affiliate";
 import { cn } from "@/lib/utils";
 
 const getDiscountIcon = (type: string | null) => {
