@@ -51,6 +51,7 @@ const ESHOP_META: Record<string, { name: string; logo: string; color: string }> 
   mironet: { name: "Mironet.cz", logo: "https://www.mironet.cz/favicon.ico", color: "bg-orange-600" },
   mp: { name: "MP.cz", logo: "https://www.mp.cz/favicon.ico", color: "bg-violet-600" },
   refurbed: { name: "Refurbed.cz", logo: "https://www.refurbed.cz/favicon.ico", color: "bg-teal-600" },
+  amazon: { name: "Amazon.de", logo: "https://www.amazon.de/favicon.ico", color: "bg-sky-600" },
 };
 
 const CATEGORY_CONFIG: Record<string, { title: string; icon: typeof Headphones; searchTerm: string }> = {
