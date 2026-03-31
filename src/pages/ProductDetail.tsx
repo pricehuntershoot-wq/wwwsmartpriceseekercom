@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { formatPrice, Currency } from "@/lib/currency";
 import { trackAffiliateClick } from "@/lib/affiliate";
 import { cn } from "@/lib/utils";
+import { PremiumPlusUpsell } from "@/components/PremiumPlusUpsell";
 
 const getDiscountIcon = (type: string | null) => {
   switch (type) {
@@ -864,6 +865,9 @@ const ProductDetail = () => {
             )}
           </CardContent>
         </Card>
+        <div className="mt-8">
+          <PremiumPlusUpsell variant="compact" />
+        </div>
       </main>
       <Footer />
     </div>

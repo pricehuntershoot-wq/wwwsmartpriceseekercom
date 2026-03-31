@@ -13,6 +13,7 @@ import { Heart, Bell, Trash2, Loader2, ExternalLink, TrendingDown, Zap, Star } f
 import { useToast } from '@/hooks/use-toast';
 import { formatPrice, Currency } from '@/lib/currency';
 import { cn } from '@/lib/utils';
+import { PremiumPlusUpsell } from '@/components/PremiumPlusUpsell';
 
 interface FavoritePrice {
   current_price: number;
@@ -340,6 +341,9 @@ const Favorites = () => {
               )}
             </CardContent>
           </Card>
+        </div>
+        <div className="mt-8">
+          <PremiumPlusUpsell variant="compact" />
         </div>
       </main>
       <Footer />

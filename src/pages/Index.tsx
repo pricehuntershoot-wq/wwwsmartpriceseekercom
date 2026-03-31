@@ -7,6 +7,7 @@ import { LiveDemoSection } from "@/components/LiveDemoSection";
 import { TrustSection } from "@/components/TrustSection";
 import { CtaSection } from "@/components/CtaSection";
 import { PremiumUpsellBanner } from "@/components/PremiumUpsellBanner";
+import { PremiumPlusUpsell } from "@/components/PremiumPlusUpsell";
 
 const Index = () => {
   return (
@@ -17,6 +18,7 @@ const Index = () => {
       <HowItWorksSection />
       <PremiumUpsellBanner />
       <LiveDemoSection />
+      <PremiumPlusUpsell variant="full" />
       <TrustSection />
       <CtaSection />
       <Footer />
