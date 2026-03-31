@@ -188,7 +188,7 @@ const SearchResults = () => {
   const query = searchParams.get("q") || "";
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { canSearch, remaining, searchesUsed, isPremium, incrementSearch, limit } = useSearchLimit();
+  const { canSearch, remaining, searchesUsed, isPremium, incrementSearch, resetLimit, limit, loading: limitLoading } = useSearchLimit();
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [products, setProducts] = useState<EshopProduct[]>([]);
   const [isLoading, setIsLoading] = useState(false);
