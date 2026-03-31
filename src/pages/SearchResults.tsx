@@ -701,8 +701,8 @@ const SearchResults = () => {
                     </div>
 
                     {/* Shop prices - show all 6 shops */}
-                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-1 px-4 pb-3">
-                      {["alza", "czc", "datart", "smarty", "mironet", "mp"].map((eshopKey) => {
+                    <div className="grid grid-cols-4 sm:grid-cols-7 gap-1 px-4 pb-3">
+                      {["alza", "czc", "datart", "smarty", "mironet", "mp", "refurbed"].map((eshopKey) => {
                         const shopOffer = product.shops.find(s => s.eshop === eshopKey);
                         const meta = ESHOP_META[eshopKey];
                         const isLowest = shopOffer && shopOffer.price === lowestPrice;
