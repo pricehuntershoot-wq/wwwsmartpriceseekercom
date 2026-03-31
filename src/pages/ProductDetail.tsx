@@ -526,25 +526,18 @@ const ProductDetail = () => {
                 <Button 
                   size="lg"
                   onClick={() => {
-                    if (!user) {
-                      toast.error('Pro nákup se musíte přihlásit.');
-                      return;
-                    }
-                    createProductCheckout({
-                      productName: product.name,
-                      productImage: product.image_url,
-                      price: bestPrice.current_price,
-                      currency: bestPrice.currency || 'EUR',
-                      shopName: bestPrice.shop.name,
-                      productUrl: bestPrice.product_url!,
+                    trackAffiliateClick({
                       productId: product.id,
                       shopId: bestPrice.shop.id,
                       priceId: bestPrice.id,
+                      userId: user?.id,
+                      productUrl: bestPrice.product_url!,
+                      ehubProgramId: (bestPrice.shop as any).ehub_program_id,
                     });
                   }}
                 >
-                  Koupit přes nás
-                  <ShoppingCart className="ml-2 h-4 w-4" />
+                  Koupit – {bestPrice.shop.name}
+                  <ExternalLink className="ml-2 h-4 w-4" />
                 </Button>
               )}
               <Button 
