@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Heart, ExternalLink, Package, Clock, Tag, Sparkles } from "lucide-react";
-import { trackAffiliateClick } from "@/lib/affiliate";
+import { createProductCheckout } from "@/lib/checkout";
 import { useAuth } from "@/hooks/useAuth";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "./ui/button";
