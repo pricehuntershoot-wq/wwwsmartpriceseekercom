@@ -205,7 +205,7 @@ const Favorites = () => {
             <CardContent>
               {favorites.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">
-                  No saved products yet. Browse deals and save your favorites!
+                  Zatím nemáte žádné uložené produkty. Procházejte nabídky a uložte si oblíbené!
                 </p>
               ) : (
                 <div className="space-y-3">
