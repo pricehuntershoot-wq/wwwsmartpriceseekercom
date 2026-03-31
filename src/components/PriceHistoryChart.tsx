@@ -213,7 +213,7 @@ export const PriceHistoryChart = ({ productId, currentBestPrice }: PriceHistoryC
               </p>
             </div>
             <div className="text-center">
-              <p className="text-sm text-muted-foreground">Highest</p>
+              <p className="text-sm text-muted-foreground">Nejvyšší</p>
               <p className="text-lg font-bold text-red-500">
                 {formatPrice(Math.max(...priceHistory.map(p => p.price)))}
               </p>
