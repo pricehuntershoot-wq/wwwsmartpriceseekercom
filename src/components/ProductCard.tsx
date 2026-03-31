@@ -25,7 +25,6 @@ interface Price {
     id: string;
     name: string;
     logo_url: string | null;
-    ehub_program_id?: string | null;
   };
 }
 
