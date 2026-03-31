@@ -523,11 +523,18 @@ const ProductDetail = () => {
 
             <div className="flex flex-wrap gap-3">
               {bestPrice?.product_url && (
-                <Button size="lg" asChild>
-                  <a href={bestPrice.product_url} target="_blank" rel="noopener noreferrer">
-                    Buy at Best Price
-                    <ExternalLink className="ml-2 h-4 w-4" />
-                  </a>
+                <Button 
+                  size="lg"
+                  onClick={() => trackAffiliateClick({
+                    productId: product.id,
+                    shopId: bestPrice.shop.id,
+                    priceId: bestPrice.id,
+                    userId: user?.id,
+                    productUrl: bestPrice.product_url!,
+                  })}
+                >
+                  Koupit za nejlepší cenu
+                  <ExternalLink className="ml-2 h-4 w-4" />
                 </Button>
               )}
               <Button 
