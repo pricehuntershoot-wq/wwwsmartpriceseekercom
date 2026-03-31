@@ -111,7 +111,7 @@ export const PriceHistoryChart = ({ productId, currentBestPrice }: PriceHistoryC
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingDown className="h-5 w-5" />
-            Price History
+            Historie cen
           </CardTitle>
         </CardHeader>
         <CardContent>
