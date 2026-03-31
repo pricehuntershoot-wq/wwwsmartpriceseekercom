@@ -234,7 +234,7 @@ const ProductDetail = () => {
       return;
     }
     
-    toast.success("Price alert removed");
+    toast.success("Upozornění odstraněno");
     refetchAlert();
   };
 
