@@ -383,7 +383,7 @@ serve(async (req) => {
       );
     }
 
-    // Scrape Alza + Datart via URL scraping; others via Firecrawl search API
+    // Scrape core 6 e-shops only (optimized for lower credit usage)
     const scrapeResults = await Promise.all([
       ...Object.entries(ESHOP_SEARCH_URLS).map(([name, urlFn]) =>
         scrapeEshop(name, urlFn(trimmedQuery), FIRECRAWL_API_KEY)
@@ -392,15 +392,7 @@ serve(async (req) => {
       searchViaFirecrawl('czc', 'czc.cz', trimmedQuery, FIRECRAWL_API_KEY, ['czc.cz']),
       searchViaFirecrawl('smarty', 'smarty.cz', trimmedQuery, FIRECRAWL_API_KEY, ['doc.smarty.cz', 'files.smarty.cz']),
       searchViaFirecrawl('mironet', 'mironet.cz', trimmedQuery, FIRECRAWL_API_KEY, ['img.mironet.cz']),
-      searchViaFirecrawl('mp', 'mp.cz', trimmedQuery, FIRECRAWL_API_KEY, ['mp.cz']),
-      searchViaFirecrawl('refurbed', 'refurbed.cz', trimmedQuery, FIRECRAWL_API_KEY, ['refurbed.cz', 'imageproxy.wolt.com']),
       searchViaFirecrawl('amazon', 'amazon.de', trimmedQuery, FIRECRAWL_API_KEY, ['m.media-amazon.com', 'images-eu.ssl-images-amazon.com']),
-      searchViaFirecrawl('xiaomi', 'mi-store.cz', trimmedQuery, FIRECRAWL_API_KEY, ['mi-store.cz']),
-      searchViaFirecrawl('gigacomputer', 'gigacomputer.cz', trimmedQuery, FIRECRAWL_API_KEY, ['gigacomputer.cz']),
-      searchViaFirecrawl('tsbohemia', 'tsbohemia.cz', trimmedQuery, FIRECRAWL_API_KEY, ['tsbohemia.cz']),
-      searchViaFirecrawl('allegro', 'allegro.cz', trimmedQuery, FIRECRAWL_API_KEY, ['allegro.cz']),
-      searchViaFirecrawl('samsung', 'samsung.com/cz', trimmedQuery, FIRECRAWL_API_KEY, ['samsung.com', 'images.samsung.com']),
-      searchViaFirecrawl('isetos', 'isetos.cz', trimmedQuery, FIRECRAWL_API_KEY, ['isetos.cz']),
     ]);
 
     // Build combined content for AI analysis
