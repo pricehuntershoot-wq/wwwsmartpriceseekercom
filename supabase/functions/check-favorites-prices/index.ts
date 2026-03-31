@@ -52,7 +52,7 @@ serve(async (req) => {
           if (subscriptions.data.length > 0) {
             const productId = subscriptions.data[0].items.data[0].price.product;
             if (productId === PREMIUM_PLUS_PRODUCT_ID) {
-              premiumPlusUsers.push(profile);
+              premiumPlusUsers.push({ ...profile, price_drop_threshold: profile.price_drop_threshold ?? 5 });
             }
           }
         }
