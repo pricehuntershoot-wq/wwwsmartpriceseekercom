@@ -1,0 +1,1 @@
+ALTER TABLE public.shops ADD COLUMN IF NOT EXISTS ehub_program_id text DEFAULT NULL;
