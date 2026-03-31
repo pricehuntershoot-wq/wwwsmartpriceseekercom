@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN price_drop_threshold integer NOT NULL DEFAULT 5;

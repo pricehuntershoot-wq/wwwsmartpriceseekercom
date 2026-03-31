@@ -490,6 +490,7 @@ export type Database = {
           id: string
           preferred_currency: string | null
           preferred_language: string | null
+          price_drop_threshold: number
           updated_at: string
           user_id: string
         }
@@ -500,6 +501,7 @@ export type Database = {
           id?: string
           preferred_currency?: string | null
           preferred_language?: string | null
+          price_drop_threshold?: number
           updated_at?: string
           user_id: string
         }
@@ -510,6 +512,7 @@ export type Database = {
           id?: string
           preferred_currency?: string | null
           preferred_language?: string | null
+          price_drop_threshold?: number
           updated_at?: string
           user_id?: string
         }
