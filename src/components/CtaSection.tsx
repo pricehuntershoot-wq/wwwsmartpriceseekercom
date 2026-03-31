@@ -1,10 +1,14 @@
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, Crown, Zap, Check } from "lucide-react";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useSubscription } from "@/hooks/useSubscription";
+import { useAuth } from "@/hooks/useAuth";
 
 export const CtaSection = () => {
   const navigate = useNavigate();
+  const { isPremium, loading } = useSubscription();
+  const { user } = useAuth();
 
   return (
     <section className="relative py-28 overflow-hidden">
@@ -29,9 +33,27 @@ export const CtaSection = () => {
             <span className="text-gradient-primary">Začněte teď.</span>
           </h2>
 
-          <p className="mx-auto mb-10 max-w-lg text-base text-muted-foreground sm:text-lg leading-relaxed">
+          <p className="mx-auto mb-8 max-w-lg text-base text-muted-foreground sm:text-lg leading-relaxed">
             Zadejte produkt, porovnejte ceny z 8 e-shopů a ušetřete — bez registrace, za pár sekund.
           </p>
+
+          {/* Premium benefits mini-list */}
+          {!loading && !isPremium && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+              className="mx-auto mb-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2"
+            >
+              {["Neomezené vyhledávání", "AI analýza slev", "Přednost nových funkcí"].map((f) => (
+                <span key={f} className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <Check className="h-3.5 w-3.5 text-primary" />
+                  {f}
+                </span>
+              ))}
+            </motion.div>
+          )}
 
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Button
@@ -42,14 +64,18 @@ export const CtaSection = () => {
               Vyzkoušet zdarma
               <ArrowRight className="ml-1 h-4 w-4" />
             </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="rounded-xl px-8 text-base"
-              onClick={() => navigate("/premium")}
-            >
-              Zobrazit Premium
-            </Button>
+            {!isPremium && (
+              <Button
+                variant="hero"
+                size="lg"
+                className="rounded-xl px-8 text-base"
+                onClick={() => navigate(user ? "/premium" : "/auth")}
+              >
+                <Crown className="h-4 w-4" />
+                Premium za 99 Kč/měsíc
+                <Zap className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </motion.div>
       </div>
