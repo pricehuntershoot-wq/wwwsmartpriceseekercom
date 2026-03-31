@@ -399,9 +399,9 @@ serve(async (req) => {
     const combinedContent = scrapeResults
       .filter(r => r.markdown)
       .map(r => {
-        let section = `=== ${r.eshop.toUpperCase()} ===\n${r.markdown!.substring(0, 14000)}`;
+        let section = `=== ${r.eshop.toUpperCase()} ===\n${r.markdown!.substring(0, 5000)}`;
         if (r.imageLinks.length > 0) {
-          section += `\n\n--- PRODUCT IMAGE URLs found on ${r.eshop} ---\n${r.imageLinks.slice(0, 30).join('\n')}`;
+          section += `\nIMAGES:\n${r.imageLinks.slice(0, 10).join('\n')}`;
         }
         return section;
       })
