@@ -415,27 +415,18 @@ serve(async (req) => {
     }
 
     // Use AI to extract structured product data via tool calling
-    const systemPrompt = `You are an expert at extracting product listings from Czech and European e-shop search results.
+    const systemPrompt = `Extract product listings from Czech e-shop search results. Sections: ALZA, CZC, DATART, SMARTY, MIRONET, AMAZON.
 
-Given search results from multiple e-shops (Alza.cz, CZC.cz, Datart.cz, Smarty.cz, Mironet.cz, MP.cz, Refurbed.cz, Amazon.de, Xiaomi Store, Gigacomputer.cz, TSBohemia.cz, Allegro.cz, Samsung.cz, iSetos.cz), extract products from EVERY e-shop section.
+RULES:
+1. Extract products from ALL sections with data. At least 3 per section.
+2. STRICT RELEVANCE: Only exact model matches. "Galaxy S24" query → only S24, not S24 Ultra/Plus/FE.
+3. normalizedName: canonical name without color (e.g. "iPhone 16 128GB").
+4. Czech prices: "11 590,-" → 11590. Amazon EUR: multiply by 25.2.
+5. URLs: prepend domain if path starts with "/".
+6. imageUrl: direct image URL or null. Skip duplicates.
+7. Refurbed → condition "refurbished". Amazon EUR → convert to CZK.
 
-CRITICAL RULES:
-1. You MUST extract products from ALL e-shops that have data. Sections are marked "=== ALZA ===", "=== CZC ===", "=== DATART ===", "=== SMARTY ===", "=== MIRONET ===", "=== MP ===", "=== REFURBED ===", "=== AMAZON ===", "=== XIAOMI ===", "=== GIGACOMPUTER ===", "=== TSBOHEMIA ===", "=== ALLEGRO ===", "=== SAMSUNG ===", "=== ISETOS ===".
-2. Extract at least 5 products from EACH section that has product listings. Do NOT skip any e-shop.
-3. **STRICT RELEVANCE**: Only extract products that EXACTLY match the searched model. 
-   - If query is "Galaxy S24", extract ONLY Galaxy S24 (base model). Do NOT include Galaxy S24 Ultra, S24+, S24 FE, S25, or any other variant.
-   - If query is "Galaxy S24 Ultra", extract ONLY Galaxy S24 Ultra. Do NOT include Galaxy S24 (base), S24+, S24 FE.
-   - Different storage/RAM/color variants of the SAME model ARE allowed (e.g. "Galaxy S24 128GB" and "Galaxy S24 256GB" are both valid for query "Galaxy S24").
-   - Skip accessories, cases, chargers, and unrelated products entirely.
-4. For the "normalizedName" field: create a canonical product name without color/variant info, e.g. "Sony WH-1000XM5 bezdrátová sluchátka černá" → "Sony WH-1000XM5". This helps match same products across shops.
-5. Parse Czech prices: "11 590,-" → 11590, "9 272 Kč" → 9272, "od 5 990 Kč" → 5990. Parse EUR prices from Amazon.de: "129,99 €" → convert to CZK using rate 25.2 (e.g. 129.99 * 25.2 = 3276).
-6. For URLs: Alza prepend "https://www.alza.cz", CZC "https://www.czc.cz", Datart "https://www.datart.cz", Smarty "https://www.smarty.cz", Mironet "https://www.mironet.cz", MP "https://www.mp.cz", Refurbed "https://www.refurbed.cz", Amazon "https://www.amazon.de", Xiaomi "https://www.mi-store.cz", Gigacomputer "https://www.gigacomputer.cz", TSBohemia "https://www.tsbohemia.cz", Allegro "https://www.allegro.cz", Samsung "https://www.samsung.com/cz", iSetos "https://www.isetos.cz" if path starts with "/".
-7. For imageUrl: must be a direct image URL (ending in .jpg/.jpeg/.png/.webp or containing /img//foto//photo/). If unsure, null. Never assign same image to multiple products.
-8. Skip duplicate listings (same product appearing twice in same e-shop).
-9. **Refurbed.cz** specializes in refurbished products — set condition to "refurbished" for all Refurbed products.
-10. **Amazon.de** prices are in EUR — convert to CZK (multiply by 25.2) and round to whole number.
-
-Call the extract_products function with ALL found products.`;
+Call extract_products with all found products.`;
 
     const tools = [{
       type: "function" as const,
