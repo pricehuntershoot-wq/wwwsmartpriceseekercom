@@ -33,11 +33,11 @@ serve(async (req) => {
     // Get all Premium Plus users
     const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
-      .select('user_id, email, display_name');
+      .select('user_id, email, display_name, price_drop_threshold');
 
     if (profilesError) throw profilesError;
 
-    const premiumPlusUsers: Array<{ user_id: string; email: string; display_name: string | null }> = [];
+    const premiumPlusUsers: Array<{ user_id: string; email: string; display_name: string | null; price_drop_threshold: number }> = [];
 
     for (const profile of profiles || []) {
       if (!profile.email) continue;
@@ -52,7 +52,7 @@ serve(async (req) => {
           if (subscriptions.data.length > 0) {
             const productId = subscriptions.data[0].items.data[0].price.product;
             if (productId === PREMIUM_PLUS_PRODUCT_ID) {
-              premiumPlusUsers.push(profile);
+              premiumPlusUsers.push({ ...profile, price_drop_threshold: profile.price_drop_threshold ?? 5 });
             }
           }
         }
@@ -107,7 +107,7 @@ serve(async (req) => {
 
           const dropPercentage = ((previousPrice.price - price.current_price) / previousPrice.price) * 100;
 
-          if (dropPercentage < 5) continue; // Only notify for 5%+ drops
+          if (dropPercentage < user.price_drop_threshold) continue; // Only notify for drops >= user's threshold
 
           // Check if we already notified about this
           const { data: existingNotification } = await supabase

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings as SettingsIcon, User, Bell, ArrowLeft, Save, Palette, Sun, Moon, Monitor, Crown, ExternalLink, Loader2, Star, Heart, Zap } from "lucide-react";
+import { Settings as SettingsIcon, User, Bell, ArrowLeft, Save, Palette, Sun, Moon, Monitor, Crown, ExternalLink, Loader2, Star, Heart, Zap, Gauge } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -28,6 +28,7 @@ const Settings = () => {
   const { theme, setTheme } = useTheme();
   
   const [displayName, setDisplayName] = useState("");
+  const [priceDropThreshold, setPriceDropThreshold] = useState(5);
   const [emailAlerts, setEmailAlerts] = useState(true);
   const [priceDropAlerts, setPriceDropAlerts] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -46,12 +47,13 @@ const Settings = () => {
       
       const { data } = await supabase
         .from("profiles")
-        .select("display_name")
+        .select("display_name, price_drop_threshold")
         .eq("user_id", user.id)
         .maybeSingle();
       
       if (data) {
         setDisplayName(data.display_name || "");
+        setPriceDropThreshold(data.price_drop_threshold ?? 5);
       }
 
 
@@ -68,7 +70,7 @@ const Settings = () => {
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({ display_name: displayName })
+        .update({ display_name: displayName, price_drop_threshold: priceDropThreshold })
         .eq("user_id", user.id);
 
       if (error) throw error;
@@ -289,6 +291,28 @@ const Settings = () => {
                           <Zap className="h-3.5 w-3.5 text-primary" />
                           <span>Neomezené vyhledávání a AI analýza</span>
                           <Badge variant="secondary" className="ml-auto text-xs">Aktivní</Badge>
+                        </div>
+                      </div>
+                      <Separator />
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Gauge className="h-4 w-4 text-primary" />
+                          <span className="text-sm font-semibold">Práh poklesu ceny</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Upozorníme vás, když cena klesne alespoň o zvolené procento.
+                        </p>
+                        <div className="flex gap-2 flex-wrap">
+                          {[3, 5, 10, 15, 20].map((val) => (
+                            <Button
+                              key={val}
+                              variant={priceDropThreshold === val ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setPriceDropThreshold(val)}
+                            >
+                              {val}%
+                            </Button>
+                          ))}
                         </div>
                       </div>
                     </div>
