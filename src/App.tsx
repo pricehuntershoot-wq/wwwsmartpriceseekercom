@@ -20,6 +20,7 @@ import NotFound from "./pages/NotFound";
 import Analyzer from "./pages/Analyzer";
 import SearchResults from "./pages/SearchResults";
 import CategoryProducts from "./pages/CategoryProducts";
+import ABTestDashboard from "./pages/ABTestDashboard";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ const App = () => (
               <Route path="/settings" element={<Settings />} />
               <Route path="/analyzer" element={<Analyzer />} />
               <Route path="/search" element={<SearchResults />} />
+              <Route path="/ab-dashboard" element={<ABTestDashboard />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
