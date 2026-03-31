@@ -347,15 +347,15 @@ const SearchResults = () => {
   };
 
   useEffect(() => {
-    if (query.trim().length >= 2) {
-      if (!canSearch) {
-        setShowLimitModal(true);
-        return;
-      }
-      incrementSearch();
-      searchEshops(query.trim());
+    if (limitLoading) return;
+    if (query.trim().length < 2) return;
+    if (!canSearch) {
+      setShowLimitModal(true);
+      return;
     }
-  }, [query]);
+    incrementSearch();
+    searchEshops(query.trim());
+  }, [query, limitLoading]);
 
   // Load user's existing favorites
   useEffect(() => {
