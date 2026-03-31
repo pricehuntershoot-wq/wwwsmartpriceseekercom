@@ -33,8 +33,10 @@ const Settings = () => {
   const [saving, setSaving] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [shops, setShops] = useState<{ id: string; name: string; ehub_program_id: string | null }[]>([]);
+  const [shops, setShops] = useState<{ id: string; name: string; ehub_program_id: string | null; tipli_url: string | null; cashback_percentage: number | null }[]>([]);
   const [ehubIds, setEhubIds] = useState<Record<string, string>>({});
+  const [tipliUrls, setTipliUrls] = useState<Record<string, string>>({});
+  const [cashbackPcts, setCashbackPcts] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!authLoading && !user) {
