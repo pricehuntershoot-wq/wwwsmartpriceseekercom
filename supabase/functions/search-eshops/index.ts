@@ -425,7 +425,7 @@ serve(async (req) => {
     // Use AI to extract structured product data via tool calling
     const systemPrompt = `You are an expert at extracting product listings from Czech and European e-shop search results.
 
-Given search results from multiple e-shops (Alza.cz, CZC.cz, Datart.cz, Smarty.cz, Mironet.cz, MP.cz, Refurbed.cz, Amazon.de, Xiaomi Store, Gigacomputer.cz, TSBohemia.cz, Allegro.cz, Samsung.cz), extract products from EVERY e-shop section.
+Given search results from multiple e-shops (Alza.cz, CZC.cz, Datart.cz, Smarty.cz, Mironet.cz, MP.cz, Refurbed.cz, Amazon.de, Xiaomi Store, Gigacomputer.cz, TSBohemia.cz, Allegro.cz, Samsung.cz, iSetos.cz), extract products from EVERY e-shop section.
 
 CRITICAL RULES:
 1. You MUST extract products from ALL e-shops that have data. Sections are marked "=== ALZA ===", "=== CZC ===", "=== DATART ===", "=== SMARTY ===", "=== MIRONET ===", "=== MP ===", "=== REFURBED ===", "=== AMAZON ===", "=== XIAOMI ===", "=== GIGACOMPUTER ===", "=== TSBOHEMIA ===", "=== ALLEGRO ===", "=== SAMSUNG ===".
