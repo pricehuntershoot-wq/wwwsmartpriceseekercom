@@ -53,6 +53,7 @@ const Settings = () => {
       
       if (data) {
         setDisplayName(data.display_name || "");
+        setPriceDropThreshold(data.price_drop_threshold ?? 5);
       }
 
 
