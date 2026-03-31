@@ -532,7 +532,6 @@ const ProductDetail = () => {
                       priceId: bestPrice.id,
                       userId: user?.id,
                       productUrl: bestPrice.product_url!,
-                      ehubProgramId: (bestPrice.shop as any).ehub_program_id,
                     });
                   }}
                 >
