@@ -237,6 +237,12 @@ const Favorites = () => {
                         {fav.products.category && (
                           <Badge variant="outline" className="mt-1 text-xs">{fav.products.category}</Badge>
                         )}
+                        {isPremiumPlus && (
+                          <Badge className="mt-1 text-xs bg-primary/15 text-primary border-primary/30 hover:bg-primary/20">
+                            <Star className="h-3 w-3 mr-1" />
+                            Automaticky sledováno
+                          </Badge>
+                        )}
                       </Link>
                       <div className="flex items-center gap-1">
                         <Button
