@@ -63,6 +63,7 @@ export const Header = () => {
           <CurrencySelector />
           {user ? (
              <>
+              <NotificationBell />
               <Button variant="ghost" size="sm" asChild>
                 <Link to="/settings" className="flex items-center gap-1.5">
                   <Settings className="h-4 w-4" />
