@@ -464,9 +464,9 @@ Call extract_products with all found products.`;
     }];
 
     const models = [
-      { name: 'google/gemini-3-flash-preview', temperature: 0.1 },
+      { name: 'google/gemini-2.5-flash-lite', temperature: 0.1 },
       { name: 'google/gemini-2.5-flash', temperature: 0.1 },
-      { name: 'openai/gpt-5-mini', temperature: 1 },
+      { name: 'google/gemini-3-flash-preview', temperature: 0.1 },
     ];
     let aiResponse = null;
     
