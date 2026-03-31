@@ -8,6 +8,7 @@ const shops = [
   { name: "Mironet.cz", color: "text-orange-400" },
   { name: "MP.cz", color: "text-violet-400" },
   { name: "Refurbed.cz", color: "text-teal-400" },
+  { name: "Amazon.de", color: "text-sky-400" },
 ];
 
 export const ShopLogosSection = () => {
