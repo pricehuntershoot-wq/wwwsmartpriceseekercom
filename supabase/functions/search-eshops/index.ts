@@ -376,7 +376,7 @@ serve(async (req) => {
       );
     }
 
-    // Scrape Alza + Datart via URL scraping; Smarty, Mironet, MP via Firecrawl search API (JS-only search)
+    // Scrape Alza + Datart via URL scraping; Smarty, Mironet, MP, Refurbed via Firecrawl search API
     const scrapeResults = await Promise.all([
       ...Object.entries(ESHOP_SEARCH_URLS).map(([name, urlFn]) =>
         scrapeEshop(name, urlFn(trimmedQuery), FIRECRAWL_API_KEY)
@@ -386,6 +386,7 @@ serve(async (req) => {
       searchViaFirecrawl('smarty', 'smarty.cz', trimmedQuery, FIRECRAWL_API_KEY, ['doc.smarty.cz', 'files.smarty.cz']),
       searchViaFirecrawl('mironet', 'mironet.cz', trimmedQuery, FIRECRAWL_API_KEY, ['img.mironet.cz']),
       searchViaFirecrawl('mp', 'mp.cz', trimmedQuery, FIRECRAWL_API_KEY, ['mp.cz']),
+      searchViaFirecrawl('refurbed', 'refurbed.cz', trimmedQuery, FIRECRAWL_API_KEY, ['refurbed.cz', 'imageproxy.wolt.com']),
     ]);
 
     // Build combined content for AI analysis
