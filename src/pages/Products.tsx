@@ -66,12 +66,12 @@ const Products = () => {
             (pricesData || []).map(async (price) => {
               const { data: shopData } = await supabase
                 .from('shops')
-                .select('id, name, logo_url, tipli_url')
+                .select('id, name, logo_url')
                 .eq('id', price.shop_id)
                 .maybeSingle();
               return {
                 ...price,
-                shop: shopData || { id: price.shop_id, name: 'Unknown', logo_url: null, tipli_url: null }
+                shop: shopData || { id: price.shop_id, name: 'Unknown', logo_url: null }
               };
             })
           );

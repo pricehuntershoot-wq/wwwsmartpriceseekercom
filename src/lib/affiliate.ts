@@ -6,7 +6,6 @@ interface AffiliateClickParams {
   priceId?: string;
   userId?: string;
   productUrl: string;
-  cashbackUrl?: string | null;
 }
 
 /**
@@ -26,13 +25,11 @@ export const buildAffiliateUrl = (url: string): string => {
 
 /**
  * Tracks an affiliate click and opens the URL in a new tab.
- * If a cashbackUrl (Plná Peněženka) is available, redirects through it instead.
  */
 export const trackAffiliateClick = async (
   params: AffiliateClickParams
 ): Promise<void> => {
-  // If cashback URL exists, use it; otherwise use UTM-tagged direct link
-  const targetUrl = params.cashbackUrl || buildAffiliateUrl(params.productUrl);
+  const targetUrl = buildAffiliateUrl(params.productUrl);
 
   // Open link immediately (don't wait for tracking)
   window.open(targetUrl, '_blank', 'noopener,noreferrer');
@@ -45,7 +42,7 @@ export const trackAffiliateClick = async (
       price_id: params.priceId || null,
       user_id: params.userId || null,
       product_url: params.productUrl,
-      referrer: params.cashbackUrl ? 'plna_penezenka' : 'direct',
+      referrer: 'direct',
     });
   } catch (error) {
     console.error('Failed to track affiliate click:', error);

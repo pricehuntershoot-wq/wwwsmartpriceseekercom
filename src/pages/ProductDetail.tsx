@@ -101,13 +101,13 @@ const ProductDetail = () => {
         (pricesData || []).map(async (price) => {
           const { data: shopData } = await supabase
             .from('shops')
-            .select('id, name, logo_url, website_url, tipli_url, cashback_percentage')
+            .select('id, name, logo_url, website_url')
             .eq('id', price.shop_id)
             .maybeSingle();
           
           return {
             ...price,
-            shop: shopData || { id: price.shop_id, name: 'Unknown', logo_url: null, website_url: null, tipli_url: null, cashback_percentage: null }
+            shop: shopData || { id: price.shop_id, name: 'Unknown', logo_url: null, website_url: null }
           };
         })
       );
@@ -532,7 +532,7 @@ const ProductDetail = () => {
                       priceId: bestPrice.id,
                       userId: user?.id,
                       productUrl: bestPrice.product_url!,
-                      cashbackUrl: bestPrice.shop.tipli_url,
+                      
                     });
                   }}
                 >
@@ -840,7 +840,7 @@ const ProductDetail = () => {
                                   priceId: price.id,
                                   userId: user?.id,
                                   productUrl: price.product_url!,
-                                  cashbackUrl: price.shop.tipli_url,
+                                  
                                 });
                               }}
                             >

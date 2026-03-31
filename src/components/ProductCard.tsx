@@ -25,7 +25,7 @@ interface Price {
     id: string;
     name: string;
     logo_url: string | null;
-    tipli_url?: string | null;
+    
   };
 }
 
@@ -219,7 +219,7 @@ export const ProductCard = ({ product, onFavorite, isFavorited = false }: Produc
                   priceId: bestPrice.id,
                   userId: user?.id,
                   productUrl: bestPrice.product_url!,
-                  cashbackUrl: bestPrice.shop.tipli_url,
+                  
                 });
               }}
             >
