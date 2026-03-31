@@ -389,7 +389,7 @@ const ProductDetail = () => {
             )}
             {savings > 0 && (
               <Badge className="absolute bottom-4 left-4 bg-green-500 px-3 py-1 text-lg text-white">
-                Save {formatPrice(savings, preferredCurrency)}
+                Ušetříte {formatPrice(savings, preferredCurrency)}
               </Badge>
             )}
           </div>
