@@ -111,17 +111,17 @@ export const PriceHistoryChart = ({ productId, currentBestPrice }: PriceHistoryC
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingDown className="h-5 w-5" />
-            Price History
+            Historie cen
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <TrendingDown className="mb-4 h-12 w-12 text-muted-foreground/30" />
             <p className="text-muted-foreground">
-              No price history available yet.
+              Historie cen zatím není k dispozici.
             </p>
             <p className="text-sm text-muted-foreground/70">
-              Price changes will be tracked over time.
+              Změny cen budou sledovány v průběhu času.
             </p>
           </div>
         </CardContent>
@@ -135,7 +135,7 @@ export const PriceHistoryChart = ({ productId, currentBestPrice }: PriceHistoryC
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <TrendingDown className="h-5 w-5" />
-            Price History
+            Historie cen
           </CardTitle>
           {trend && (
             <div className={`flex items-center gap-1 rounded-full px-3 py-1 text-sm font-medium ${
@@ -201,19 +201,19 @@ export const PriceHistoryChart = ({ productId, currentBestPrice }: PriceHistoryC
         {priceHistory.length > 0 && (
           <div className="mt-4 grid grid-cols-3 gap-4 border-t pt-4">
             <div className="text-center">
-              <p className="text-sm text-muted-foreground">Lowest</p>
+              <p className="text-sm text-muted-foreground">Nejnižší</p>
               <p className="text-lg font-bold text-green-500">
                 {formatPrice(Math.min(...priceHistory.map(p => p.price)))}
               </p>
             </div>
             <div className="text-center">
-              <p className="text-sm text-muted-foreground">Average</p>
+              <p className="text-sm text-muted-foreground">Průměr</p>
               <p className="text-lg font-bold">
                 {formatPrice(priceHistory.reduce((sum, p) => sum + p.price, 0) / priceHistory.length)}
               </p>
             </div>
             <div className="text-center">
-              <p className="text-sm text-muted-foreground">Highest</p>
+              <p className="text-sm text-muted-foreground">Nejvyšší</p>
               <p className="text-lg font-bold text-red-500">
                 {formatPrice(Math.max(...priceHistory.map(p => p.price)))}
               </p>
