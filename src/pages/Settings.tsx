@@ -35,7 +35,6 @@ const Settings = () => {
   const [loading, setLoading] = useState(true);
   const [shops, setShops] = useState<{ id: string; name: string; tipli_url: string | null; cashback_percentage: number | null }[]>([]);
   const [tipliUrls, setTipliUrls] = useState<Record<string, string>>({});
-  const [tipliUrls, setTipliUrls] = useState<Record<string, string>>({});
   const [cashbackPcts, setCashbackPcts] = useState<Record<string, string>>({});
 
   useEffect(() => {
