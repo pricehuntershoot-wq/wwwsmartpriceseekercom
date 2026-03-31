@@ -5,11 +5,20 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useABTest } from "@/hooks/useABTest";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface PremiumPlusUpsellProps {
   variant?: "full" | "compact";
 }
+
+// A/B test price config
+type PriceVariant = "price_149" | "price_99";
+
+const PRICE_CONFIG: Record<PriceVariant, { promo: number; label: string }> = {
+  price_149: { promo: 149, label: "149 Kč" },
+  price_99: { promo: 99, label: "99 Kč" },
+};
 
 // Countdown hook — resets daily at midnight
 const useCountdown = () => {
@@ -72,8 +81,14 @@ const CountdownTimer = () => {
 export const PremiumPlusUpsell = ({ variant = "full" }: PremiumPlusUpsellProps) => {
   const { user } = useAuth();
   const { isPremiumPlus, loading } = useSubscription();
+  const { variant: abVariant, trackClick } = useABTest<PriceVariant>({
+    testName: "premium_plus_price",
+    variants: ["price_149", "price_99"],
+  });
 
   if (loading || isPremiumPlus) return null;
+
+  const price = abVariant ? PRICE_CONFIG[abVariant] : PRICE_CONFIG.price_149;
 
   const features = [
     { icon: Heart, text: "Automatické sledování oblíbených" },
@@ -81,6 +96,9 @@ export const PremiumPlusUpsell = ({ variant = "full" }: PremiumPlusUpsellProps) 
     { icon: Gauge, text: "Nastavitelný práh poklesu ceny" },
     { icon: Zap, text: "Neomezené vyhledávání a AI analýza" },
   ];
+
+  const ctaTarget = user ? "/premium" : "/auth";
+  const ctaLabel = user ? `Získat za ${price.label}` : "Přihlásit se";
 
   if (variant === "compact") {
     return (
@@ -96,7 +114,7 @@ export const PremiumPlusUpsell = ({ variant = "full" }: PremiumPlusUpsellProps) 
             <div className="flex items-center gap-2">
               <Flame className="h-4 w-4 text-accent shrink-0 animate-pulse" />
               <span className="text-xs font-semibold text-accent">
-                Dnešní akce: 1. měsíc za 149 Kč
+                Dnešní akce: 1. měsíc za {price.label}
               </span>
             </div>
             <div className="hidden sm:block">
@@ -114,7 +132,7 @@ export const PremiumPlusUpsell = ({ variant = "full" }: PremiumPlusUpsellProps) 
                   <span className="text-sm font-bold">Premium Plus</span>
                   <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
                     <span className="line-through opacity-60 mr-1">249 Kč</span>
-                    149 Kč
+                    {price.label}
                   </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -122,10 +140,10 @@ export const PremiumPlusUpsell = ({ variant = "full" }: PremiumPlusUpsellProps) 
                 </p>
               </div>
             </div>
-            <Button variant="hero" size="sm" className="shrink-0 rounded-lg" asChild>
-              <Link to={user ? "/premium" : "/auth"}>
+            <Button variant="hero" size="sm" className="shrink-0 rounded-lg" asChild onClick={trackClick}>
+              <Link to={ctaTarget}>
                 <Star className="h-3.5 w-3.5" />
-                {user ? "Získat za 149 Kč" : "Přihlásit se"}
+                {ctaLabel}
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </Button>
@@ -164,7 +182,7 @@ export const PremiumPlusUpsell = ({ variant = "full" }: PremiumPlusUpsellProps) 
                     <Flame className="h-5 w-5 text-accent animate-pulse" />
                     <span className="font-heading text-sm sm:text-base font-bold">
                       Akční nabídka: 1. měsíc za{" "}
-                      <span className="text-accent">149 Kč</span>
+                      <span className="text-accent">{price.label}</span>
                       <span className="text-xs text-muted-foreground line-through ml-1.5">
                         249 Kč
                       </span>
@@ -217,10 +235,10 @@ export const PremiumPlusUpsell = ({ variant = "full" }: PremiumPlusUpsellProps) 
 
               {/* CTA */}
               <div className="flex flex-col items-center gap-2 mt-1">
-                <Button variant="hero" size="lg" className="rounded-xl px-8" asChild>
-                  <Link to={user ? "/premium" : "/auth"}>
+                <Button variant="hero" size="lg" className="rounded-xl px-8" asChild onClick={trackClick}>
+                  <Link to={ctaTarget}>
                     <Star className="h-4 w-4" />
-                    {user ? "Získat za 149 Kč" : "Přihlásit se"}
+                    {ctaLabel}
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
