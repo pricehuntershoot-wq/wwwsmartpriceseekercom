@@ -135,7 +135,7 @@ export const PriceHistoryChart = ({ productId, currentBestPrice }: PriceHistoryC
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <TrendingDown className="h-5 w-5" />
-            Price History
+            Historie cen
           </CardTitle>
           {trend && (
             <div className={`flex items-center gap-1 rounded-full px-3 py-1 text-sm font-medium ${
