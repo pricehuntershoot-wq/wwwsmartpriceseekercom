@@ -692,7 +692,7 @@ const ProductDetail = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Shop</TableHead>
+                      <TableHead>Obchod</TableHead>
                       <TableHead 
                         className="cursor-pointer hover:text-foreground"
                         onClick={() => handleTableSort('price')}
