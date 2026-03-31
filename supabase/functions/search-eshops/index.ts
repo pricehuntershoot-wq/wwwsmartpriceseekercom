@@ -420,7 +420,7 @@ serve(async (req) => {
 Given search results from multiple e-shops (Alza.cz, CZC.cz, Datart.cz, Smarty.cz, Mironet.cz, MP.cz, Refurbed.cz, Amazon.de, Xiaomi Store, Gigacomputer.cz), extract products from EVERY e-shop section.
 
 CRITICAL RULES:
-1. You MUST extract products from ALL e-shops that have data. Sections are marked "=== ALZA ===", "=== CZC ===", "=== DATART ===", "=== SMARTY ===", "=== MIRONET ===", "=== MP ===", "=== REFURBED ===", "=== AMAZON ===", "=== XIAOMI ===".
+1. You MUST extract products from ALL e-shops that have data. Sections are marked "=== ALZA ===", "=== CZC ===", "=== DATART ===", "=== SMARTY ===", "=== MIRONET ===", "=== MP ===", "=== REFURBED ===", "=== AMAZON ===", "=== XIAOMI ===", "=== GIGACOMPUTER ===".
 2. Extract at least 5 products from EACH section that has product listings. Do NOT skip any e-shop.
 3. **STRICT RELEVANCE**: Only extract products that EXACTLY match the searched model. 
    - If query is "Galaxy S24", extract ONLY Galaxy S24 (base model). Do NOT include Galaxy S24 Ultra, S24+, S24 FE, S25, or any other variant.
