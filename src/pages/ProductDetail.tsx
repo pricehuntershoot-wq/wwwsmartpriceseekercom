@@ -591,7 +591,7 @@ const ProductDetail = () => {
                       />
                       {bestPrice && alertPrice && parseFloat(alertPrice) >= bestPrice.current_price && (
                         <p className="mt-2 text-sm text-amber-500">
-                          Tip: Set a price lower than the current best price to get meaningful alerts.
+                          Tip: Nastavte cenu nižší než aktuální nejlepší cena.
                         </p>
                       )}
                     </div>
