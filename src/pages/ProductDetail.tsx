@@ -346,12 +346,12 @@ const ProductDetail = () => {
         <Header />
         <main className="container flex flex-col items-center justify-center pb-16 pt-24">
           <Package className="mb-4 h-16 w-16 text-muted-foreground/50" />
-          <h1 className="mb-2 text-2xl font-bold">Product not found</h1>
-          <p className="mb-4 text-muted-foreground">The product you're looking for doesn't exist.</p>
+          <h1 className="mb-2 text-2xl font-bold">Produkt nenalezen</h1>
+          <p className="mb-4 text-muted-foreground">Produkt, který hledáte, neexistuje.</p>
           <Button asChild>
             <Link to="/products">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Products
+              Zpět na produkty
             </Link>
           </Button>
         </main>
