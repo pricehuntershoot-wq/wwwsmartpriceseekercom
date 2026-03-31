@@ -399,6 +399,42 @@ const Settings = () => {
             </CardContent>
           </Card>
 
+          {/* eHub Affiliate Settings */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Link2 className="h-5 w-5 text-primary" />
+                <CardTitle>eHub Affiliate</CardTitle>
+              </div>
+              <CardDescription>
+                Nastavte eHub program ID pro každý e-shop. Odkazy na produkty budou automaticky přesměrovány přes eHub.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {shops.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Žádné e-shopy k dispozici.</p>
+              ) : (
+                shops.map((shop) => (
+                  <div key={shop.id} className="flex items-center gap-3">
+                    <Label className="w-32 shrink-0 text-sm font-medium">{shop.name}</Label>
+                    <Input
+                      placeholder="např. alza-cz"
+                      value={ehubIds[shop.id] || ""}
+                      onChange={(e) => setEhubIds(prev => ({ ...prev, [shop.id]: e.target.value }))}
+                      className="flex-1"
+                    />
+                  </div>
+                ))
+              )}
+              <p className="text-xs text-muted-foreground">
+                Program ID najdete v eHub dashboardu po registraci na{" "}
+                <a href="https://www.ehub.cz" target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                  ehub.cz
+                </a>
+              </p>
+            </CardContent>
+          </Card>
+
           <Button onClick={handleSave} disabled={saving} className="w-full">
             <Save className="h-4 w-4 mr-2" />
             {saving ? t('saving') : t('saveChanges')}
