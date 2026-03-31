@@ -281,7 +281,7 @@ const Favorites = () => {
             <CardContent>
               {alerts.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">
-                  No price alerts set. Set alerts to get notified when prices drop!
+                  Nemáte nastavená žádná upozornění. Nastavte si je a budeme vás informovat o poklesu cen!
                 </p>
               ) : (
                 <div className="space-y-3">
