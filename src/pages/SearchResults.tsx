@@ -188,7 +188,7 @@ const SearchResults = () => {
   const query = searchParams.get("q") || "";
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { canSearch, remaining, searchesUsed, isPremium, incrementSearch, limit } = useSearchLimit();
+  const { canSearch, remaining, searchesUsed, isPremium, incrementSearch, resetLimit, limit, loading: limitLoading } = useSearchLimit();
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [products, setProducts] = useState<EshopProduct[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -347,15 +347,15 @@ const SearchResults = () => {
   };
 
   useEffect(() => {
-    if (query.trim().length >= 2) {
-      if (!canSearch) {
-        setShowLimitModal(true);
-        return;
-      }
-      incrementSearch();
-      searchEshops(query.trim());
+    if (limitLoading) return;
+    if (query.trim().length < 2) return;
+    if (!canSearch) {
+      setShowLimitModal(true);
+      return;
     }
-  }, [query]);
+    incrementSearch();
+    searchEshops(query.trim());
+  }, [query, limitLoading]);
 
   // Load user's existing favorites
   useEffect(() => {

@@ -46,6 +46,11 @@ export function useSearchLimit() {
     }));
   }, [searchesUsed, isPremium]);
 
+  const resetLimit = useCallback(() => {
+    setSearchesUsed(0);
+    localStorage.removeItem(STORAGE_KEY);
+  }, []);
+
   return {
     searchesUsed,
     canSearch,
@@ -53,6 +58,7 @@ export function useSearchLimit() {
     isPremium,
     loading: subLoading,
     incrementSearch,
+    resetLimit,
     limit: FREE_SEARCH_LIMIT,
   };
 }
