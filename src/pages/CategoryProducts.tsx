@@ -51,6 +51,7 @@ const ESHOP_META: Record<string, { name: string; logo: string; color: string }> 
   mironet: { name: "Mironet.cz", logo: "https://www.mironet.cz/favicon.ico", color: "bg-orange-600" },
   mp: { name: "MP.cz", logo: "https://www.mp.cz/favicon.ico", color: "bg-violet-600" },
   refurbed: { name: "Refurbed.cz", logo: "https://www.refurbed.cz/favicon.ico", color: "bg-teal-600" },
+  amazon: { name: "Amazon.de", logo: "https://www.amazon.de/favicon.ico", color: "bg-sky-600" },
 };
 
 const CATEGORY_CONFIG: Record<string, { title: string; icon: typeof Headphones; searchTerm: string }> = {
@@ -162,7 +163,7 @@ const CategoryProducts = () => {
         toast.success(
           data.fromCache
             ? `Nalezeno ${data.products.length} nabídek z databáze`
-            : `Nalezeno ${data.products.length} nabídek ze 7 e-shopů`
+            : `Nalezeno ${data.products.length} nabídek z 8 e-shopů`
         );
       }
     } catch (err) {
@@ -215,8 +216,9 @@ const CategoryProducts = () => {
             <span className="font-semibold text-foreground">Datart.cz</span>,{" "}
             <span className="font-semibold text-foreground">Smarty.cz</span>,{" "}
             <span className="font-semibold text-foreground">Mironet.cz</span>,{" "}
-            <span className="font-semibold text-foreground">MP.cz</span> a{" "}
-            <span className="font-semibold text-foreground">Refurbed.cz</span> — hledáme{" "}
+            <span className="font-semibold text-foreground">MP.cz</span>,{" "}
+            <span className="font-semibold text-foreground">Refurbed.cz</span> a{" "}
+            <span className="font-semibold text-foreground">Amazon.de</span> — hledáme{" "}
             <span className="font-bold text-primary">skryté slevy</span>, promo kódy a rozbalené produkty
           </p>
         </div>
@@ -230,7 +232,7 @@ const CategoryProducts = () => {
                 <div>
                   <p className="font-semibold">Prohledáváme skryté slevy...</p>
                   <p className="text-sm text-muted-foreground">
-                    Stahujeme a analyzujeme stránky ze 7 e-shopů pomocí AI
+                    Stahujeme a analyzujeme stránky z 8 e-shopů pomocí AI
                   </p>
                 </div>
               </div>
@@ -379,8 +381,8 @@ const CategoryProducts = () => {
                     </div>
 
                     {/* Shop prices */}
-                    <div className="grid grid-cols-4 sm:grid-cols-7 gap-1 px-5 pb-3">
-                      {["alza", "czc", "datart", "smarty", "mironet", "mp", "refurbed"].map((eshopKey) => {
+                    <div className="grid grid-cols-4 sm:grid-cols-8 gap-1 px-5 pb-3">
+                      {["alza", "czc", "datart", "smarty", "mironet", "mp", "refurbed", "amazon"].map((eshopKey) => {
                         const shopOffer = product.shops.find(s => s.eshop === eshopKey);
                         const meta = ESHOP_META[eshopKey];
                         const isLowest = shopOffer && shopOffer.price === lowestPrice;

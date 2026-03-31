@@ -74,6 +74,7 @@ const ESHOP_META: Record<string, { name: string; logo: string; color: string }> 
   mironet: { name: "Mironet.cz", logo: "https://www.mironet.cz/favicon.ico", color: "bg-orange-600" },
   mp: { name: "MP.cz", logo: "https://www.mp.cz/favicon.ico", color: "bg-violet-600" },
   refurbed: { name: "Refurbed.cz", logo: "https://www.refurbed.cz/favicon.ico", color: "bg-teal-600" },
+  amazon: { name: "Amazon.de", logo: "https://www.amazon.de/favicon.ico", color: "bg-sky-600" },
 };
 
 const formatPrice = (price: number | null | undefined) => price != null ? price.toLocaleString("cs-CZ") + " Kč" : "–";
@@ -401,7 +402,7 @@ const SearchResults = () => {
         toast.success(
           data.fromCache
             ? `Nalezeno ${data.products.length} nabídek z databáze`
-            : `Nalezeno ${data.products.length} nabídek ze 7 e-shopů`
+            : `Nalezeno ${data.products.length} nabídek z 8 e-shopů`
         );
       } else {
         toast.info("Žádné produkty nenalezeny");
@@ -700,9 +701,9 @@ const SearchResults = () => {
                       </h3>
                     </div>
 
-                    {/* Shop prices - show all 6 shops */}
-                    <div className="grid grid-cols-4 sm:grid-cols-7 gap-1 px-4 pb-3">
-                      {["alza", "czc", "datart", "smarty", "mironet", "mp", "refurbed"].map((eshopKey) => {
+                    {/* Shop prices - show all 8 shops */}
+                    <div className="grid grid-cols-4 sm:grid-cols-8 gap-1 px-4 pb-3">
+                      {["alza", "czc", "datart", "smarty", "mironet", "mp", "refurbed", "amazon"].map((eshopKey) => {
                         const shopOffer = product.shops.find(s => s.eshop === eshopKey);
                         const meta = ESHOP_META[eshopKey];
                         const isLowest = shopOffer && shopOffer.price === lowestPrice;
