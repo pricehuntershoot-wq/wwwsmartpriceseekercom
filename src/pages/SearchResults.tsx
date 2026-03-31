@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
+import { PremiumUpsellBanner } from "@/components/PremiumUpsellBanner";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
