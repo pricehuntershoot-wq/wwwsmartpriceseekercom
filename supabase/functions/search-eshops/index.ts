@@ -331,6 +331,117 @@ async function scrapeEshop(eshopName: string, url: string, apiKey: string, maxRe
   return { eshop: eshopName, markdown: null, imageLinks: [], error: 'Max retries exceeded' };
 }
 
+function regexFallbackParse(scrapeResults: { eshop: string; markdown: string | null; imageLinks: string[] }[], query: string): any[] {
+  const products: any[] = [];
+  const queryLower = query.toLowerCase();
+
+  const domainMap: Record<string, string> = {
+    alza: 'https://www.alza.cz',
+    czc: 'https://www.czc.cz',
+    datart: 'https://www.datart.cz',
+    smarty: 'https://www.smarty.cz',
+    mironet: 'https://www.mironet.cz',
+    amazon: 'https://www.amazon.de',
+  };
+
+  for (const result of scrapeResults) {
+    if (!result.markdown) continue;
+    const eshop = result.eshop;
+    const domain = domainMap[eshop] || '';
+    const lines = result.markdown.split('\n');
+    const seenNames = new Set<string>();
+
+    // Strategy 1: Find markdown headings (### Title) followed by price patterns
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      
+      // Match ### headings or bold text as product names
+      const headingMatch = line.match(/^#{1,4}\s+(.+)/) || line.match(/^\*\*(.+?)\*\*/);
+      if (!headingMatch) continue;
+
+      const name = headingMatch[1].replace(/\[|\]|\(.*?\)/g, '').trim();
+      if (name.length < 5 || name.length > 200) continue;
+      if (!name.toLowerCase().includes(queryLower.split(' ')[0])) continue;
+
+      // Look ahead for price in next 8 lines
+      let price: number | null = null;
+      let originalPrice: number | null = null;
+      let productUrl: string | null = null;
+
+      for (let j = i; j < Math.min(i + 8, lines.length); j++) {
+        const ctx = lines[j];
+
+        // Czech price patterns: "11 590 Kč", "11590,-", "od 5 990 Kč", "5.990 Kč"
+        if (!price) {
+          const priceMatch = ctx.match(/(\d[\d\s.,]*)\s*(?:Kč|,-|CZK)/i);
+          if (priceMatch) {
+            const cleaned = priceMatch[1].replace(/\s/g, '').replace(/\./g, '').replace(',', '.');
+            const parsed = parseFloat(cleaned);
+            if (parsed > 50 && parsed < 500000) price = Math.round(parsed);
+          }
+        }
+
+        // EUR price (Amazon)
+        if (!price && eshop === 'amazon') {
+          const eurMatch = ctx.match(/(\d[\d\s.,]*)\s*€/);
+          if (eurMatch) {
+            const cleaned = eurMatch[1].replace(/\s/g, '').replace('.', '').replace(',', '.');
+            const parsed = parseFloat(cleaned);
+            if (parsed > 1 && parsed < 20000) price = Math.round(parsed * 25.2);
+          }
+        }
+
+        // Original/crossed price
+        if (!originalPrice) {
+          const origMatch = ctx.match(/(?:~~|původní|běžná|doporučená).*?(\d[\d\s.,]*)\s*(?:Kč|,-|CZK)/i);
+          if (origMatch) {
+            const cleaned = origMatch[1].replace(/\s/g, '').replace(/\./g, '').replace(',', '.');
+            const parsed = parseFloat(cleaned);
+            if (parsed > 50) originalPrice = Math.round(parsed);
+          }
+        }
+
+        // URL
+        if (!productUrl) {
+          const urlMatch = ctx.match(/\(?(https?:\/\/[^\s)]+)/);
+          if (urlMatch && urlMatch[1].includes(domainMap[eshop]?.replace('https://www.', '') || eshop)) {
+            productUrl = urlMatch[1];
+          }
+          // Relative URL
+          const relMatch = ctx.match(/URL:\s*(\/[^\s]+)/);
+          if (relMatch && domain) {
+            productUrl = domain + relMatch[1];
+          }
+        }
+      }
+
+      if (!price || seenNames.has(name.toLowerCase())) continue;
+      seenNames.add(name.toLowerCase());
+
+      // Pick first matching image
+      let imageUrl: string | null = null;
+      if (result.imageLinks.length > 0) {
+        imageUrl = result.imageLinks[products.filter(p => p.eshop === eshop).length] || null;
+      }
+
+      products.push({
+        name,
+        normalizedName: name.replace(/\s+(černá|bílá|modrá|zelená|šedá|zlatá|stříbrná|růžová|fialová|červená|black|white|blue|green|silver|gold|pink|purple|red)\b/gi, '').trim(),
+        price,
+        originalPrice,
+        eshop,
+        productUrl,
+        imageUrl,
+        category: 'jiné',
+        condition: eshop === 'refurbed' ? 'refurbished' : 'new',
+        promoCode: null,
+      });
+    }
+  }
+
+  return products;
+}
+
 // Smarty and Mironet use the generic searchViaFirecrawl function defined above
 
 serve(async (req) => {
