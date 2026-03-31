@@ -392,6 +392,7 @@ serve(async (req) => {
       searchViaFirecrawl('refurbed', 'refurbed.cz', trimmedQuery, FIRECRAWL_API_KEY, ['refurbed.cz', 'imageproxy.wolt.com']),
       searchViaFirecrawl('amazon', 'amazon.de', trimmedQuery, FIRECRAWL_API_KEY, ['m.media-amazon.com', 'images-eu.ssl-images-amazon.com']),
       searchViaFirecrawl('xiaomi', 'mi-store.cz', trimmedQuery, FIRECRAWL_API_KEY, ['mi-store.cz']),
+      searchViaFirecrawl('gigacomputer', 'gigacomputer.cz', trimmedQuery, FIRECRAWL_API_KEY, ['gigacomputer.cz']),
     ]);
 
     // Build combined content for AI analysis
