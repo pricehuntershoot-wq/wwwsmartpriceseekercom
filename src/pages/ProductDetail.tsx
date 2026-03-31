@@ -698,7 +698,7 @@ const ProductDetail = () => {
                         onClick={() => handleTableSort('price')}
                       >
                         <span className="flex items-center">
-                          Price
+                          Cena
                           <SortIcon field="price" />
                         </span>
                       </TableHead>
