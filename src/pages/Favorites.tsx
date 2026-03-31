@@ -193,6 +193,14 @@ const Favorites = () => {
                 <Heart className="h-5 w-5 text-primary" />
                 Saved Products ({favorites.length})
               </CardTitle>
+              {isPremiumPlus && (
+                <div className="flex items-center gap-2 rounded-md bg-primary/10 border border-primary/20 px-3 py-2 mt-2">
+                  <Zap className="h-4 w-4 text-primary" />
+                  <span className="text-xs text-primary font-medium">
+                    Premium Plus — ceny se automaticky kontrolují každou hodinu
+                  </span>
+                </div>
+              )}
             </CardHeader>
             <CardContent>
               {favorites.length === 0 ? (
