@@ -118,10 +118,10 @@ export const PriceHistoryChart = ({ productId, currentBestPrice }: PriceHistoryC
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <TrendingDown className="mb-4 h-12 w-12 text-muted-foreground/30" />
             <p className="text-muted-foreground">
-              No price history available yet.
+              Historie cen zatím není k dispozici.
             </p>
             <p className="text-sm text-muted-foreground/70">
-              Price changes will be tracked over time.
+              Změny cen budou sledovány v průběhu času.
             </p>
           </div>
         </CardContent>
