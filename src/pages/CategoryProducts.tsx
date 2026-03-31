@@ -230,7 +230,7 @@ const CategoryProducts = () => {
                 <div>
                   <p className="font-semibold">Prohledáváme skryté slevy...</p>
                   <p className="text-sm text-muted-foreground">
-                    Stahujeme a analyzujeme stránky ze 6 e-shopů pomocí AI
+                    Stahujeme a analyzujeme stránky ze 7 e-shopů pomocí AI
                   </p>
                 </div>
               </div>
