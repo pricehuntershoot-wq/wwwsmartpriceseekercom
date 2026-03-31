@@ -513,35 +513,34 @@ Call extract_products with all found products.`;
       if (success) break;
     }
 
+    let products: any[] = [];
+
     if (!aiResponse) {
       console.log('AI unavailable, falling back to regex parser...');
       products = regexFallbackParse(scrapeResults, trimmedQuery);
       console.log(`Regex fallback extracted ${products.length} products`);
     } else {
-
-    // Parse tool call response
-    let products: any[] = [];
-    try {
-      const toolCall = aiResponse.choices?.[0]?.message?.tool_calls?.[0];
-      if (toolCall?.function?.arguments) {
-        const parsed = JSON.parse(toolCall.function.arguments);
-        products = parsed.products || [];
-      } else {
-        // Fallback: try parsing content directly (some models may not use tool calls)
-        const content = aiResponse.choices?.[0]?.message?.content;
-        if (content) {
-          const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
-          const jsonStr = jsonMatch ? jsonMatch[1].trim() : content.trim();
-          const parsed = JSON.parse(jsonStr);
-          products = Array.isArray(parsed) ? parsed : (parsed.products || []);
+      // Parse tool call response
+      try {
+        const toolCall = aiResponse.choices?.[0]?.message?.tool_calls?.[0];
+        if (toolCall?.function?.arguments) {
+          const parsed = JSON.parse(toolCall.function.arguments);
+          products = parsed.products || [];
+        } else {
+          const content = aiResponse.choices?.[0]?.message?.content;
+          if (content) {
+            const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+            const jsonStr = jsonMatch ? jsonMatch[1].trim() : content.trim();
+            const parsed = JSON.parse(jsonStr);
+            products = Array.isArray(parsed) ? parsed : (parsed.products || []);
+          }
         }
+      } catch (e) {
+        console.error('Failed to parse AI response:', e);
+        products = regexFallbackParse(scrapeResults, trimmedQuery);
       }
-    } catch (e) {
-      console.error('Failed to parse AI response:', e);
-      products = [];
+      console.log(`AI extracted ${products.length} products`);
     }
-
-    console.log(`AI extracted ${products.length} products across e-shops`);
 
     // Validate, deduplicate and clean products
     const seenImages = new Set<string>();
