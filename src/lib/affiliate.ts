@@ -6,7 +6,6 @@ interface AffiliateClickParams {
   priceId?: string;
   userId?: string;
   productUrl: string;
-  cashbackUrl?: string | null;
 }
 
 /**
