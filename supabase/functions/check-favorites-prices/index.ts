@@ -33,7 +33,7 @@ serve(async (req) => {
     // Get all Premium Plus users
     const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
-      .select('user_id, email, display_name');
+      .select('user_id, email, display_name, price_drop_threshold');
 
     if (profilesError) throw profilesError;
 
