@@ -707,7 +707,7 @@ const ProductDetail = () => {
                         onClick={() => handleTableSort('currency')}
                       >
                         <span className="flex items-center">
-                          Currency
+                          Měna
                           <SortIcon field="currency" />
                         </span>
                       </TableHead>
