@@ -621,7 +621,7 @@ const ProductDetail = () => {
           <CardHeader className="flex flex-col gap-4 space-y-0 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle className="flex items-center gap-2">
               <Store className="h-5 w-5" />
-              Price Comparison ({sortedPrices.length} of {product.prices?.length || 0} offers)
+              Srovnání cen ({sortedPrices.length} z {product.prices?.length || 0} nabídek)
             </CardTitle>
             <div className="flex flex-wrap items-center gap-3">
               {/* Condition filter - Alza style */}
