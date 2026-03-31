@@ -368,7 +368,7 @@ const ProductDetail = () => {
         <Button variant="ghost" asChild className="mb-6">
           <Link to="/products">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Products
+            Zpět na produkty
           </Link>
         </Button>
 
