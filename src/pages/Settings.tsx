@@ -28,6 +28,7 @@ const Settings = () => {
   const { theme, setTheme } = useTheme();
   
   const [displayName, setDisplayName] = useState("");
+  const [priceDropThreshold, setPriceDropThreshold] = useState(5);
   const [emailAlerts, setEmailAlerts] = useState(true);
   const [priceDropAlerts, setPriceDropAlerts] = useState(true);
   const [saving, setSaving] = useState(false);
