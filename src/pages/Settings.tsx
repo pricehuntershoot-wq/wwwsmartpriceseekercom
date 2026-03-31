@@ -385,55 +385,6 @@ const Settings = () => {
           </Card>
 
 
-           {/* Plná Peněženka Cashback Settings */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Percent className="h-5 w-5 text-primary" />
-                <CardTitle>Plná Peněženka Cashback</CardTitle>
-              </div>
-              <CardDescription>
-                Nastavte Plná Peněženka URL a cashback procento pro každý e-shop. Uživatelům se zobrazí cashback badge u výsledků.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {shops.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Žádné e-shopy k dispozici.</p>
-              ) : (
-                shops.map((shop) => (
-                  <div key={shop.id} className="flex items-center gap-3">
-                    <Label className="w-32 shrink-0 text-sm font-medium">{shop.name}</Label>
-                    <Input
-                      placeholder="https://www.plnapenezenkacz.cz/..."
-                      value={tipliUrls[shop.id] || ""}
-                      onChange={(e) => setTipliUrls(prev => ({ ...prev, [shop.id]: e.target.value }))}
-                      className="flex-1"
-                    />
-                    <div className="flex items-center gap-1 shrink-0">
-                      <Input
-                        type="number"
-                        placeholder="0"
-                        min="0"
-                        max="100"
-                        step="0.1"
-                        value={cashbackPcts[shop.id] || ""}
-                        onChange={(e) => setCashbackPcts(prev => ({ ...prev, [shop.id]: e.target.value }))}
-                        className="w-20"
-                      />
-                      <span className="text-sm text-muted-foreground">%</span>
-                    </div>
-                  </div>
-                ))
-              )}
-              <p className="text-xs text-muted-foreground">
-                Cashback procenta najdete na{" "}
-                <a href="https://www.plnapenezenkacz.cz" target="_blank" rel="noopener noreferrer" className="text-primary underline">
-                  plnapenezenkacz.cz
-                </a>
-              </p>
-            </CardContent>
-          </Card>
-
           <Button onClick={handleSave} disabled={saving} className="w-full">
             <Save className="h-4 w-4 mr-2" />
             {saving ? t('saving') : t('saveChanges')}
