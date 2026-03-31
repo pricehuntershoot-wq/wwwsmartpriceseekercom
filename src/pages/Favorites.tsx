@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useSubscription } from '@/hooks/useSubscription';
 import { useCurrencyPreference } from '@/hooks/useCurrencyPreference';
 import { supabase } from '@/integrations/supabase/client';
 import { Header } from '@/components/Header';
@@ -8,7 +9,7 @@ import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Bell, Trash2, Loader2, ExternalLink, TrendingDown } from 'lucide-react';
+import { Heart, Bell, Trash2, Loader2, ExternalLink, TrendingDown, Zap, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatPrice, Currency } from '@/lib/currency';
 import { cn } from '@/lib/utils';
@@ -47,6 +48,7 @@ interface PriceAlert {
 
 const Favorites = () => {
   const { user, loading: authLoading } = useAuth();
+  const { isPremiumPlus } = useSubscription();
   const { preferredCurrency } = useCurrencyPreference();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -191,6 +193,14 @@ const Favorites = () => {
                 <Heart className="h-5 w-5 text-primary" />
                 Saved Products ({favorites.length})
               </CardTitle>
+              {isPremiumPlus && (
+                <div className="flex items-center gap-2 rounded-md bg-primary/10 border border-primary/20 px-3 py-2 mt-2">
+                  <Zap className="h-4 w-4 text-primary" />
+                  <span className="text-xs text-primary font-medium">
+                    Premium Plus — ceny se automaticky kontrolují každou hodinu
+                  </span>
+                </div>
+              )}
             </CardHeader>
             <CardContent>
               {favorites.length === 0 ? (
@@ -226,6 +236,12 @@ const Favorites = () => {
                         </div>
                         {fav.products.category && (
                           <Badge variant="outline" className="mt-1 text-xs">{fav.products.category}</Badge>
+                        )}
+                        {isPremiumPlus && (
+                          <Badge className="mt-1 text-xs bg-primary/15 text-primary border-primary/30 hover:bg-primary/20">
+                            <Star className="h-3 w-3 mr-1" />
+                            Automaticky sledováno
+                          </Badge>
                         )}
                       </Link>
                       <div className="flex items-center gap-1">
