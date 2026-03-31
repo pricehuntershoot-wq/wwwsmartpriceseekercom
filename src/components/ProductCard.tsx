@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import { Heart, ExternalLink, Package, Clock, Tag, Sparkles } from "lucide-react";
 import { createProductCheckout } from "@/lib/checkout";
 import { useAuth } from "@/hooks/useAuth";
