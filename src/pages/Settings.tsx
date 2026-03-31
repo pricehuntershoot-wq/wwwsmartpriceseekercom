@@ -73,19 +73,6 @@ const Settings = () => {
 
       if (error) throw error;
 
-      // Save Plná Peněženka settings
-      for (const shop of shops) {
-        const newTipli = tipliUrls[shop.id]?.trim() || null;
-        const newCashback = cashbackPcts[shop.id]?.trim() ? parseFloat(cashbackPcts[shop.id]) : null;
-        
-        const updates: Record<string, any> = {};
-        if (newTipli !== shop.tipli_url) updates.tipli_url = newTipli;
-        if (newCashback !== shop.cashback_percentage) updates.cashback_percentage = newCashback;
-        
-        if (Object.keys(updates).length > 0) {
-          await supabase.from("shops").update(updates as any).eq("id", shop.id);
-        }
-      }
 
       toast({
         title: t('settingsSaved'),
