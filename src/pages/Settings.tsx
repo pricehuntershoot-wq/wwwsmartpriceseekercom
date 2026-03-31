@@ -55,6 +55,22 @@ const Settings = () => {
       if (data) {
         setDisplayName(data.display_name || "");
       }
+
+      // Load shops with eHub IDs
+      const { data: shopsData } = await supabase
+        .from("shops")
+        .select("id, name, ehub_program_id")
+        .order("name");
+      
+      if (shopsData) {
+        setShops(shopsData as any);
+        const ids: Record<string, string> = {};
+        shopsData.forEach((s: any) => {
+          if (s.ehub_program_id) ids[s.id] = s.ehub_program_id;
+        });
+        setEhubIds(ids);
+      }
+
       setLoading(false);
     };
 
