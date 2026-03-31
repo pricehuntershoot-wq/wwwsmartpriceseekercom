@@ -107,7 +107,7 @@ serve(async (req) => {
 
           const dropPercentage = ((previousPrice.price - price.current_price) / previousPrice.price) * 100;
 
-          if (dropPercentage < 5) continue; // Only notify for 5%+ drops
+          if (dropPercentage < user.price_drop_threshold) continue; // Only notify for drops >= user's threshold
 
           // Check if we already notified about this
           const { data: existingNotification } = await supabase
