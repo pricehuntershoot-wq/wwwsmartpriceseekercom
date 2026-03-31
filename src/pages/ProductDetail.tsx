@@ -565,7 +565,7 @@ const ProductDetail = () => {
                   <DialogTrigger asChild>
                     <Button size="lg" variant="outline">
                       <Bell className="mr-2 h-4 w-4" />
-                      Set Price Alert
+                      Nastavit upozornění
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
