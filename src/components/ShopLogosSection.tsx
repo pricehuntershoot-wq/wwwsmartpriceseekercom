@@ -11,6 +11,7 @@ const shops = [
   { name: "Amazon.de", color: "text-sky-400" },
   { name: "Xiaomi Store", color: "text-amber-400" },
   { name: "Gigacomputer.cz", color: "text-lime-400" },
+  { name: "TSBohemia.cz", color: "text-rose-400" },
 ];
 
 export const ShopLogosSection = () => {
