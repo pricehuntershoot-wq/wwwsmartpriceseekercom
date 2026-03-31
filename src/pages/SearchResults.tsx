@@ -403,7 +403,7 @@ const SearchResults = () => {
         toast.success(
           data.fromCache
             ? `Nalezeno ${data.products.length} nabídek z databáze`
-            : `Nalezeno ${data.products.length} nabídek z 8 e-shopů`
+            : `Nalezeno ${data.products.length} nabídek z 6 e-shopů`
         );
       } else {
         toast.info("Žádné produkty nenalezeny");
@@ -465,9 +465,7 @@ const SearchResults = () => {
             <span className="font-semibold text-foreground">CZC.cz</span>,{" "}
             <span className="font-semibold text-foreground">Datart.cz</span>,{" "}
             <span className="font-semibold text-foreground">Smarty.cz</span>,{" "}
-            <span className="font-semibold text-foreground">Mironet.cz</span>,{" "}
-            <span className="font-semibold text-foreground">MP.cz</span>,{" "}
-            <span className="font-semibold text-foreground">Refurbed.cz</span> a{" "}
+            <span className="font-semibold text-foreground">Mironet.cz</span> a{" "}
             <span className="font-semibold text-foreground">Amazon.de</span>
           </p>
           {!isPremium && (
@@ -516,7 +514,7 @@ const SearchResults = () => {
                 <div>
                   <p className="font-semibold">Prohledáváme skryté slevy...</p>
                   <p className="text-sm text-muted-foreground">
-                    Stahujeme a analyzujeme stránky z 8 e-shopů pomocí AI
+                    Stahujeme a analyzujeme stránky z 6 e-shopů pomocí AI
                   </p>
                 </div>
               </div>

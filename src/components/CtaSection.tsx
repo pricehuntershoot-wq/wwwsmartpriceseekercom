@@ -34,7 +34,7 @@ export const CtaSection = () => {
           </h2>
 
           <p className="mx-auto mb-8 max-w-lg text-base text-muted-foreground sm:text-lg leading-relaxed">
-            Zadejte produkt, porovnejte ceny z 8 e-shopů a ušetřete — bez registrace, za pár sekund.
+            Zadejte produkt, porovnejte ceny z 6 e-shopů a ušetřete — bez registrace, za pár sekund.
           </p>
 
           {/* Premium benefits mini-list */}
