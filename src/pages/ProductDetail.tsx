@@ -558,7 +558,7 @@ const ProductDetail = () => {
                   onClick={handleDeleteAlert}
                 >
                   <BellOff className="mr-2 h-4 w-4" />
-                  Alert at {formatPrice(priceAlert.target_price, currency)}
+                  Upozornění na {formatPrice(priceAlert.target_price, currency)}
                 </Button>
               ) : (
                 <Dialog open={isAlertDialogOpen} onOpenChange={setIsAlertDialogOpen}>
