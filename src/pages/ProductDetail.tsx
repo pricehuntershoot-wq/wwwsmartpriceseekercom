@@ -101,7 +101,7 @@ const ProductDetail = () => {
         (pricesData || []).map(async (price) => {
           const { data: shopData } = await supabase
             .from('shops')
-            .select('id, name, logo_url, website_url, ehub_program_id')
+            .select('id, name, logo_url, website_url')
             .eq('id', price.shop_id)
             .maybeSingle();
           
