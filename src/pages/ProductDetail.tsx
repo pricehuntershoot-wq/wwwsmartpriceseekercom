@@ -581,10 +581,10 @@ const ProductDetail = () => {
                       </DialogDescription>
                     </DialogHeader>
                     <div className="py-4">
-                      <label className="mb-2 block text-sm font-medium">Target Price ({currency})</label>
+                      <label className="mb-2 block text-sm font-medium">Cílová cena ({currency})</label>
                       <Input
                         type="number"
-                        placeholder={bestPrice ? String(Math.floor(bestPrice.current_price * 0.9)) : "Enter target price"}
+                        placeholder={bestPrice ? String(Math.floor(bestPrice.current_price * 0.9)) : "Zadejte cílovou cenu"}
                         value={alertPrice}
                         onChange={(e) => setAlertPrice(e.target.value)}
                         min="1"
