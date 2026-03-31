@@ -163,7 +163,7 @@ const CategoryProducts = () => {
         toast.success(
           data.fromCache
             ? `Nalezeno ${data.products.length} nabídek z databáze`
-            : `Nalezeno ${data.products.length} nabídek ze 7 e-shopů`
+            : `Nalezeno ${data.products.length} nabídek z 8 e-shopů`
         );
       }
     } catch (err) {
