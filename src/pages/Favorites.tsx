@@ -311,7 +311,7 @@ const Favorites = () => {
                             )}
                           </div>
                           {!alert.is_active && (
-                            <Badge variant="outline" className="mt-1 text-xs">Paused</Badge>
+                            <Badge variant="outline" className="mt-1 text-xs">Pozastaveno</Badge>
                           )}
                         </Link>
                         <div className="flex items-center gap-1">
