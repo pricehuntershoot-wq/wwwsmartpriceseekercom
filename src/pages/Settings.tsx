@@ -93,7 +93,7 @@ const Settings = () => {
 
       if (error) throw error;
 
-      // Save Tipli settings
+      // Save Plná Peněženka settings
       for (const shop of shops) {
         const newTipli = tipliUrls[shop.id]?.trim() || null;
         const newCashback = cashbackPcts[shop.id]?.trim() ? parseFloat(cashbackPcts[shop.id]) : null;
