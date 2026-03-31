@@ -183,7 +183,7 @@ const Favorites = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <main className="container pt-24 pb-16">
-        <h1 className="text-3xl font-bold mb-8">My Favorites & Alerts</h1>
+        <h1 className="text-3xl font-bold mb-8">Oblíbené a upozornění</h1>
         
         <div className="grid gap-8 lg:grid-cols-2">
           {/* Favorites Section */}
