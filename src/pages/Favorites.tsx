@@ -296,7 +296,7 @@ const Favorites = () => {
                               "text-sm font-semibold",
                               preferredCurrency === 'EUR' ? "text-primary" : "text-accent"
                             )}>
-                              Target: {formatPrice(alert.target_price, preferredCurrency)}
+                              Cíl: {formatPrice(alert.target_price, preferredCurrency)}
                             </span>
                             {alert.current_best_price && (
                               <>
