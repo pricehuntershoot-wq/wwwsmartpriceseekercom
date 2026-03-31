@@ -20,7 +20,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Heart, ExternalLink, ShoppingCart, Package, Sparkles, Flame, Clock, ArrowLeft, Store, Bell, BellOff, Trash2, ArrowUpDown, ChevronUp, ChevronDown, Tag, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice, Currency } from "@/lib/currency";
-import { trackAffiliateClick } from "@/lib/affiliate";
+import { createProductCheckout } from "@/lib/checkout";
 import { cn } from "@/lib/utils";
 
 const getDiscountIcon = (type: string | null) => {
@@ -525,16 +525,26 @@ const ProductDetail = () => {
               {bestPrice?.product_url && (
                 <Button 
                   size="lg"
-                  onClick={() => trackAffiliateClick({
-                    productId: product.id,
-                    shopId: bestPrice.shop.id,
-                    priceId: bestPrice.id,
-                    userId: user?.id,
-                    productUrl: bestPrice.product_url!,
-                  })}
+                  onClick={() => {
+                    if (!user) {
+                      toast.error('Pro nákup se musíte přihlásit.');
+                      return;
+                    }
+                    createProductCheckout({
+                      productName: product.name,
+                      productImage: product.image_url,
+                      price: bestPrice.current_price,
+                      currency: bestPrice.currency || 'EUR',
+                      shopName: bestPrice.shop.name,
+                      productUrl: bestPrice.product_url!,
+                      productId: product.id,
+                      shopId: bestPrice.shop.id,
+                      priceId: bestPrice.id,
+                    });
+                  }}
                 >
-                  Koupit za nejlepší cenu
-                  <ExternalLink className="ml-2 h-4 w-4" />
+                  Koupit přes nás
+                  <ShoppingCart className="ml-2 h-4 w-4" />
                 </Button>
               )}
               <Button 
@@ -830,16 +840,26 @@ const ProductDetail = () => {
                             <Button 
                               size="sm" 
                               variant={isPreferred ? "default" : "outline"}
-                              onClick={() => trackAffiliateClick({
-                                productId: product.id,
-                                shopId: price.shop.id,
-                                priceId: price.id,
-                                userId: user?.id,
-                                productUrl: price.product_url!,
-                              })}
+                              onClick={() => {
+                                if (!user) {
+                                  toast.error('Pro nákup se musíte přihlásit.');
+                                  return;
+                                }
+                                createProductCheckout({
+                                  productName: product.name,
+                                  productImage: product.image_url,
+                                  price: price.current_price,
+                                  currency: price.currency || 'EUR',
+                                  shopName: price.shop.name,
+                                  productUrl: price.product_url!,
+                                  productId: product.id,
+                                  shopId: price.shop.id,
+                                  priceId: price.id,
+                                });
+                              }}
                             >
-                              Koupit
-                              <ExternalLink className="ml-1 h-3 w-3" />
+                              Koupit přes nás
+                              <ShoppingCart className="ml-1 h-3 w-3" />
                             </Button>
                           ) : (
                             <span className="text-sm text-muted-foreground">N/A</span>
