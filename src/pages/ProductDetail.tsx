@@ -211,11 +211,11 @@ const ProductDetail = () => {
       });
     
     if (error) {
-      toast.error("Failed to create price alert");
+      toast.error("Nepodařilo se vytvořit upozornění");
       return;
     }
     
-    toast.success("Alert created");
+    toast.success("Upozornění vytvořeno");
     setAlertPrice("");
     setIsAlertDialogOpen(false);
     refetchAlert();
