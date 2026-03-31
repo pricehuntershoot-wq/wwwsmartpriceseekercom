@@ -734,7 +734,7 @@ const ProductDetail = () => {
                       
                       const handleCopyCode = (code: string) => {
                         navigator.clipboard.writeText(code);
-                        toast.success(`Code "${code}" copied!`);
+                        toast.success(`Kód "${code}" zkopírován!`);
                       };
                       
                       return (
