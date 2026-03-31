@@ -175,7 +175,8 @@ async function saveResultsToDB(supabase: any, products: any[]) {
                         product.eshop === 'gigacomputer' ? 'Gigacomputer.cz' :
                         product.eshop === 'tsbohemia' ? 'TSBohemia.cz' :
                         product.eshop === 'allegro' ? 'Allegro.cz' :
-                        product.eshop === 'samsung' ? 'Samsung.cz' : product.eshop;
+                        product.eshop === 'samsung' ? 'Samsung.cz' :
+                        product.eshop === 'isetos' ? 'iSetos.cz' : product.eshop;
       
       let shopId = shopCache[shopName];
       if (!shopId) {
