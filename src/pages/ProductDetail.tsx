@@ -192,7 +192,7 @@ const ProductDetail = () => {
 
   const handleCreateAlert = async () => {
     if (!user || !id) {
-      toast.error("Please sign in to set price alerts");
+      toast.error("Pro nastavení upozornění se prosím přihlaste");
       return;
     }
 
