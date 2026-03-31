@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings as SettingsIcon, User, Bell, ArrowLeft, Save, Palette, Sun, Moon, Monitor, Crown, ExternalLink, Loader2 } from "lucide-react";
+import { Settings as SettingsIcon, User, Bell, ArrowLeft, Save, Palette, Sun, Moon, Monitor, Crown, ExternalLink, Loader2, Star, Heart, Zap } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -20,7 +20,7 @@ import { Badge } from "@/components/ui/badge";
 
 const Settings = () => {
   const { user, session, loading: authLoading } = useAuth();
-  const { isPremium, subscriptionEnd, loading: subLoading } = useSubscription();
+  const { isPremium, isPremiumPlus, subscriptionEnd, loading: subLoading } = useSubscription();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { preferredCurrency, setPreferredCurrency } = useCurrencyPreference();
@@ -230,14 +230,16 @@ const Settings = () => {
           <Card className={isPremium ? "border-primary/50" : ""}>
             <CardHeader>
               <div className="flex items-center gap-2">
-                <Crown className="h-5 w-5 text-primary" />
+                {isPremiumPlus ? <Star className="h-5 w-5 text-primary" /> : <Crown className="h-5 w-5 text-primary" />}
                 <CardTitle>Předplatné</CardTitle>
-                {isPremium && (
-                  <Badge className="ml-auto bg-primary text-primary-foreground">Aktivní</Badge>
-                )}
+                {isPremiumPlus ? (
+                  <Badge className="ml-auto bg-gradient-to-r from-primary to-accent text-primary-foreground">Premium Plus</Badge>
+                ) : isPremium ? (
+                  <Badge className="ml-auto bg-primary text-primary-foreground">Premium</Badge>
+                ) : null}
               </div>
               <CardDescription>
-                Správa vašeho Premium předplatného
+                Správa vašeho předplatného
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -251,7 +253,9 @@ const Settings = () => {
                   <div className="rounded-lg bg-primary/5 border border-primary/20 p-4 space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium">Plán</span>
-                      <span className="text-sm font-semibold text-primary">Premium – 99 Kč/měsíc</span>
+                      <span className="text-sm font-semibold text-primary">
+                        {isPremiumPlus ? "Premium Plus – 249 Kč/měsíc" : "Premium – 99 Kč/měsíc"}
+                      </span>
                     </div>
                     <Separator />
                     <div className="flex justify-between items-center">
@@ -263,6 +267,49 @@ const Settings = () => {
                       </span>
                     </div>
                   </div>
+
+                  {isPremiumPlus && (
+                    <div className="rounded-lg border border-primary/30 bg-gradient-to-br from-primary/5 to-accent/5 p-4 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Star className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-semibold">Funkce Premium Plus</span>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Heart className="h-3.5 w-3.5 text-primary" />
+                          <span>Automatické sledování oblíbených každou hodinu</span>
+                          <Badge variant="secondary" className="ml-auto text-xs">Aktivní</Badge>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <Bell className="h-3.5 w-3.5 text-primary" />
+                          <span>Email + in-app upozornění na pokles ceny</span>
+                          <Badge variant="secondary" className="ml-auto text-xs">Aktivní</Badge>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <Zap className="h-3.5 w-3.5 text-primary" />
+                          <span>Neomezené vyhledávání a AI analýza</span>
+                          <Badge variant="secondary" className="ml-auto text-xs">Aktivní</Badge>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {!isPremiumPlus && (
+                    <div className="rounded-lg border border-dashed border-primary/30 p-4 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Star className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">Upgradujte na Premium Plus</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Automatické sledování cen oblíbených produktů každou hodinu s email a in-app notifikacemi.
+                      </p>
+                      <Button variant="outline" size="sm" onClick={() => navigate("/premium")} className="mt-1">
+                        <Star className="mr-1.5 h-3.5 w-3.5" />
+                        Zobrazit Premium Plus
+                      </Button>
+                    </div>
+                  )}
+
                   <Button
                     variant="outline"
                     className="w-full"
