@@ -62,6 +62,7 @@ const getDiscountColor = (type: string | null) => {
 export const ProductCard = ({ product, onFavorite, isFavorited = false }: ProductCardProps) => {
   const { preferredCurrency } = useCurrencyPreference();
   const { data: promoCodes } = usePromoCodes();
+  const { user } = useAuth();
   const prices = product.prices || [];
   
   const pricesWithPromo: PriceWithPromo[] = prices.map((price) => {
