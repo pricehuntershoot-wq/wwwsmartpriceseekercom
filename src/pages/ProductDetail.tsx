@@ -230,7 +230,7 @@ const ProductDetail = () => {
       .eq('id', priceAlert.id);
     
     if (error) {
-      toast.error("Failed to delete price alert");
+      toast.error("Nepodařilo se smazat upozornění");
       return;
     }
     
