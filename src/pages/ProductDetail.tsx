@@ -181,7 +181,7 @@ const ProductDetail = () => {
         .insert({ user_id: user.id, product_id: id });
       
       if (error) {
-        toast.error("Failed to add favorite");
+        toast.error("Nepodařilo se přidat do oblíbených");
         return;
       }
       toast.success("Added to favorites");
