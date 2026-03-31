@@ -101,13 +101,13 @@ const ProductDetail = () => {
         (pricesData || []).map(async (price) => {
           const { data: shopData } = await supabase
             .from('shops')
-            .select('id, name, logo_url, website_url')
+            .select('id, name, logo_url, website_url, tipli_url, cashback_percentage')
             .eq('id', price.shop_id)
             .maybeSingle();
           
           return {
             ...price,
-            shop: shopData || { id: price.shop_id, name: 'Unknown', logo_url: null, website_url: null }
+            shop: shopData || { id: price.shop_id, name: 'Unknown', logo_url: null, website_url: null, tipli_url: null, cashback_percentage: null }
           };
         })
       );
