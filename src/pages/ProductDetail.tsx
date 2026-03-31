@@ -722,7 +722,7 @@ const ProductDetail = () => {
                           <SortIcon field="updated" />
                         </span>
                       </TableHead>
-                      <TableHead className="text-right">Action</TableHead>
+                      <TableHead className="text-right">Akce</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
