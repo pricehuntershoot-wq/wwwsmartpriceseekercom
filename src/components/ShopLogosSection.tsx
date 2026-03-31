@@ -13,6 +13,7 @@ const shops = [
   { name: "Gigacomputer.cz", color: "text-lime-400" },
   { name: "TSBohemia.cz", color: "text-rose-400" },
   { name: "Allegro.cz", color: "text-pink-400" },
+  { name: "Samsung.cz", color: "text-indigo-400" },
 ];
 
 export const ShopLogosSection = () => {
