@@ -20,7 +20,7 @@ import { Badge } from "@/components/ui/badge";
 
 const Settings = () => {
   const { user, session, loading: authLoading } = useAuth();
-  const { isPremium, subscriptionEnd, loading: subLoading } = useSubscription();
+  const { isPremium, isPremiumPlus, subscriptionEnd, loading: subLoading } = useSubscription();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { preferredCurrency, setPreferredCurrency } = useCurrencyPreference();
