@@ -89,6 +89,17 @@ const Settings = () => {
 
       if (error) throw error;
 
+      // Save eHub program IDs
+      for (const shop of shops) {
+        const newId = ehubIds[shop.id]?.trim() || null;
+        if (newId !== shop.ehub_program_id) {
+          await supabase
+            .from("shops")
+            .update({ ehub_program_id: newId } as any)
+            .eq("id", shop.id);
+        }
+      }
+
       toast({
         title: t('settingsSaved'),
         description: t('settingsSavedDesc'),
