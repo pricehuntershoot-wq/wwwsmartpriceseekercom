@@ -18,6 +18,7 @@ const Index = () => {
       <HowItWorksSection />
       <PremiumUpsellBanner />
       <LiveDemoSection />
+      <PremiumPlusUpsell variant="full" />
       <TrustSection />
       <CtaSection />
       <Footer />

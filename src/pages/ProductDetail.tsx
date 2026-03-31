@@ -865,6 +865,9 @@ const ProductDetail = () => {
             )}
           </CardContent>
         </Card>
+        <div className="mt-8">
+          <PremiumPlusUpsell variant="compact" />
+        </div>
       </main>
       <Footer />
     </div>

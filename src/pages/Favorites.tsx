@@ -342,6 +342,9 @@ const Favorites = () => {
             </CardContent>
           </Card>
         </div>
+        <div className="mt-8">
+          <PremiumPlusUpsell variant="compact" />
+        </div>
       </main>
       <Footer />
     </div>
