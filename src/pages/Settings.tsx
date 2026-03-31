@@ -33,6 +33,8 @@ const Settings = () => {
   const [saving, setSaving] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [shops, setShops] = useState<{ id: string; name: string; ehub_program_id: string | null }[]>([]);
+  const [ehubIds, setEhubIds] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!authLoading && !user) {
