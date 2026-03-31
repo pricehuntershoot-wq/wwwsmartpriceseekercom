@@ -840,6 +840,7 @@ const ProductDetail = () => {
                                   priceId: price.id,
                                   userId: user?.id,
                                   productUrl: price.product_url!,
+                                  cashbackUrl: price.shop.tipli_url,
                                 });
                               }}
                             >
