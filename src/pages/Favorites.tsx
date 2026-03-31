@@ -191,7 +191,7 @@ const Favorites = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Heart className="h-5 w-5 text-primary" />
-                Saved Products ({favorites.length})
+                Uložené produkty ({favorites.length})
               </CardTitle>
               {isPremiumPlus && (
                 <div className="flex items-center gap-2 rounded-md bg-primary/10 border border-primary/20 px-3 py-2 mt-2">
