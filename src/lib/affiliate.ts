@@ -25,7 +25,6 @@ export const buildAffiliateUrl = (url: string): string => {
 
 /**
  * Tracks an affiliate click and opens the URL in a new tab.
- * If a cashbackUrl (Plná Peněženka) is available, redirects through it instead.
  */
 export const trackAffiliateClick = async (
   params: AffiliateClickParams
