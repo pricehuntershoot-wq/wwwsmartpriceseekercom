@@ -494,9 +494,9 @@ const ProductDetail = () => {
                               </TooltipTrigger>
                               {promoApplied && promoCode && (
                                 <TooltipContent>
-                                  <p className="font-medium">Price after code: {promoCode.code}</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    Original: {formatPrice(bestCzkPrice.current_price, 'CZK')}
+                                   <p className="font-medium">Cena po kódu: {promoCode.code}</p>
+                                   <p className="text-xs text-muted-foreground">
+                                     Původní: {formatPrice(bestCzkPrice.current_price, 'CZK')}
                                   </p>
                                 </TooltipContent>
                               )}
