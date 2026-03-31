@@ -509,9 +509,9 @@ const ProductDetail = () => {
                           )}
                         </div>
                         <p className="mt-1 text-xs text-muted-foreground">
-                          Best at {bestCzkPrice.shop.name}
+                          Nejlepší v {bestCzkPrice.shop.name}
                           {promoApplied && promoCode?.code && (
-                            <span className="ml-1 text-green-500">with code {promoCode.code}</span>
+                            <span className="ml-1 text-green-500">s kódem {promoCode.code}</span>
                           )}
                         </p>
                       </div>
