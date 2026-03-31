@@ -517,27 +517,33 @@ export type Database = {
       }
       shops: {
         Row: {
+          cashback_percentage: number | null
           created_at: string
           ehub_program_id: string | null
           id: string
           logo_url: string | null
           name: string
+          tipli_url: string | null
           website_url: string | null
         }
         Insert: {
+          cashback_percentage?: number | null
           created_at?: string
           ehub_program_id?: string | null
           id?: string
           logo_url?: string | null
           name: string
+          tipli_url?: string | null
           website_url?: string | null
         }
         Update: {
+          cashback_percentage?: number | null
           created_at?: string
           ehub_program_id?: string | null
           id?: string
           logo_url?: string | null
           name?: string
+          tipli_url?: string | null
           website_url?: string | null
         }
         Relationships: []
