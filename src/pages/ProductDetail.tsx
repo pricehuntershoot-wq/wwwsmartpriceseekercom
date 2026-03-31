@@ -159,7 +159,7 @@ const ProductDetail = () => {
 
   const handleFavorite = async () => {
     if (!user || !id) {
-      toast.error("Please sign in to save favorites");
+      toast.error("Pro uložení oblíbených se prosím přihlaste");
       return;
     }
 
@@ -171,20 +171,20 @@ const ProductDetail = () => {
         .eq('product_id', id);
       
       if (error) {
-        toast.error("Failed to remove favorite");
+        toast.error("Nepodařilo se odebrat z oblíbených");
         return;
       }
-      toast.success("Removed from favorites");
+      toast.success("Odebráno z oblíbených");
     } else {
       const { error } = await supabase
         .from('favorites')
         .insert({ user_id: user.id, product_id: id });
       
       if (error) {
-        toast.error("Failed to add favorite");
+        toast.error("Nepodařilo se přidat do oblíbených");
         return;
       }
-      toast.success("Added to favorites");
+      toast.success("Přidáno do oblíbených");
     }
     
     refetchFavorite();
@@ -192,13 +192,13 @@ const ProductDetail = () => {
 
   const handleCreateAlert = async () => {
     if (!user || !id) {
-      toast.error("Please sign in to set price alerts");
+      toast.error("Pro nastavení upozornění se prosím přihlaste");
       return;
     }
 
     const targetPrice = parseFloat(alertPrice);
     if (isNaN(targetPrice) || targetPrice <= 0) {
-      toast.error("Please enter a valid price");
+      toast.error("Zadejte platnou cenu");
       return;
     }
 
@@ -211,11 +211,11 @@ const ProductDetail = () => {
       });
     
     if (error) {
-      toast.error("Failed to create price alert");
+      toast.error("Nepodařilo se vytvořit upozornění");
       return;
     }
     
-    toast.success("Alert created");
+    toast.success("Upozornění vytvořeno");
     setAlertPrice("");
     setIsAlertDialogOpen(false);
     refetchAlert();
@@ -230,11 +230,11 @@ const ProductDetail = () => {
       .eq('id', priceAlert.id);
     
     if (error) {
-      toast.error("Failed to delete price alert");
+      toast.error("Nepodařilo se smazat upozornění");
       return;
     }
     
-    toast.success("Price alert removed");
+    toast.success("Upozornění odstraněno");
     refetchAlert();
   };
 
@@ -346,12 +346,12 @@ const ProductDetail = () => {
         <Header />
         <main className="container flex flex-col items-center justify-center pb-16 pt-24">
           <Package className="mb-4 h-16 w-16 text-muted-foreground/50" />
-          <h1 className="mb-2 text-2xl font-bold">Product not found</h1>
-          <p className="mb-4 text-muted-foreground">The product you're looking for doesn't exist.</p>
+          <h1 className="mb-2 text-2xl font-bold">Produkt nenalezen</h1>
+          <p className="mb-4 text-muted-foreground">Produkt, který hledáte, neexistuje.</p>
           <Button asChild>
             <Link to="/products">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Products
+              Zpět na produkty
             </Link>
           </Button>
         </main>
@@ -368,7 +368,7 @@ const ProductDetail = () => {
         <Button variant="ghost" asChild className="mb-6">
           <Link to="/products">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Products
+            Zpět na produkty
           </Link>
         </Button>
 
@@ -389,7 +389,7 @@ const ProductDetail = () => {
             )}
             {savings > 0 && (
               <Badge className="absolute bottom-4 left-4 bg-green-500 px-3 py-1 text-lg text-white">
-                Save {formatPrice(savings, preferredCurrency)}
+                Ušetříte {formatPrice(savings, preferredCurrency)}
               </Badge>
             )}
           </div>
@@ -439,9 +439,9 @@ const ProductDetail = () => {
                               </TooltipTrigger>
                               {promoApplied && promoCode && (
                                 <TooltipContent>
-                                  <p className="font-medium">Price after code: {promoCode.code}</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    Original: {formatPrice(bestEurPrice.current_price, 'EUR')}
+                                   <p className="font-medium">Cena po kódu: {promoCode.code}</p>
+                                   <p className="text-xs text-muted-foreground">
+                                     Původní: {formatPrice(bestEurPrice.current_price, 'EUR')}
                                   </p>
                                 </TooltipContent>
                               )}
@@ -454,9 +454,9 @@ const ProductDetail = () => {
                           )}
                         </div>
                         <p className="mt-1 text-xs text-muted-foreground">
-                          Best at {bestEurPrice.shop.name}
+                          Nejlepší v {bestEurPrice.shop.name}
                           {promoApplied && promoCode?.code && (
-                            <span className="ml-1 text-green-500">with code {promoCode.code}</span>
+                            <span className="ml-1 text-green-500">s kódem {promoCode.code}</span>
                           )}
                         </p>
                       </div>
@@ -494,9 +494,9 @@ const ProductDetail = () => {
                               </TooltipTrigger>
                               {promoApplied && promoCode && (
                                 <TooltipContent>
-                                  <p className="font-medium">Price after code: {promoCode.code}</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    Original: {formatPrice(bestCzkPrice.current_price, 'CZK')}
+                                   <p className="font-medium">Cena po kódu: {promoCode.code}</p>
+                                   <p className="text-xs text-muted-foreground">
+                                     Původní: {formatPrice(bestCzkPrice.current_price, 'CZK')}
                                   </p>
                                 </TooltipContent>
                               )}
@@ -509,9 +509,9 @@ const ProductDetail = () => {
                           )}
                         </div>
                         <p className="mt-1 text-xs text-muted-foreground">
-                          Best at {bestCzkPrice.shop.name}
+                          Nejlepší v {bestCzkPrice.shop.name}
                           {promoApplied && promoCode?.code && (
-                            <span className="ml-1 text-green-500">with code {promoCode.code}</span>
+                            <span className="ml-1 text-green-500">s kódem {promoCode.code}</span>
                           )}
                         </p>
                       </div>
@@ -546,7 +546,7 @@ const ProductDetail = () => {
                 onClick={handleFavorite}
               >
                 <Heart className={`mr-2 h-4 w-4 ${isFavorited ? 'fill-red-500 text-red-500' : ''}`} />
-                {isFavorited ? 'Saved' : 'Save'}
+                {isFavorited ? 'Uloženo' : 'Uložit'}
               </Button>
               
               {/* Price Alert Button */}
@@ -558,50 +558,50 @@ const ProductDetail = () => {
                   onClick={handleDeleteAlert}
                 >
                   <BellOff className="mr-2 h-4 w-4" />
-                  Alert at {formatPrice(priceAlert.target_price, currency)}
+                  Upozornění na {formatPrice(priceAlert.target_price, currency)}
                 </Button>
               ) : (
                 <Dialog open={isAlertDialogOpen} onOpenChange={setIsAlertDialogOpen}>
                   <DialogTrigger asChild>
                     <Button size="lg" variant="outline">
                       <Bell className="mr-2 h-4 w-4" />
-                      Set Price Alert
+                      Nastavit upozornění
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Set Price Alert</DialogTitle>
+                      <DialogTitle>Nastavit upozornění na cenu</DialogTitle>
                       <DialogDescription>
-                        Get notified when the price drops below your target price.
+                        Dostanete upozornění, když cena klesne pod vámi zvolenou částku.
                         {bestPrice && (
                           <span className="mt-2 block text-sm">
-                            Current best price: <strong className="text-primary">{formatPrice(bestPrice.current_price, currency)}</strong>
+                            Aktuální nejnižší cena: <strong className="text-primary">{formatPrice(bestPrice.current_price, currency)}</strong>
                           </span>
                         )}
                       </DialogDescription>
                     </DialogHeader>
                     <div className="py-4">
-                      <label className="mb-2 block text-sm font-medium">Target Price ({currency})</label>
+                      <label className="mb-2 block text-sm font-medium">Cílová cena ({currency})</label>
                       <Input
                         type="number"
-                        placeholder={bestPrice ? String(Math.floor(bestPrice.current_price * 0.9)) : "Enter target price"}
+                        placeholder={bestPrice ? String(Math.floor(bestPrice.current_price * 0.9)) : "Zadejte cílovou cenu"}
                         value={alertPrice}
                         onChange={(e) => setAlertPrice(e.target.value)}
                         min="1"
                       />
                       {bestPrice && alertPrice && parseFloat(alertPrice) >= bestPrice.current_price && (
                         <p className="mt-2 text-sm text-amber-500">
-                          Tip: Set a price lower than the current best price to get meaningful alerts.
+                          Tip: Nastavte cenu nižší než aktuální nejlepší cena.
                         </p>
                       )}
                     </div>
                     <DialogFooter>
                       <Button variant="outline" onClick={() => setIsAlertDialogOpen(false)}>
-                        Cancel
+                        Zrušit
                       </Button>
                       <Button onClick={handleCreateAlert}>
                         <Bell className="mr-2 h-4 w-4" />
-                        Create Alert
+                        Vytvořit upozornění
                       </Button>
                     </DialogFooter>
                   </DialogContent>
@@ -621,7 +621,7 @@ const ProductDetail = () => {
           <CardHeader className="flex flex-col gap-4 space-y-0 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle className="flex items-center gap-2">
               <Store className="h-5 w-5" />
-              Price Comparison ({sortedPrices.length} of {product.prices?.length || 0} offers)
+              Srovnání cen ({sortedPrices.length} z {product.prices?.length || 0} nabídek)
             </CardTitle>
             <div className="flex flex-wrap items-center gap-3">
               {/* Condition filter - Alza style */}
@@ -692,13 +692,13 @@ const ProductDetail = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Shop</TableHead>
+                      <TableHead>Obchod</TableHead>
                       <TableHead 
                         className="cursor-pointer hover:text-foreground"
                         onClick={() => handleTableSort('price')}
                       >
                         <span className="flex items-center">
-                          Price
+                          Cena
                           <SortIcon field="price" />
                         </span>
                       </TableHead>
@@ -707,22 +707,22 @@ const ProductDetail = () => {
                         onClick={() => handleTableSort('currency')}
                       >
                         <span className="flex items-center">
-                          Currency
+                          Měna
                           <SortIcon field="currency" />
                         </span>
                       </TableHead>
-                      <TableHead>Original</TableHead>
-                      <TableHead>Discount</TableHead>
+                      <TableHead>Původní</TableHead>
+                      <TableHead>Sleva</TableHead>
                       <TableHead 
                         className="cursor-pointer hover:text-foreground"
                         onClick={() => handleTableSort('updated')}
                       >
                         <span className="flex items-center">
-                          Updated
+                          Aktualizace
                           <SortIcon field="updated" />
                         </span>
                       </TableHead>
-                      <TableHead className="text-right">Action</TableHead>
+                      <TableHead className="text-right">Akce</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -734,7 +734,7 @@ const ProductDetail = () => {
                       
                       const handleCopyCode = (code: string) => {
                         navigator.clipboard.writeText(code);
-                        toast.success(`Code "${code}" copied!`);
+                        toast.success(`Kód "${code}" zkopírován!`);
                       };
                       
                       return (
@@ -767,9 +767,9 @@ const ProductDetail = () => {
                               </TooltipTrigger>
                               {promoApplied && promoCode && (
                                 <TooltipContent>
-                                  <p className="font-medium">Price after code: {promoCode.code}</p>
+                                  <p className="font-medium">Cena po slevovém kódu: {promoCode.code}</p>
                                   <p className="text-xs text-muted-foreground">
-                                    Original: {formatPrice(price.current_price, priceCurrency)}
+                                    Původní: {formatPrice(price.current_price, priceCurrency)}
                                   </p>
                                 </TooltipContent>
                               )}
@@ -859,7 +859,7 @@ const ProductDetail = () => {
               </div>
             ) : (
               <p className="py-8 text-center text-muted-foreground">
-                No price data available for this product.
+                Pro tento produkt nejsou k dispozici žádné cenové údaje.
               </p>
             )}
           </CardContent>
