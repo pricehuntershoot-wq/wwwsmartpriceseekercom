@@ -970,6 +970,11 @@ const SearchResults = () => {
             </Button>
           </div>
         )}
+
+        {/* Premium upsell after results */}
+        {!isLoading && products.length > 0 && (
+          <PremiumUpsellBanner />
+        )}
       </main>
       <Footer />
       {showLimitModal && (
