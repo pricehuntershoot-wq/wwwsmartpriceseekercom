@@ -711,8 +711,8 @@ const ProductDetail = () => {
                           <SortIcon field="currency" />
                         </span>
                       </TableHead>
-                      <TableHead>Original</TableHead>
-                      <TableHead>Discount</TableHead>
+                      <TableHead>Původní</TableHead>
+                      <TableHead>Sleva</TableHead>
                       <TableHead 
                         className="cursor-pointer hover:text-foreground"
                         onClick={() => handleTableSort('updated')}
