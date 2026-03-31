@@ -514,11 +514,10 @@ Call extract_products with all found products.`;
     }
 
     if (!aiResponse) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'AI analysis failed after retries' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+      console.log('AI unavailable, falling back to regex parser...');
+      products = regexFallbackParse(scrapeResults, trimmedQuery);
+      console.log(`Regex fallback extracted ${products.length} products`);
+    } else {
 
     // Parse tool call response
     let products: any[] = [];
