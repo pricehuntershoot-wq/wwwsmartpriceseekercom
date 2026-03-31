@@ -159,7 +159,7 @@ const ProductDetail = () => {
 
   const handleFavorite = async () => {
     if (!user || !id) {
-      toast.error("Please sign in to save favorites");
+      toast.error("Pro uložení oblíbených se prosím přihlaste");
       return;
     }
 
