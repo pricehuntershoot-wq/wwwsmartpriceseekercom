@@ -207,7 +207,7 @@ export const PriceHistoryChart = ({ productId, currentBestPrice }: PriceHistoryC
               </p>
             </div>
             <div className="text-center">
-              <p className="text-sm text-muted-foreground">Average</p>
+              <p className="text-sm text-muted-foreground">Průměr</p>
               <p className="text-lg font-bold">
                 {formatPrice(priceHistory.reduce((sum, p) => sum + p.price, 0) / priceHistory.length)}
               </p>
