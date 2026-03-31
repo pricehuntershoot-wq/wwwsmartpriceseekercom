@@ -14,6 +14,61 @@ export type Database = {
   }
   public: {
     Tables: {
+      affiliate_clicks: {
+        Row: {
+          clicked_at: string
+          id: string
+          price_id: string | null
+          product_id: string | null
+          product_url: string
+          referrer: string | null
+          shop_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          clicked_at?: string
+          id?: string
+          price_id?: string | null
+          product_id?: string | null
+          product_url: string
+          referrer?: string | null
+          shop_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          clicked_at?: string
+          id?: string
+          price_id?: string | null
+          product_id?: string | null
+          product_url?: string
+          referrer?: string | null
+          shop_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_clicks_price_id_fkey"
+            columns: ["price_id"]
+            isOneToOne: false
+            referencedRelation: "prices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_clicks_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_clicks_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cart_discount_patterns: {
         Row: {
           confidence: Database["public"]["Enums"]["confidence_level"]

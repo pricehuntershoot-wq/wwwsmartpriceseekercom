@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import { Heart, ExternalLink, Package, Clock, Tag, Sparkles } from "lucide-react";
+import { trackAffiliateClick } from "@/lib/affiliate";
+import { useAuth } from "@/hooks/useAuth";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
@@ -60,6 +62,7 @@ const getDiscountColor = (type: string | null) => {
 export const ProductCard = ({ product, onFavorite, isFavorited = false }: ProductCardProps) => {
   const { preferredCurrency } = useCurrencyPreference();
   const { data: promoCodes } = usePromoCodes();
+  const { user } = useAuth();
   const prices = product.prices || [];
   
   const pricesWithPromo: PriceWithPromo[] = prices.map((price) => {
@@ -202,11 +205,23 @@ export const ProductCard = ({ product, onFavorite, isFavorited = false }: Produc
 
         {bestPrice?.product_url && (
           <div className="mt-3 flex gap-2">
-            <Button className="flex-1" size="sm" asChild>
-              <a href={bestPrice.product_url} target="_blank" rel="noopener noreferrer">
-                View Deal
-                <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
-              </a>
+            <Button 
+              className="flex-1" 
+              size="sm"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                trackAffiliateClick({
+                  productId: product.id,
+                  shopId: bestPrice.shop.id,
+                  priceId: bestPrice.id,
+                  userId: user?.id,
+                  productUrl: bestPrice.product_url!,
+                });
+              }}
+            >
+              Koupit
+              <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
             </Button>
             <Button variant="outline" size="sm" className="flex-1" asChild>
               <Link to={`/analyzer?url=${encodeURIComponent(bestPrice.product_url)}`}>
