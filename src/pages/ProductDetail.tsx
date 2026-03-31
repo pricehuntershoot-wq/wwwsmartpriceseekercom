@@ -101,7 +101,7 @@ const ProductDetail = () => {
         (pricesData || []).map(async (price) => {
           const { data: shopData } = await supabase
             .from('shops')
-            .select('id, name, logo_url, website_url, ehub_program_id')
+            .select('id, name, logo_url, website_url')
             .eq('id', price.shop_id)
             .maybeSingle();
           
@@ -532,7 +532,6 @@ const ProductDetail = () => {
                       priceId: bestPrice.id,
                       userId: user?.id,
                       productUrl: bestPrice.product_url!,
-                      ehubProgramId: (bestPrice.shop as any).ehub_program_id,
                     });
                   }}
                 >
@@ -840,7 +839,6 @@ const ProductDetail = () => {
                                   priceId: price.id,
                                   userId: user?.id,
                                   productUrl: price.product_url!,
-                                  ehubProgramId: (price.shop as any).ehub_program_id,
                                 });
                               }}
                             >

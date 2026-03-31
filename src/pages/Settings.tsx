@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings as SettingsIcon, User, Bell, ArrowLeft, Save, Palette, Sun, Moon, Monitor, Crown, ExternalLink, Loader2, Link2, Percent } from "lucide-react";
+import { Settings as SettingsIcon, User, Bell, ArrowLeft, Save, Palette, Sun, Moon, Monitor, Crown, ExternalLink, Loader2, Percent } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -33,8 +33,7 @@ const Settings = () => {
   const [saving, setSaving] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [shops, setShops] = useState<{ id: string; name: string; ehub_program_id: string | null; tipli_url: string | null; cashback_percentage: number | null }[]>([]);
-  const [ehubIds, setEhubIds] = useState<Record<string, string>>({});
+  const [shops, setShops] = useState<{ id: string; name: string; tipli_url: string | null; cashback_percentage: number | null }[]>([]);
   const [tipliUrls, setTipliUrls] = useState<Record<string, string>>({});
   const [cashbackPcts, setCashbackPcts] = useState<Record<string, string>>({});
 
@@ -58,23 +57,20 @@ const Settings = () => {
         setDisplayName(data.display_name || "");
       }
 
-      // Load shops with eHub IDs
+      // Load shops
       const { data: shopsData } = await supabase
         .from("shops")
-        .select("id, name, ehub_program_id, tipli_url, cashback_percentage")
+        .select("id, name, tipli_url, cashback_percentage")
         .order("name");
       
       if (shopsData) {
         setShops(shopsData as any);
-        const ids: Record<string, string> = {};
         const urls: Record<string, string> = {};
         const pcts: Record<string, string> = {};
         shopsData.forEach((s: any) => {
-          if (s.ehub_program_id) ids[s.id] = s.ehub_program_id;
           if (s.tipli_url) urls[s.id] = s.tipli_url;
           if (s.cashback_percentage != null) pcts[s.id] = String(s.cashback_percentage);
         });
-        setEhubIds(ids);
         setTipliUrls(urls);
         setCashbackPcts(pcts);
       }
@@ -97,14 +93,12 @@ const Settings = () => {
 
       if (error) throw error;
 
-      // Save eHub program IDs + Tipli settings
+      // Save Tipli settings
       for (const shop of shops) {
-        const newEhub = ehubIds[shop.id]?.trim() || null;
         const newTipli = tipliUrls[shop.id]?.trim() || null;
         const newCashback = cashbackPcts[shop.id]?.trim() ? parseFloat(cashbackPcts[shop.id]) : null;
         
         const updates: Record<string, any> = {};
-        if (newEhub !== shop.ehub_program_id) updates.ehub_program_id = newEhub;
         if (newTipli !== shop.tipli_url) updates.tipli_url = newTipli;
         if (newCashback !== shop.cashback_percentage) updates.cashback_percentage = newCashback;
         
@@ -423,41 +417,6 @@ const Settings = () => {
             </CardContent>
           </Card>
 
-          {/* eHub Affiliate Settings */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Link2 className="h-5 w-5 text-primary" />
-                <CardTitle>eHub Affiliate</CardTitle>
-              </div>
-              <CardDescription>
-                Nastavte eHub program ID pro každý e-shop. Odkazy na produkty budou automaticky přesměrovány přes eHub.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {shops.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Žádné e-shopy k dispozici.</p>
-              ) : (
-                shops.map((shop) => (
-                  <div key={shop.id} className="flex items-center gap-3">
-                    <Label className="w-32 shrink-0 text-sm font-medium">{shop.name}</Label>
-                    <Input
-                      placeholder="např. alza-cz"
-                      value={ehubIds[shop.id] || ""}
-                      onChange={(e) => setEhubIds(prev => ({ ...prev, [shop.id]: e.target.value }))}
-                      className="flex-1"
-                    />
-                  </div>
-                ))
-              )}
-              <p className="text-xs text-muted-foreground">
-                Program ID najdete v eHub dashboardu po registraci na{" "}
-                <a href="https://www.ehub.cz" target="_blank" rel="noopener noreferrer" className="text-primary underline">
-                  ehub.cz
-                </a>
-              </p>
-            </CardContent>
-          </Card>
 
           {/* Tipli Cashback Settings */}
           <Card>

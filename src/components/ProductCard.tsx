@@ -25,7 +25,6 @@ interface Price {
     id: string;
     name: string;
     logo_url: string | null;
-    ehub_program_id?: string | null;
   };
 }
 
@@ -219,7 +218,6 @@ export const ProductCard = ({ product, onFavorite, isFavorited = false }: Produc
                   priceId: bestPrice.id,
                   userId: user?.id,
                   productUrl: bestPrice.product_url!,
-                  ehubProgramId: bestPrice.shop.ehub_program_id,
                 });
               }}
             >
