@@ -198,7 +198,7 @@ const ProductDetail = () => {
 
     const targetPrice = parseFloat(alertPrice);
     if (isNaN(targetPrice) || targetPrice <= 0) {
-      toast.error("Please enter a valid price");
+      toast.error("Zadejte platnou cenu");
       return;
     }
 
