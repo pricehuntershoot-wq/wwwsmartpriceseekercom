@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Zap, LogOut, Heart, Menu, Crosshair, Crown, Settings } from "lucide-react";
+import { NotificationBell } from "./NotificationBell";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useAuth } from "@/hooks/useAuth";
