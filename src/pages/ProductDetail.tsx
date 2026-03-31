@@ -859,7 +859,7 @@ const ProductDetail = () => {
               </div>
             ) : (
               <p className="py-8 text-center text-muted-foreground">
-                No price data available for this product.
+                Pro tento produkt nejsou k dispozici žádné cenové údaje.
               </p>
             )}
           </CardContent>
