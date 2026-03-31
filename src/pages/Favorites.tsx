@@ -137,15 +137,15 @@ const Favorites = () => {
     
     if (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to remove favorite',
+        title: 'Chyba',
+        description: 'Nepodařilo se odebrat z oblíbených',
         variant: 'destructive'
       });
     } else {
       setFavorites(favorites.filter(f => f.id !== id));
       toast({
-        title: 'Removed',
-        description: 'Product removed from favorites'
+        title: 'Odebráno',
+        description: 'Produkt byl odebrán z oblíbených'
       });
     }
   };
