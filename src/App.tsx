@@ -20,6 +20,7 @@ import NotFound from "./pages/NotFound";
 import Analyzer from "./pages/Analyzer";
 import SearchResults from "./pages/SearchResults";
 import CategoryProducts from "./pages/CategoryProducts";
+import ABTestDashboard from "./pages/ABTestDashboard";
 
 const queryClient = new QueryClient();
 
