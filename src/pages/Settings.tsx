@@ -54,23 +54,6 @@ const Settings = () => {
         setDisplayName(data.display_name || "");
       }
 
-      // Load shops
-      const { data: shopsData } = await supabase
-        .from("shops")
-        .select("id, name, tipli_url, cashback_percentage")
-        .order("name");
-      
-      if (shopsData) {
-        setShops(shopsData as any);
-        const urls: Record<string, string> = {};
-        const pcts: Record<string, string> = {};
-        shopsData.forEach((s: any) => {
-          if (s.tipli_url) urls[s.id] = s.tipli_url;
-          if (s.cashback_percentage != null) pcts[s.id] = String(s.cashback_percentage);
-        });
-        setTipliUrls(urls);
-        setCashbackPcts(pcts);
-      }
 
       setLoading(false);
     };
