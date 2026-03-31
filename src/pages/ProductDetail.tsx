@@ -171,7 +171,7 @@ const ProductDetail = () => {
         .eq('product_id', id);
       
       if (error) {
-        toast.error("Failed to remove favorite");
+        toast.error("Nepodařilo se odebrat z oblíbených");
         return;
       }
       toast.success("Removed from favorites");
