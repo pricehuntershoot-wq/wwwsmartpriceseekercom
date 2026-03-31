@@ -94,14 +94,12 @@ const Settings = () => {
 
       if (error) throw error;
 
-      // Save eHub program IDs + Tipli settings
+      // Save Tipli settings
       for (const shop of shops) {
-        const newEhub = ehubIds[shop.id]?.trim() || null;
         const newTipli = tipliUrls[shop.id]?.trim() || null;
         const newCashback = cashbackPcts[shop.id]?.trim() ? parseFloat(cashbackPcts[shop.id]) : null;
         
         const updates: Record<string, any> = {};
-        if (newEhub !== shop.ehub_program_id) updates.ehub_program_id = newEhub;
         if (newTipli !== shop.tipli_url) updates.tipli_url = newTipli;
         if (newCashback !== shop.cashback_percentage) updates.cashback_percentage = newCashback;
         
