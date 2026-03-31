@@ -47,6 +47,7 @@ const App = () => (
               <Route path="/settings" element={<Settings />} />
               <Route path="/analyzer" element={<Analyzer />} />
               <Route path="/search" element={<SearchResults />} />
+              <Route path="/ab-dashboard" element={<ABTestDashboard />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
