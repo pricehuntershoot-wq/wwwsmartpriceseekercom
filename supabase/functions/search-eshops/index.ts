@@ -458,7 +458,7 @@ Call the extract_products function with ALL found products.`;
                   normalizedName: { type: "string", description: "Canonical name without color/variant, e.g. 'Sony WH-1000XM5'" },
                   price: { type: "number", description: "Current price in CZK" },
                   originalPrice: { type: ["number", "null"], description: "Original/crossed-out price or null" },
-                  eshop: { type: "string", enum: ["alza", "czc", "datart", "smarty", "mironet", "mp", "refurbed", "amazon", "xiaomi", "gigacomputer", "tsbohemia"] },
+                  eshop: { type: "string", enum: ["alza", "czc", "datart", "smarty", "mironet", "mp", "refurbed", "amazon", "xiaomi", "gigacomputer", "tsbohemia", "allegro"] },
                   productUrl: { type: ["string", "null"], description: "Full product URL" },
                   imageUrl: { type: ["string", "null"], description: "Direct product image URL or null" },
                   category: { type: "string", enum: ["mobily", "sluchátka", "tv", "reproduktory", "chytré hodinky", "chytré prsteny", "tablety", "herní konzole", "pc", "příslušenství", "jiné"] },
