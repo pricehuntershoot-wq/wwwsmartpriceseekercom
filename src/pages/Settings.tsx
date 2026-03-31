@@ -293,6 +293,28 @@ const Settings = () => {
                           <Badge variant="secondary" className="ml-auto text-xs">Aktivní</Badge>
                         </div>
                       </div>
+                      <Separator />
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Gauge className="h-4 w-4 text-primary" />
+                          <span className="text-sm font-semibold">Práh poklesu ceny</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Upozorníme vás, když cena klesne alespoň o zvolené procento.
+                        </p>
+                        <div className="flex gap-2 flex-wrap">
+                          {[3, 5, 10, 15, 20].map((val) => (
+                            <Button
+                              key={val}
+                              variant={priceDropThreshold === val ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setPriceDropThreshold(val)}
+                            >
+                              {val}%
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   )}
 
