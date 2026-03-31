@@ -201,7 +201,7 @@ export const PriceHistoryChart = ({ productId, currentBestPrice }: PriceHistoryC
         {priceHistory.length > 0 && (
           <div className="mt-4 grid grid-cols-3 gap-4 border-t pt-4">
             <div className="text-center">
-              <p className="text-sm text-muted-foreground">Lowest</p>
+              <p className="text-sm text-muted-foreground">Nejnižší</p>
               <p className="text-lg font-bold text-green-500">
                 {formatPrice(Math.min(...priceHistory.map(p => p.price)))}
               </p>
