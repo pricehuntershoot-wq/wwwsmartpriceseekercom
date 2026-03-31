@@ -158,15 +158,15 @@ const Favorites = () => {
     
     if (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to delete alert',
+        title: 'Chyba',
+        description: 'Nepodařilo se smazat upozornění',
         variant: 'destructive'
       });
     } else {
       setAlerts(alerts.filter(a => a.id !== id));
       toast({
-        title: 'Deleted',
-        description: 'Price alert deleted'
+        title: 'Smazáno',
+        description: 'Cenové upozornění bylo smazáno'
       });
     }
   };
