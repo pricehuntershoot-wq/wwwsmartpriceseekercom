@@ -302,7 +302,7 @@ const Favorites = () => {
                               <>
                                 <span className="text-muted-foreground">|</span>
                                 <span className="text-sm text-muted-foreground">
-                                  Current: {formatPrice(alert.current_best_price, preferredCurrency)}
+                                  Aktuální: {formatPrice(alert.current_best_price, preferredCurrency)}
                                 </span>
                                 {isTargetReached && (
                                   <TrendingDown className="h-4 w-4 text-green-500" />
