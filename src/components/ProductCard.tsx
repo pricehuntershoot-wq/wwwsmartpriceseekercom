@@ -219,7 +219,7 @@ export const ProductCard = ({ product, onFavorite, isFavorited = false }: Produc
                   priceId: bestPrice.id,
                   userId: user?.id,
                   productUrl: bestPrice.product_url!,
-                  cashbackUrl: bestPrice.shop.tipli_url,
+                  
                 });
               }}
             >

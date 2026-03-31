@@ -107,7 +107,7 @@ const ProductDetail = () => {
           
           return {
             ...price,
-            shop: shopData || { id: price.shop_id, name: 'Unknown', logo_url: null, website_url: null, tipli_url: null, cashback_percentage: null }
+            shop: shopData || { id: price.shop_id, name: 'Unknown', logo_url: null, website_url: null }
           };
         })
       );

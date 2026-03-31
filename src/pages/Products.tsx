@@ -71,7 +71,7 @@ const Products = () => {
                 .maybeSingle();
               return {
                 ...price,
-                shop: shopData || { id: price.shop_id, name: 'Unknown', logo_url: null, tipli_url: null }
+                shop: shopData || { id: price.shop_id, name: 'Unknown', logo_url: null }
               };
             })
           );
