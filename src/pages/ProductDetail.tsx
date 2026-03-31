@@ -827,11 +827,19 @@ const ProductDetail = () => {
                         </TableCell>
                         <TableCell className="text-right">
                           {price.product_url ? (
-                            <Button size="sm" variant={isPreferred ? "default" : "outline"} asChild>
-                              <a href={price.product_url} target="_blank" rel="noopener noreferrer">
-                                Buy
-                                <ExternalLink className="ml-1 h-3 w-3" />
-                              </a>
+                            <Button 
+                              size="sm" 
+                              variant={isPreferred ? "default" : "outline"}
+                              onClick={() => trackAffiliateClick({
+                                productId: product.id,
+                                shopId: price.shop.id,
+                                priceId: price.id,
+                                userId: user?.id,
+                                productUrl: price.product_url!,
+                              })}
+                            >
+                              Koupit
+                              <ExternalLink className="ml-1 h-3 w-3" />
                             </Button>
                           ) : (
                             <span className="text-sm text-muted-foreground">N/A</span>
