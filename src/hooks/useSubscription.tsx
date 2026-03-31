@@ -5,6 +5,7 @@ import { useAuth } from './useAuth';
 interface SubscriptionState {
   subscribed: boolean;
   isPremium: boolean;
+  isPremiumPlus: boolean;
   subscriptionEnd: string | null;
   loading: boolean;
 }
@@ -14,13 +15,14 @@ export function useSubscription() {
   const [state, setState] = useState<SubscriptionState>({
     subscribed: false,
     isPremium: false,
+    isPremiumPlus: false,
     subscriptionEnd: null,
     loading: true,
   });
 
   const checkSubscription = useCallback(async () => {
     if (!session?.access_token) {
-      setState({ subscribed: false, isPremium: false, subscriptionEnd: null, loading: false });
+      setState({ subscribed: false, isPremium: false, isPremiumPlus: false, subscriptionEnd: null, loading: false });
       return;
     }
 
@@ -36,6 +38,7 @@ export function useSubscription() {
       setState({
         subscribed: data.subscribed || false,
         isPremium: data.isPremium || false,
+        isPremiumPlus: data.isPremiumPlus || false,
         subscriptionEnd: data.subscriptionEnd || null,
         loading: false,
       });
@@ -49,7 +52,6 @@ export function useSubscription() {
     checkSubscription();
   }, [checkSubscription]);
 
-  // Refresh subscription every minute
   useEffect(() => {
     if (!user) return;
     const interval = setInterval(checkSubscription, 60000);

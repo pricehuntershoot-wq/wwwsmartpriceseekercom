@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Zap, LogOut, Heart, Menu, Crosshair, Crown, Settings } from "lucide-react";
+import { NotificationBell } from "./NotificationBell";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -62,6 +63,7 @@ export const Header = () => {
           <CurrencySelector />
           {user ? (
              <>
+              <NotificationBell />
               <Button variant="ghost" size="sm" asChild>
                 <Link to="/settings" className="flex items-center gap-1.5">
                   <Settings className="h-4 w-4" />

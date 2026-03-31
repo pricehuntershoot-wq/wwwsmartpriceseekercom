@@ -39,6 +39,26 @@ serve(async (req) => {
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated or email not available");
 
+    // Accept priceId from request body, with fallback
+    let priceId = "price_1TDF3mFmWsNdyjNFbzPta9mx";
+    try {
+      const body = await req.json();
+      if (body?.priceId) priceId = body.priceId;
+    } catch {}
+
+    const ALLOWED_PRICES = [
+      "price_1SuiE1FmWsNdyjNFLxMsORxX",
+      "price_1T3yp5FmWsNdyjNFYXErdBnD",
+      "price_1TDF3mFmWsNdyjNFbzPta9mx",
+      "price_1TH6RRFmWsNdyjNF2dMiGI3e",
+    ];
+    if (!ALLOWED_PRICES.includes(priceId)) {
+      return new Response(JSON.stringify({ error: "Invalid price" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { 
       apiVersion: "2025-08-27.basil" 
     });
@@ -54,7 +74,7 @@ serve(async (req) => {
       customer_email: customerId ? undefined : user.email,
       line_items: [
         {
-          price: "price_1TDF3mFmWsNdyjNFbzPta9mx",
+          price: priceId,
           quantity: 1,
         },
       ],
