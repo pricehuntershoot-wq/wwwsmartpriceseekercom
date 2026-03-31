@@ -839,7 +839,6 @@ const ProductDetail = () => {
                                   priceId: price.id,
                                   userId: user?.id,
                                   productUrl: price.product_url!,
-                                  ehubProgramId: (price.shop as any).ehub_program_id,
                                 });
                               }}
                             >

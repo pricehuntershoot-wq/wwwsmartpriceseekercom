@@ -9,18 +9,10 @@ interface AffiliateClickParams {
 }
 
 /**
- * Builds an eHub affiliate tracking URL if the shop has an eHub program ID.
- * Falls back to UTM-tagged direct URL otherwise.
+ * Builds a UTM-tagged URL for tracking.
  */
-export const buildAffiliateUrl = (url: string, ehubProgramId?: string | null): string => {
+export const buildAffiliateUrl = (url: string): string => {
   try {
-    if (ehubProgramId) {
-      // eHub tracking URL format
-      const encodedUrl = encodeURIComponent(url);
-      return `https://www.ehub.cz/goto/${ehubProgramId}/?url=${encodedUrl}`;
-    }
-    
-    // Fallback: direct URL with UTM parameters
     const parsed = new URL(url);
     parsed.searchParams.set('utm_source', 'smartpriceseeker');
     parsed.searchParams.set('utm_medium', 'referral');
@@ -35,9 +27,9 @@ export const buildAffiliateUrl = (url: string, ehubProgramId?: string | null): s
  * Tracks an affiliate click and opens the URL in a new tab.
  */
 export const trackAffiliateClick = async (
-  params: AffiliateClickParams & { ehubProgramId?: string | null }
+  params: AffiliateClickParams
 ): Promise<void> => {
-  const affiliateUrl = buildAffiliateUrl(params.productUrl, params.ehubProgramId);
+  const affiliateUrl = buildAffiliateUrl(params.productUrl);
 
   // Open link immediately (don't wait for tracking)
   window.open(affiliateUrl, '_blank', 'noopener,noreferrer');
