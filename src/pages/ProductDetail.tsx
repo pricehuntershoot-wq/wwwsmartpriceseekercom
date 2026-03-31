@@ -533,7 +533,7 @@ const ProductDetail = () => {
                     createProductCheckout({
                       productName: product.name,
                       productImage: product.image_url,
-                      price: bestPrice.finalPrice,
+                      price: bestPrice.current_price,
                       currency: bestPrice.currency || 'EUR',
                       shopName: bestPrice.shop.name,
                       productUrl: bestPrice.product_url!,
