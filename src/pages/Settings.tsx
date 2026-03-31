@@ -93,7 +93,7 @@ const Settings = () => {
 
       if (error) throw error;
 
-      // Save Tipli settings
+      // Save Plná Peněženka settings
       for (const shop of shops) {
         const newTipli = tipliUrls[shop.id]?.trim() || null;
         const newCashback = cashbackPcts[shop.id]?.trim() ? parseFloat(cashbackPcts[shop.id]) : null;
@@ -418,15 +418,15 @@ const Settings = () => {
           </Card>
 
 
-          {/* Tipli Cashback Settings */}
+           {/* Plná Peněženka Cashback Settings */}
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Percent className="h-5 w-5 text-primary" />
-                <CardTitle>Tipli Cashback</CardTitle>
+                <CardTitle>Plná Peněženka Cashback</CardTitle>
               </div>
               <CardDescription>
-                Nastavte Tipli URL a cashback procento pro každý e-shop. Uživatelům se zobrazí cashback badge u výsledků.
+                Nastavte Plná Peněženka URL a cashback procento pro každý e-shop. Uživatelům se zobrazí cashback badge u výsledků.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -437,7 +437,7 @@ const Settings = () => {
                   <div key={shop.id} className="flex items-center gap-3">
                     <Label className="w-32 shrink-0 text-sm font-medium">{shop.name}</Label>
                     <Input
-                      placeholder="https://www.tipli.cz/..."
+                      placeholder="https://www.plnapenezenkacz.cz/..."
                       value={tipliUrls[shop.id] || ""}
                       onChange={(e) => setTipliUrls(prev => ({ ...prev, [shop.id]: e.target.value }))}
                       className="flex-1"
@@ -460,8 +460,8 @@ const Settings = () => {
               )}
               <p className="text-xs text-muted-foreground">
                 Cashback procenta najdete na{" "}
-                <a href="https://www.tipli.cz" target="_blank" rel="noopener noreferrer" className="text-primary underline">
-                  tipli.cz
+                <a href="https://www.plnapenezenkacz.cz" target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                  plnapenezenkacz.cz
                 </a>
               </p>
             </CardContent>
