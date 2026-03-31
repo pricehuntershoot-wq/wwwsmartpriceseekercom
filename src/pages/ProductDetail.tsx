@@ -718,7 +718,7 @@ const ProductDetail = () => {
                         onClick={() => handleTableSort('updated')}
                       >
                         <span className="flex items-center">
-                          Updated
+                          Aktualizace
                           <SortIcon field="updated" />
                         </span>
                       </TableHead>
