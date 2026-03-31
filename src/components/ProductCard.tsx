@@ -25,7 +25,7 @@ interface Price {
     id: string;
     name: string;
     logo_url: string | null;
-    tipli_url?: string | null;
+    
   };
 }
 
