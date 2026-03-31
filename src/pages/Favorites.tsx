@@ -48,6 +48,7 @@ interface PriceAlert {
 
 const Favorites = () => {
   const { user, loading: authLoading } = useAuth();
+  const { isPremiumPlus } = useSubscription();
   const { preferredCurrency } = useCurrencyPreference();
   const navigate = useNavigate();
   const { toast } = useToast();
