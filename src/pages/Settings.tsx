@@ -70,7 +70,7 @@ const Settings = () => {
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({ display_name: displayName })
+        .update({ display_name: displayName, price_drop_threshold: priceDropThreshold })
         .eq("user_id", user.id);
 
       if (error) throw error;
