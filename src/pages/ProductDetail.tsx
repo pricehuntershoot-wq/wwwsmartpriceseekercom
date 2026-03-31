@@ -570,12 +570,12 @@ const ProductDetail = () => {
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Set Price Alert</DialogTitle>
+                      <DialogTitle>Nastavit upozornění na cenu</DialogTitle>
                       <DialogDescription>
-                        Get notified when the price drops below your target price.
+                        Dostanete upozornění, když cena klesne pod vámi zvolenou částku.
                         {bestPrice && (
                           <span className="mt-2 block text-sm">
-                            Current best price: <strong className="text-primary">{formatPrice(bestPrice.current_price, currency)}</strong>
+                            Aktuální nejnižší cena: <strong className="text-primary">{formatPrice(bestPrice.current_price, currency)}</strong>
                           </span>
                         )}
                       </DialogDescription>
