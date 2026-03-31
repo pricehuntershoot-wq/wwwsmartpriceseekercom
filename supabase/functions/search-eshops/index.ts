@@ -175,7 +175,8 @@ async function saveResultsToDB(supabase: any, products: any[]) {
                         product.eshop === 'gigacomputer' ? 'Gigacomputer.cz' :
                         product.eshop === 'tsbohemia' ? 'TSBohemia.cz' :
                         product.eshop === 'allegro' ? 'Allegro.cz' :
-                        product.eshop === 'samsung' ? 'Samsung.cz' : product.eshop;
+                        product.eshop === 'samsung' ? 'Samsung.cz' :
+                        product.eshop === 'isetos' ? 'iSetos.cz' : product.eshop;
       
       let shopId = shopCache[shopName];
       if (!shopId) {
@@ -399,6 +400,7 @@ serve(async (req) => {
       searchViaFirecrawl('tsbohemia', 'tsbohemia.cz', trimmedQuery, FIRECRAWL_API_KEY, ['tsbohemia.cz']),
       searchViaFirecrawl('allegro', 'allegro.cz', trimmedQuery, FIRECRAWL_API_KEY, ['allegro.cz']),
       searchViaFirecrawl('samsung', 'samsung.com/cz', trimmedQuery, FIRECRAWL_API_KEY, ['samsung.com', 'images.samsung.com']),
+      searchViaFirecrawl('isetos', 'isetos.cz', trimmedQuery, FIRECRAWL_API_KEY, ['isetos.cz']),
     ]);
 
     // Build combined content for AI analysis
@@ -423,10 +425,10 @@ serve(async (req) => {
     // Use AI to extract structured product data via tool calling
     const systemPrompt = `You are an expert at extracting product listings from Czech and European e-shop search results.
 
-Given search results from multiple e-shops (Alza.cz, CZC.cz, Datart.cz, Smarty.cz, Mironet.cz, MP.cz, Refurbed.cz, Amazon.de, Xiaomi Store, Gigacomputer.cz, TSBohemia.cz, Allegro.cz, Samsung.cz), extract products from EVERY e-shop section.
+Given search results from multiple e-shops (Alza.cz, CZC.cz, Datart.cz, Smarty.cz, Mironet.cz, MP.cz, Refurbed.cz, Amazon.de, Xiaomi Store, Gigacomputer.cz, TSBohemia.cz, Allegro.cz, Samsung.cz, iSetos.cz), extract products from EVERY e-shop section.
 
 CRITICAL RULES:
-1. You MUST extract products from ALL e-shops that have data. Sections are marked "=== ALZA ===", "=== CZC ===", "=== DATART ===", "=== SMARTY ===", "=== MIRONET ===", "=== MP ===", "=== REFURBED ===", "=== AMAZON ===", "=== XIAOMI ===", "=== GIGACOMPUTER ===", "=== TSBOHEMIA ===", "=== ALLEGRO ===", "=== SAMSUNG ===".
+1. You MUST extract products from ALL e-shops that have data. Sections are marked "=== ALZA ===", "=== CZC ===", "=== DATART ===", "=== SMARTY ===", "=== MIRONET ===", "=== MP ===", "=== REFURBED ===", "=== AMAZON ===", "=== XIAOMI ===", "=== GIGACOMPUTER ===", "=== TSBOHEMIA ===", "=== ALLEGRO ===", "=== SAMSUNG ===", "=== ISETOS ===".
 2. Extract at least 5 products from EACH section that has product listings. Do NOT skip any e-shop.
 3. **STRICT RELEVANCE**: Only extract products that EXACTLY match the searched model. 
    - If query is "Galaxy S24", extract ONLY Galaxy S24 (base model). Do NOT include Galaxy S24 Ultra, S24+, S24 FE, S25, or any other variant.
@@ -435,7 +437,7 @@ CRITICAL RULES:
    - Skip accessories, cases, chargers, and unrelated products entirely.
 4. For the "normalizedName" field: create a canonical product name without color/variant info, e.g. "Sony WH-1000XM5 bezdrátová sluchátka černá" → "Sony WH-1000XM5". This helps match same products across shops.
 5. Parse Czech prices: "11 590,-" → 11590, "9 272 Kč" → 9272, "od 5 990 Kč" → 5990. Parse EUR prices from Amazon.de: "129,99 €" → convert to CZK using rate 25.2 (e.g. 129.99 * 25.2 = 3276).
-6. For URLs: Alza prepend "https://www.alza.cz", CZC "https://www.czc.cz", Datart "https://www.datart.cz", Smarty "https://www.smarty.cz", Mironet "https://www.mironet.cz", MP "https://www.mp.cz", Refurbed "https://www.refurbed.cz", Amazon "https://www.amazon.de", Xiaomi "https://www.mi-store.cz", Gigacomputer "https://www.gigacomputer.cz", TSBohemia "https://www.tsbohemia.cz", Allegro "https://www.allegro.cz", Samsung "https://www.samsung.com/cz" if path starts with "/".
+6. For URLs: Alza prepend "https://www.alza.cz", CZC "https://www.czc.cz", Datart "https://www.datart.cz", Smarty "https://www.smarty.cz", Mironet "https://www.mironet.cz", MP "https://www.mp.cz", Refurbed "https://www.refurbed.cz", Amazon "https://www.amazon.de", Xiaomi "https://www.mi-store.cz", Gigacomputer "https://www.gigacomputer.cz", TSBohemia "https://www.tsbohemia.cz", Allegro "https://www.allegro.cz", Samsung "https://www.samsung.com/cz", iSetos "https://www.isetos.cz" if path starts with "/".
 7. For imageUrl: must be a direct image URL (ending in .jpg/.jpeg/.png/.webp or containing /img//foto//photo/). If unsure, null. Never assign same image to multiple products.
 8. Skip duplicate listings (same product appearing twice in same e-shop).
 9. **Refurbed.cz** specializes in refurbished products — set condition to "refurbished" for all Refurbed products.
@@ -460,7 +462,7 @@ Call the extract_products function with ALL found products.`;
                   normalizedName: { type: "string", description: "Canonical name without color/variant, e.g. 'Sony WH-1000XM5'" },
                   price: { type: "number", description: "Current price in CZK" },
                   originalPrice: { type: ["number", "null"], description: "Original/crossed-out price or null" },
-                  eshop: { type: "string", enum: ["alza", "czc", "datart", "smarty", "mironet", "mp", "refurbed", "amazon", "xiaomi", "gigacomputer", "tsbohemia", "allegro", "samsung"] },
+                  eshop: { type: "string", enum: ["alza", "czc", "datart", "smarty", "mironet", "mp", "refurbed", "amazon", "xiaomi", "gigacomputer", "tsbohemia", "allegro", "samsung", "isetos"] },
                   productUrl: { type: ["string", "null"], description: "Full product URL" },
                   imageUrl: { type: ["string", "null"], description: "Direct product image URL or null" },
                   category: { type: "string", enum: ["mobily", "sluchátka", "tv", "reproduktory", "chytré hodinky", "chytré prsteny", "tablety", "herní konzole", "pc", "příslušenství", "jiné"] },

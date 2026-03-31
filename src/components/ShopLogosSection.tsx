@@ -14,6 +14,7 @@ const shops = [
   { name: "TSBohemia.cz", color: "text-rose-400" },
   { name: "Allegro.cz", color: "text-pink-400" },
   { name: "Samsung.cz", color: "text-indigo-400" },
+  { name: "iSetos.cz", color: "text-cyan-400" },
 ];
 
 export const ShopLogosSection = () => {
