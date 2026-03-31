@@ -103,11 +103,13 @@ serve(async (req) => {
       logStep("No active subscription found");
     }
 
-    const isPremium = productId === "prod_UBcIbJaLSJy5tr" || productId === "prod_TjAIoMGlqSfmXk";
+    const isPremium = productId === "prod_UBcIbJaLSJy5tr" || productId === "prod_TjAIoMGlqSfmXk" || productId === "prod_UFbeY69ycsk5JW";
+    const isPremiumPlus = productId === "prod_UFbeY69ycsk5JW";
 
     return new Response(JSON.stringify({
       subscribed: hasActiveSub,
       isPremium,
+      isPremiumPlus,
       productId,
       subscriptionEnd
     }), {

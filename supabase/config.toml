@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.search-eshops]
 verify_jwt = false
+
+[functions.check-favorites-prices]
+verify_jwt = false
