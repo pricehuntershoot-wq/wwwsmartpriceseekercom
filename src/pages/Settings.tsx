@@ -58,23 +58,20 @@ const Settings = () => {
         setDisplayName(data.display_name || "");
       }
 
-      // Load shops with eHub IDs
+      // Load shops
       const { data: shopsData } = await supabase
         .from("shops")
-        .select("id, name, ehub_program_id, tipli_url, cashback_percentage")
+        .select("id, name, tipli_url, cashback_percentage")
         .order("name");
       
       if (shopsData) {
         setShops(shopsData as any);
-        const ids: Record<string, string> = {};
         const urls: Record<string, string> = {};
         const pcts: Record<string, string> = {};
         shopsData.forEach((s: any) => {
-          if (s.ehub_program_id) ids[s.id] = s.ehub_program_id;
           if (s.tipli_url) urls[s.id] = s.tipli_url;
           if (s.cashback_percentage != null) pcts[s.id] = String(s.cashback_percentage);
         });
-        setEhubIds(ids);
         setTipliUrls(urls);
         setCashbackPcts(pcts);
       }
