@@ -23,7 +23,7 @@ async function searchViaFirecrawl(eshopName: string, domain: string, query: stri
       },
       body: JSON.stringify({
         query: `site:${domain} ${query}`,
-        limit: 15,
+        limit: 8,
         lang: 'cs',
         country: 'CZ',
         scrapeOptions: { formats: ['markdown'] },
