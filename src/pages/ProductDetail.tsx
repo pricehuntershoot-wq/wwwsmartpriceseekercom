@@ -597,11 +597,11 @@ const ProductDetail = () => {
                     </div>
                     <DialogFooter>
                       <Button variant="outline" onClick={() => setIsAlertDialogOpen(false)}>
-                        Cancel
+                        Zrušit
                       </Button>
                       <Button onClick={handleCreateAlert}>
                         <Bell className="mr-2 h-4 w-4" />
-                        Create Alert
+                        Vytvořit upozornění
                       </Button>
                     </DialogFooter>
                   </DialogContent>
