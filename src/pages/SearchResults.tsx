@@ -403,7 +403,7 @@ const SearchResults = () => {
         toast.success(
           data.fromCache
             ? `Nalezeno ${data.products.length} nabídek z databáze`
-            : `Nalezeno ${data.products.length} nabídek z 8 e-shopů`
+            : `Nalezeno ${data.products.length} nabídek z 6 e-shopů`
         );
       } else {
         toast.info("Žádné produkty nenalezeny");
@@ -514,7 +514,7 @@ const SearchResults = () => {
                 <div>
                   <p className="font-semibold">Prohledáváme skryté slevy...</p>
                   <p className="text-sm text-muted-foreground">
-                    Stahujeme a analyzujeme stránky z 8 e-shopů pomocí AI
+                    Stahujeme a analyzujeme stránky z 6 e-shopů pomocí AI
                   </p>
                 </div>
               </div>
