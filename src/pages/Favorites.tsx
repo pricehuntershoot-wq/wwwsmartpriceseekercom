@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useSubscription } from '@/hooks/useSubscription';
 import { useCurrencyPreference } from '@/hooks/useCurrencyPreference';
 import { supabase } from '@/integrations/supabase/client';
 import { Header } from '@/components/Header';
@@ -8,7 +9,7 @@ import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Bell, Trash2, Loader2, ExternalLink, TrendingDown } from 'lucide-react';
+import { Heart, Bell, Trash2, Loader2, ExternalLink, TrendingDown, Zap, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatPrice, Currency } from '@/lib/currency';
 import { cn } from '@/lib/utils';
