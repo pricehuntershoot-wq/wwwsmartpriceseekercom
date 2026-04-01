@@ -462,6 +462,14 @@ function regexFallbackParse(scrapeResults: { eshop: string; markdown: string | n
     smarty: 'https://www.smarty.cz',
     mironet: 'https://www.mironet.cz',
     amazon: 'https://www.amazon.de',
+    mp: 'https://www.mobilpohotovost.cz',
+    refurbed: 'https://www.refurbed.cz',
+    xiaomi: 'https://www.mi-home.cz',
+    gigacomputer: 'https://www.gigacomputer.cz',
+    tsbohemia: 'https://www.tsbohemia.cz',
+    allegro: 'https://www.allegro.cz',
+    samsung: 'https://www.samsung.com',
+    isetos: 'https://www.isetos.cz',
   };
 
   for (const result of scrapeResults) {
@@ -570,7 +578,7 @@ serve(async (req) => {
   }
 
   try {
-    const { query, forceRefresh } = await req.json();
+    const { query, forceRefresh, isPremium } = await req.json();
 
     if (!query || query.trim().length < 2) {
       return new Response(
@@ -614,8 +622,8 @@ serve(async (req) => {
       );
     }
 
-    // Scrape core 6 e-shops only (optimized for lower credit usage)
-    const scrapeResults = await Promise.all([
+    // Core 6 e-shops (always searched)
+    const coreSearches = [
       ...Object.entries(ESHOP_SEARCH_URLS).map(([name, urlFn]) =>
         scrapeEshop(name, urlFn(trimmedQuery), FIRECRAWL_API_KEY)
       ),
@@ -624,7 +632,22 @@ serve(async (req) => {
       searchViaFirecrawl('smarty', 'smarty.cz', trimmedQuery, FIRECRAWL_API_KEY, ['doc.smarty.cz', 'files.smarty.cz']),
       searchViaFirecrawl('mironet', 'mironet.cz', trimmedQuery, FIRECRAWL_API_KEY, ['img.mironet.cz']),
       searchViaFirecrawl('amazon', 'amazon.de', trimmedQuery, FIRECRAWL_API_KEY, ['m.media-amazon.com', 'images-eu.ssl-images-amazon.com']),
-    ]);
+    ];
+
+    // Premium-only: 8 additional e-shops
+    const premiumSearches = isPremium ? [
+      searchViaFirecrawl('mp', 'mobilpohotovost.cz', trimmedQuery, FIRECRAWL_API_KEY, ['mobilpohotovost.cz']),
+      searchViaFirecrawl('refurbed', 'refurbed.cz', trimmedQuery, FIRECRAWL_API_KEY, ['refurbed.cz', 'refurbed.com']),
+      searchViaFirecrawl('xiaomi', 'mi-home.cz', trimmedQuery, FIRECRAWL_API_KEY, ['mi-home.cz']),
+      searchViaFirecrawl('gigacomputer', 'gigacomputer.cz', trimmedQuery, FIRECRAWL_API_KEY, ['gigacomputer.cz']),
+      searchViaFirecrawl('tsbohemia', 'tsbohemia.cz', trimmedQuery, FIRECRAWL_API_KEY, ['tsbohemia.cz']),
+      searchViaFirecrawl('allegro', 'allegro.cz', trimmedQuery, FIRECRAWL_API_KEY, ['allegro.cz', 'a.allegroimg.com']),
+      searchViaFirecrawl('samsung', 'samsung.com', trimmedQuery, FIRECRAWL_API_KEY, ['samsung.com', 'image-us.samsung.com']),
+      searchViaFirecrawl('isetos', 'isetos.cz', trimmedQuery, FIRECRAWL_API_KEY, ['isetos.cz']),
+    ] : [];
+
+    console.log(`Searching ${coreSearches.length + premiumSearches.length} e-shops (premium: ${!!isPremium})`);
+    const scrapeResults = await Promise.all([...coreSearches, ...premiumSearches]);
 
     // Build combined content for AI analysis
     const combinedContent = scrapeResults
@@ -646,7 +669,10 @@ serve(async (req) => {
     }
 
     // Use AI to extract structured product data via tool calling
-    const systemPrompt = `Extract product listings from Czech e-shop search results. Sections: ALZA, CZC, DATART, SMARTY, MIRONET, AMAZON.
+    const availableShops = isPremium
+      ? 'ALZA, CZC, DATART, SMARTY, MIRONET, AMAZON, MP, REFURBED, XIAOMI, GIGACOMPUTER, TSBOHEMIA, ALLEGRO, SAMSUNG, ISETOS'
+      : 'ALZA, CZC, DATART, SMARTY, MIRONET, AMAZON';
+    const systemPrompt = `Extract product listings from Czech e-shop search results. Sections: ${availableShops}.
 
 RULES:
 1. Extract products from ALL sections with data. At least 3 per section.
@@ -676,7 +702,7 @@ Call extract_products with all found products.`;
                   normalizedName: { type: "string", description: "Canonical name without color/variant, e.g. 'Sony WH-1000XM5'" },
                   price: { type: "number", description: "Current price in CZK" },
                   originalPrice: { type: ["number", "null"], description: "Original/crossed-out price or null" },
-                  eshop: { type: "string", enum: ["alza", "czc", "datart", "smarty", "mironet", "amazon"] },
+                  eshop: { type: "string", enum: ["alza", "czc", "datart", "smarty", "mironet", "amazon", "mp", "refurbed", "xiaomi", "gigacomputer", "tsbohemia", "allegro", "samsung", "isetos"] },
                   productUrl: { type: ["string", "null"], description: "Full product URL" },
                   imageUrl: { type: ["string", "null"], description: "Direct product image URL or null" },
                   category: { type: "string", enum: ["mobily", "sluchátka", "tv", "reproduktory", "chytré hodinky", "chytré prsteny", "tablety", "herní konzole", "pc", "příslušenství", "jiné"] },
@@ -798,6 +824,10 @@ Call extract_products with all found products.`;
       'czc.cz', 'image.datart.cz', 'doc.smarty.cz', 'files.smarty.cz',
       'm.media-amazon.com', 'images-eu.ssl-images-amazon.com',
       'images-na.ssl-images-amazon.com',
+      'img.mironet.cz', 'mobilpohotovost.cz', 'refurbed.cz', 'refurbed.com',
+      'mi-home.cz', 'gigacomputer.cz', 'tsbohemia.cz',
+      'allegro.cz', 'a.allegroimg.com', 'samsung.com', 'image-us.samsung.com',
+      'isetos.cz',
     ];
     
     function isValidProductImage(url: string): boolean {
