@@ -575,9 +575,9 @@ Call extract_products with all found products.`;
     }];
 
     const models = [
-      { name: 'google/gemini-2.5-flash-lite', temperature: 0.1 },
       { name: 'google/gemini-2.5-flash', temperature: 0.1 },
       { name: 'google/gemini-3-flash-preview', temperature: 0.1 },
+      { name: 'google/gemini-2.5-flash-lite', temperature: 0.1 },
     ];
     let aiResponse = null;
     
@@ -651,6 +651,11 @@ Call extract_products with all found products.`;
         products = regexFallbackParse(scrapeResults, trimmedQuery);
       }
       console.log(`AI extracted ${products.length} products`);
+      if (products.length === 0) {
+        console.log('AI returned 0 products, falling back to regex...');
+        products = regexFallbackParse(scrapeResults, trimmedQuery);
+        console.log(`Regex fallback extracted ${products.length} products`);
+      }
     }
 
     // Validate, deduplicate and clean products
