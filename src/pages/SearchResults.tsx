@@ -395,7 +395,9 @@ const SearchResults = () => {
       if (!data?.success) throw new Error(data?.error || "Vyhledávání selhalo");
 
       setSearchProgress(100);
-      setProducts(data.products || []);
+      const prods = data.products || [];
+      console.log('[DEBUG] Product images:', prods.map((p: any) => ({ name: p.name, eshop: p.eshop, imageUrl: p.imageUrl })));
+      setProducts(prods);
       setErrors(data.errors || []);
       setFromCache(data.fromCache || false);
 
