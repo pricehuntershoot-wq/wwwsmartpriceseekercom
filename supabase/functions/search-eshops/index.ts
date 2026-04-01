@@ -570,7 +570,7 @@ serve(async (req) => {
   }
 
   try {
-    const { query, forceRefresh } = await req.json();
+    const { query, forceRefresh, isPremium } = await req.json();
 
     if (!query || query.trim().length < 2) {
       return new Response(
