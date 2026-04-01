@@ -157,6 +157,49 @@ async function getCachedResults(supabase: any, query: string) {
   }));
 }
 
+// Lightweight OG image fetcher — no Firecrawl credits, just HTTP fetch
+async function fetchOgImage(url: string): Promise<string | null> {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const resp = await fetch(url, {
+      signal: controller.signal,
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; PriceHunter/1.0)' },
+      redirect: 'follow',
+    });
+    clearTimeout(timeout);
+    if (!resp.ok) { await resp.text(); return null; }
+    // Read only first 50KB to find og:image in <head>
+    const reader = resp.body?.getReader();
+    if (!reader) return null;
+    let html = '';
+    const decoder = new TextDecoder();
+    while (html.length < 50000) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      html += decoder.decode(value, { stream: true });
+      // Stop early if we passed </head>
+      if (html.includes('</head>')) break;
+    }
+    reader.cancel();
+    // Extract og:image
+    const ogMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+      || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+    if (ogMatch?.[1]) {
+      let imgUrl = ogMatch[1];
+      if (imgUrl.startsWith('//')) imgUrl = 'https:' + imgUrl;
+      if (imgUrl.startsWith('/')) {
+        const urlObj = new URL(url);
+        imgUrl = urlObj.origin + imgUrl;
+      }
+      return imgUrl;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 async function saveResultsToDB(supabase: any, products: any[]) {
   const shopCache: Record<string, string> = {};
 
@@ -210,6 +253,14 @@ async function saveResultsToDB(supabase: any, products: any[]) {
 
       if (existingProduct) {
         productId = existingProduct.id;
+        // Update image if product has none and we found one
+        if (product.imageUrl) {
+          await supabase
+            .from('products')
+            .update({ image_url: product.imageUrl })
+            .eq('id', productId)
+            .is('image_url', null);
+        }
       } else {
         const { data: newProduct } = await supabase
           .from('products')
@@ -743,6 +794,25 @@ Call extract_products with all found products.`;
         
         return { ...p, imageUrl: img };
       });
+
+    // Step 2.5: Auto-fetch missing images from product pages (lightweight, no Firecrawl credits)
+    const productsNeedingImages = products.filter((p: any) => !p.imageUrl && p.productUrl);
+    if (productsNeedingImages.length > 0) {
+      console.log(`Fetching OG images for ${productsNeedingImages.length} products without images...`);
+      await Promise.allSettled(
+        productsNeedingImages.map(async (p: any) => {
+          try {
+            const img = await fetchOgImage(p.productUrl);
+            if (img && isValidProductImage(img)) {
+              console.log(`Found OG image for "${p.name}": ${img}`);
+              p.imageUrl = img;
+            }
+          } catch (e) {
+            // Silent fail — not critical
+          }
+        })
+      );
+    }
 
     console.log(`Found ${products.length} products across e-shops`);
 
