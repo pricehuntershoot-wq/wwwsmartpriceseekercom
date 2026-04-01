@@ -716,7 +716,10 @@ Call extract_products with all found products.`;
         
         // Validate URL format and content
         if (img && typeof img === 'string') {
-          if (!isValidProductImage(img)) img = null;
+          if (!isValidProductImage(img)) {
+            console.log(`BLOCKED image for ${p.name}: ${img}`);
+            img = null;
+          }
           if (img && seenImages.has(img)) img = null;
         } else {
           img = null;
