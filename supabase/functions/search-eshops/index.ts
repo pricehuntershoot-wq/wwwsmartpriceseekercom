@@ -164,12 +164,11 @@ async function fetchOgImage(url: string): Promise<string | null> {
     const timeout = setTimeout(() => controller.abort(), 5000);
     const resp = await fetch(url, {
       signal: controller.signal,
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; PriceHunter/1.0)' },
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' },
       redirect: 'follow',
     });
     clearTimeout(timeout);
     if (!resp.ok) { await resp.text(); return null; }
-    // Read only first 50KB to find og:image in <head>
     const reader = resp.body?.getReader();
     if (!reader) return null;
     let html = '';
@@ -178,11 +177,9 @@ async function fetchOgImage(url: string): Promise<string | null> {
       const { done, value } = await reader.read();
       if (done) break;
       html += decoder.decode(value, { stream: true });
-      // Stop early if we passed </head>
       if (html.includes('</head>')) break;
     }
     reader.cancel();
-    // Extract og:image
     const ogMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
       || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
     if (ogMatch?.[1]) {
@@ -200,6 +197,55 @@ async function fetchOgImage(url: string): Promise<string | null> {
   }
 }
 
+// Firecrawl-based image fetcher for sites that block direct fetch (e.g. Amazon)
+async function fetchImageViaFirecrawl(url: string, firecrawlKey: string): Promise<string | null> {
+  try {
+    console.log(`Fetching image via Firecrawl scrape for: ${url}`);
+    const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${firecrawlKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        url,
+        formats: ['links'],
+        onlyMainContent: true,
+        waitFor: 1000,
+      }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      console.error('Firecrawl image scrape failed:', data);
+      await response.text().catch(() => {});
+      return null;
+    }
+    // Extract image links from the scraped page
+    const links: string[] = data.data?.links || data.links || [];
+    const imageLinks = links.filter((l: string) =>
+      /\.(jpg|jpeg|png|webp)/i.test(l) || /\/(img|image|foto|Foto|ImgW|product|Product)/i.test(l)
+    );
+    // Find first valid product image
+    for (const img of imageLinks) {
+      if (img.includes('m.media-amazon.com') || img.includes('images-eu.ssl-images-amazon.com') || img.includes('images-na.ssl-images-amazon.com')) {
+        // Amazon product images are typically large — filter out tiny icons
+        if (img.includes('._SL') || img.includes('._AC_') || img.includes('._SX') || img.includes('/images/I/')) {
+          console.log(`Found Firecrawl image: ${img}`);
+          return img;
+        }
+      }
+      // Generic product image check
+      if (/\/(img|image|foto|Foto|ImgW|product|Product|pic\/)/i.test(img) && /\.(jpg|jpeg|png|webp)/i.test(img)) {
+        console.log(`Found Firecrawl image: ${img}`);
+        return img;
+      }
+    }
+    return null;
+  } catch (e) {
+    console.error('Firecrawl image fetch error:', e);
+    return null;
+  }
+}
 async function saveResultsToDB(supabase: any, products: any[]) {
   const shopCache: Record<string, string> = {};
 
@@ -809,6 +855,26 @@ Call extract_products with all found products.`;
             }
           } catch (e) {
             // Silent fail — not critical
+          }
+        })
+      );
+    }
+
+    // Step 2.6: Firecrawl fallback for products still without images (Amazon etc.)
+    const stillNeedImages = products.filter((p: any) => !p.imageUrl && p.productUrl);
+    if (stillNeedImages.length > 0 && FIRECRAWL_API_KEY) {
+      console.log(`Firecrawl image fallback for ${stillNeedImages.length} products...`);
+      // Limit to max 2 Firecrawl calls to save credits
+      const toFetch = stillNeedImages.slice(0, 2);
+      await Promise.allSettled(
+        toFetch.map(async (p: any) => {
+          try {
+            const img = await fetchImageViaFirecrawl(p.productUrl, FIRECRAWL_API_KEY);
+            if (img) {
+              p.imageUrl = img;
+            }
+          } catch (e) {
+            // Silent fail
           }
         })
       );
