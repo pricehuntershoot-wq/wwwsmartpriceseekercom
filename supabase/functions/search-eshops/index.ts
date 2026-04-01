@@ -660,7 +660,7 @@ Call extract_products with all found products.`;
 
     // Blocklist for junk images (social meta, favicons, logos, tracking pixels)
     const IMAGE_BLOCKLIST = [
-      'facebook.com', 'fbcdn.net', 'fb.com', 'scontent',
+      'facebook', 'fbcdn.net', 'fb.com', 'scontent',
       'twitter.com', 'x.com/favicon', 'twimg.com',
       'google.com/images', 'googletagmanager', 'analytics', 'gstatic.com/images',
       'favicon.ico', 'favicon', 'sprite', 'pixel', 'tracker',
@@ -668,13 +668,14 @@ Call extract_products with all found products.`;
       'badge', 'banner-ad', 'placeholder',
       'linkedin.com', 'instagram.com', 'youtube.com', 'ytimg.com',
       'gravatar.com', 'wp-content/plugins', 'data:image',
+      '/login/', '/auth/', '/sign', 'google.png', 'apple.png',
+      'empty.', 'slevy', 'menu2-', 'vyprodej',
     ];
     
     // Known product image CDN patterns (allowlist for extra confidence)
     const PRODUCT_IMAGE_HOSTS = [
       'cdn.alza.cz', 'image.alza.cz', 'i.alza.cz',
-      'czc.cz', 'datart.cz', 'smarty.cz', 'doc.smarty.cz', 'files.smarty.cz',
-      'img.mironet.cz', 'mironet.cz',
+      'czc.cz', 'image.datart.cz', 'doc.smarty.cz', 'files.smarty.cz',
       'm.media-amazon.com', 'images-eu.ssl-images-amazon.com',
       'images-na.ssl-images-amazon.com',
     ];
@@ -683,11 +684,13 @@ Call extract_products with all found products.`;
       if (!url || !url.startsWith('http')) return false;
       const lower = url.toLowerCase();
       if (IMAGE_BLOCKLIST.some(blocked => lower.includes(blocked))) return false;
-      // Must be an actual image file or from a known product CDN
+      // Block tiny icon-like filenames (2-3 char names like CZ.png, US.png)
+      const filename = lower.split('/').pop() || '';
+      if (/^[a-z]{2,3}\.(png|jpg|gif|svg)$/.test(filename)) return false;
+      // Must be from a known product CDN or have a product-like path
       const isKnownHost = PRODUCT_IMAGE_HOSTS.some(host => lower.includes(host));
-      const hasImageExt = /\.(jpg|jpeg|png|webp|gif|avif)/i.test(lower);
-      const hasImagePath = /\/(img|image|foto|photo|Foto|ImgW|product|Product)/i.test(lower);
-      return isKnownHost || hasImageExt || hasImagePath;
+      const hasImagePath = /\/(img|image|foto|photo|Foto|ImgW|product|Product|pic\/)/i.test(lower);
+      return isKnownHost || hasImagePath;
     }
 
     // Build per-eshop image lookup from scraped imageLinks (pre-filtered)
@@ -716,7 +719,10 @@ Call extract_products with all found products.`;
         
         // Validate URL format and content
         if (img && typeof img === 'string') {
-          if (!isValidProductImage(img)) img = null;
+          if (!isValidProductImage(img)) {
+            console.log(`BLOCKED image for ${p.name}: ${img}`);
+            img = null;
+          }
           if (img && seenImages.has(img)) img = null;
         } else {
           img = null;
