@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { firecrawlApi } from "@/lib/api/firecrawl";
 import { toast } from "sonner";
 import { SearchLimitModal } from "@/components/SearchLimitModal";
+import { getProxiedImageUrl } from "@/lib/imageProxy";
 
 interface EshopProduct {
   name: string;
@@ -626,9 +627,10 @@ const SearchResults = () => {
                     <div className="relative aspect-[4/3] overflow-hidden bg-secondary/50 p-6">
                       {product.imageUrl ? (
                         <img
-                          src={product.imageUrl}
+                          src={getProxiedImageUrl(product.imageUrl) || product.imageUrl}
                           alt={product.name}
                           className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                          referrerPolicy="no-referrer"
                           onLoad={(e) => {
                             // Block tiny images (likely tracking pixels or icons, not product photos)
                             const img = e.target as HTMLImageElement;

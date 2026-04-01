@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { Heart, ExternalLink, Package, Clock, Tag, Sparkles } from "lucide-react";
 import { trackAffiliateClick } from "@/lib/affiliate";
+import { getProxiedImageUrl } from "@/lib/imageProxy";
 import { useAuth } from "@/hooks/useAuth";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "./ui/button";
@@ -95,9 +96,10 @@ export const ProductCard = ({ product, onFavorite, isFavorited = false }: Produc
         <div className="relative aspect-square overflow-hidden bg-secondary/30">
           {product.image_url ? (
             <img 
-              src={product.image_url} 
+              src={getProxiedImageUrl(product.image_url) || product.image_url} 
               alt={product.name}
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              referrerPolicy="no-referrer"
             />
           ) : (
             <div className="flex h-full items-center justify-center">
