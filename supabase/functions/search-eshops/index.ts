@@ -651,6 +651,11 @@ Call extract_products with all found products.`;
         products = regexFallbackParse(scrapeResults, trimmedQuery);
       }
       console.log(`AI extracted ${products.length} products`);
+      if (products.length === 0) {
+        console.log('AI returned 0 products, falling back to regex...');
+        products = regexFallbackParse(scrapeResults, trimmedQuery);
+        console.log(`Regex fallback extracted ${products.length} products`);
+      }
     }
 
     // Validate, deduplicate and clean products
