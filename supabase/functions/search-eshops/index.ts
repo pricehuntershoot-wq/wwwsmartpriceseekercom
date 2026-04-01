@@ -824,6 +824,10 @@ Call extract_products with all found products.`;
       'czc.cz', 'image.datart.cz', 'doc.smarty.cz', 'files.smarty.cz',
       'm.media-amazon.com', 'images-eu.ssl-images-amazon.com',
       'images-na.ssl-images-amazon.com',
+      'img.mironet.cz', 'mobilpohotovost.cz', 'refurbed.cz', 'refurbed.com',
+      'mi-home.cz', 'gigacomputer.cz', 'tsbohemia.cz',
+      'allegro.cz', 'a.allegroimg.com', 'samsung.com', 'image-us.samsung.com',
+      'isetos.cz',
     ];
     
     function isValidProductImage(url: string): boolean {
