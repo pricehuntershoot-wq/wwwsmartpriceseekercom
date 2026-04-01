@@ -577,7 +577,7 @@ const SearchResults = () => {
                 <div className="flex items-center gap-2 rounded-lg bg-accent/30 border border-border px-3 py-2">
                   <Database className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm text-muted-foreground">Z databáze (24h cache)</span>
-                  <Button variant="ghost" size="sm" onClick={() => searchEshops(query.trim())} className="h-6 px-2 gap-1">
+                  <Button variant="ghost" size="sm" onClick={() => searchEshops(query.trim(), true)} className="h-6 px-2 gap-1">
                     <RefreshCw className="h-3 w-3" />
                     Znovu
                   </Button>
