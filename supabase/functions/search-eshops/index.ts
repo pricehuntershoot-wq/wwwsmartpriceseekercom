@@ -209,118 +209,65 @@ async function fetchImageViaFirecrawl(url: string, firecrawlKey: string): Promis
       },
       body: JSON.stringify({
         url,
-        formats: ['links'],
+        formats: ['markdown', 'links'],
         onlyMainContent: true,
-        waitFor: 1000,
+        waitFor: 2000,
       }),
     });
     const data = await response.json();
     if (!response.ok) {
       console.error('Firecrawl image scrape failed:', data);
-      await response.text().catch(() => {});
       return null;
     }
-    // Extract image links from the scraped page
+    
+    // Strategy 1: Extract from links
     const links: string[] = data.data?.links || data.links || [];
     const imageLinks = links.filter((l: string) =>
       /\.(jpg|jpeg|png|webp)/i.test(l) || /\/(img|image|foto|Foto|ImgW|product|Product)/i.test(l)
     );
-    // Find first valid product image
     for (const img of imageLinks) {
-      if (img.includes('m.media-amazon.com') || img.includes('images-eu.ssl-images-amazon.com') || img.includes('images-na.ssl-images-amazon.com')) {
-        // Amazon product images are typically large — filter out tiny icons
-        if (img.includes('._SL') || img.includes('._AC_') || img.includes('._SX') || img.includes('/images/I/')) {
-          console.log(`Found Firecrawl image: ${img}`);
+      if (img.includes('m.media-amazon.com') || img.includes('images-eu.ssl-images-amazon.com')) {
+        if (img.includes('/images/I/') || img.includes('._AC_') || img.includes('._SL') || img.includes('._SX')) {
+          console.log(`Found Firecrawl link image: ${img}`);
           return img;
         }
       }
-      // Generic product image check
       if (/\/(img|image|foto|Foto|ImgW|product|Product|pic\/)/i.test(img) && /\.(jpg|jpeg|png|webp)/i.test(img)) {
-        console.log(`Found Firecrawl image: ${img}`);
+        console.log(`Found Firecrawl link image: ${img}`);
         return img;
       }
     }
+    
+    // Strategy 2: Extract from markdown ![alt](url) patterns
+    const markdown: string = data.data?.markdown || data.markdown || '';
+    const mdImageRegex = /!\[.*?\]\((https?:\/\/[^\s)]+)\)/g;
+    let match;
+    while ((match = mdImageRegex.exec(markdown)) !== null) {
+      const imgUrl = match[1];
+      if (imgUrl.includes('m.media-amazon.com') && imgUrl.includes('/images/I/')) {
+        console.log(`Found Firecrawl markdown image: ${imgUrl}`);
+        return imgUrl;
+      }
+      if (/\.(jpg|jpeg|png|webp)/i.test(imgUrl) && !/favicon|logo|icon|badge|pixel|sprite/i.test(imgUrl)) {
+        console.log(`Found Firecrawl markdown image: ${imgUrl}`);
+        return imgUrl;
+      }
+    }
+    
+    // Strategy 3: Extract from metadata og:image
+    const metadata = data.data?.metadata || data.metadata || {};
+    if (metadata.ogImage) {
+      console.log(`Found Firecrawl OG image: ${metadata.ogImage}`);
+      return metadata.ogImage;
+    }
+    
+    console.log(`No image found via Firecrawl for: ${url}, links: ${links.length}, markdown length: ${markdown.length}`);
     return null;
   } catch (e) {
     console.error('Firecrawl image fetch error:', e);
     return null;
   }
 }
-async function saveResultsToDB(supabase: any, products: any[]) {
-  const shopCache: Record<string, string> = {};
-
-  for (const product of products) {
-    try {
-      // 1. Upsert shop
-      const shopName = product.eshop === 'alza' ? 'Alza.cz' : 
-                        product.eshop === 'datart' ? 'Datart.cz' :
-                        product.eshop === 'smarty' ? 'Smarty.cz' :
-                        product.eshop === 'mironet' ? 'Mironet.cz' :
-                        product.eshop === 'czc' ? 'CZC.cz' :
-                        product.eshop === 'mp' ? 'MP.cz' :
-                        product.eshop === 'refurbed' ? 'Refurbed.cz' :
-                        product.eshop === 'amazon' ? 'Amazon.de' :
-                        product.eshop === 'xiaomi' ? 'Xiaomi Store' :
-                        product.eshop === 'gigacomputer' ? 'Gigacomputer.cz' :
-                        product.eshop === 'tsbohemia' ? 'TSBohemia.cz' :
-                        product.eshop === 'allegro' ? 'Allegro.cz' :
-                        product.eshop === 'samsung' ? 'Samsung.cz' :
-                        product.eshop === 'isetos' ? 'iSetos.cz' : product.eshop;
-      
-      let shopId = shopCache[shopName];
-      if (!shopId) {
-        const { data: existingShop } = await supabase
-          .from('shops')
-          .select('id')
-          .eq('name', shopName)
-          .maybeSingle();
-
-        if (existingShop) {
-          shopId = existingShop.id;
-        } else {
-          const { data: newShop } = await supabase
-            .from('shops')
-            .insert({ name: shopName, website_url: `https://www.${shopName.toLowerCase()}` })
-            .select('id')
-            .single();
-          shopId = newShop?.id;
-        }
-        if (shopId) shopCache[shopName] = shopId;
-      }
-      if (!shopId) continue;
-
-      // 2. Upsert product
-      let productId: string;
-      const { data: existingProduct } = await supabase
-        .from('products')
-        .select('id')
-        .eq('name', product.name)
-        .maybeSingle();
-
-      if (existingProduct) {
-        productId = existingProduct.id;
-        // Update image if product has none and we found one
-        if (product.imageUrl) {
-          await supabase
-            .from('products')
-            .update({ image_url: product.imageUrl })
-            .eq('id', productId)
-            .is('image_url', null);
-        }
-      } else {
-        const { data: newProduct } = await supabase
-          .from('products')
-          .insert({
-            name: product.name,
-            image_url: product.imageUrl || null,
-            category: product.category || null,
-          })
-          .select('id')
-          .single();
-        if (!newProduct) continue;
-        productId = newProduct.id;
-      }
-
       // 3. Upsert price
       const { data: existingPrice } = await supabase
         .from('prices')
