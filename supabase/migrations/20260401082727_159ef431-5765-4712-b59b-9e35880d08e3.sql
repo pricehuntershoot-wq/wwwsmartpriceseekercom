@@ -1,0 +1,1 @@
+UPDATE products SET image_url = NULL WHERE image_url ILIKE '%sprite%' OR image_url ILIKE '%facebook%' OR image_url ILIKE '%fbcdn%' OR image_url ILIKE '%favicon%';
