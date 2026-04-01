@@ -660,17 +660,34 @@ Call extract_products with all found products.`;
 
     // Blocklist for junk images (social meta, favicons, logos, tracking pixels)
     const IMAGE_BLOCKLIST = [
-      'facebook.com', 'fbcdn.net', 'twitter.com', 'x.com/favicon',
-      'google.com/images', 'googletagmanager', 'analytics',
-      'favicon.ico', 'logo', 'sprite', 'pixel', 'tracker',
+      'facebook.com', 'fbcdn.net', 'fb.com', 'scontent',
+      'twitter.com', 'x.com/favicon', 'twimg.com',
+      'google.com/images', 'googletagmanager', 'analytics', 'gstatic.com/images',
+      'favicon.ico', 'favicon', 'sprite', 'pixel', 'tracker',
       'og-image', 'opengraph', 'share-', 'social-',
       'badge', 'banner-ad', 'placeholder',
+      'linkedin.com', 'instagram.com', 'youtube.com', 'ytimg.com',
+      'gravatar.com', 'wp-content/plugins', 'data:image',
+    ];
+    
+    // Known product image CDN patterns (allowlist for extra confidence)
+    const PRODUCT_IMAGE_HOSTS = [
+      'cdn.alza.cz', 'image.alza.cz', 'i.alza.cz',
+      'czc.cz', 'datart.cz', 'smarty.cz', 'doc.smarty.cz', 'files.smarty.cz',
+      'img.mironet.cz', 'mironet.cz',
+      'm.media-amazon.com', 'images-eu.ssl-images-amazon.com',
+      'images-na.ssl-images-amazon.com',
     ];
     
     function isValidProductImage(url: string): boolean {
       if (!url || !url.startsWith('http')) return false;
       const lower = url.toLowerCase();
-      return !IMAGE_BLOCKLIST.some(blocked => lower.includes(blocked));
+      if (IMAGE_BLOCKLIST.some(blocked => lower.includes(blocked))) return false;
+      // Must be an actual image file or from a known product CDN
+      const isKnownHost = PRODUCT_IMAGE_HOSTS.some(host => lower.includes(host));
+      const hasImageExt = /\.(jpg|jpeg|png|webp|gif|avif)/i.test(lower);
+      const hasImagePath = /\/(img|image|foto|photo|Foto|ImgW|product|Product)/i.test(lower);
+      return isKnownHost || hasImageExt || hasImagePath;
     }
 
     // Build per-eshop image lookup from scraped imageLinks (pre-filtered)
