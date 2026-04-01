@@ -860,6 +860,26 @@ Call extract_products with all found products.`;
       );
     }
 
+    // Step 2.6: Firecrawl fallback for products still without images (Amazon etc.)
+    const stillNeedImages = products.filter((p: any) => !p.imageUrl && p.productUrl);
+    if (stillNeedImages.length > 0 && firecrawlKey) {
+      console.log(`Firecrawl image fallback for ${stillNeedImages.length} products...`);
+      // Limit to max 2 Firecrawl calls to save credits
+      const toFetch = stillNeedImages.slice(0, 2);
+      await Promise.allSettled(
+        toFetch.map(async (p: any) => {
+          try {
+            const img = await fetchImageViaFirecrawl(p.productUrl, firecrawlKey);
+            if (img) {
+              p.imageUrl = img;
+            }
+          } catch (e) {
+            // Silent fail
+          }
+        })
+      );
+    }
+
     console.log(`Found ${products.length} products across e-shops`);
 
     // Step 3: Save results to database (non-blocking)
