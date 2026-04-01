@@ -658,16 +658,22 @@ Call extract_products with all found products.`;
       }
     }
 
+    // Build per-eshop image lookup from scraped imageLinks
+    const eshopImageMap: Record<string, string[]> = {};
+    for (const r of scrapeResults) {
+      if (r.imageLinks && r.imageLinks.length > 0) {
+        eshopImageMap[r.eshop] = r.imageLinks;
+      }
+    }
+
     // Validate, deduplicate and clean products
     const seenImages = new Set<string>();
     const seenProductKeys = new Set<string>();
+    const eshopImageIdx: Record<string, number> = {};
     products = products
       .filter((p: any) => {
-        // Must have valid price
         if (!p.price || typeof p.price !== 'number' || p.price <= 0) return false;
-        // Must have a name
         if (!p.name || p.name.trim().length < 3) return false;
-        // Deduplicate by eshop + normalized name
         const key = `${p.eshop}:${(p.normalizedName || p.name).toLowerCase().trim()}`;
         if (seenProductKeys.has(key)) return false;
         seenProductKeys.add(key);
@@ -675,13 +681,28 @@ Call extract_products with all found products.`;
       })
       .map((p: any) => {
         let img = p.imageUrl;
-        if (img && seenImages.has(img)) img = null;
-        if (img) {
-          seenImages.add(img);
-          const isValidImage = /\.(jpg|jpeg|png|webp|gif)/i.test(img) || 
-            /\/(img|image|foto|photo|Foto|ImgW)/i.test(img);
-          if (!isValidImage) img = null;
+        
+        // Validate URL format
+        if (img && typeof img === 'string') {
+          if (!img.startsWith('http')) img = null;
+          if (img && seenImages.has(img)) img = null;
+        } else {
+          img = null;
         }
+        
+        // Fallback: pick from scraped imageLinks if AI didn't provide one
+        if (!img && eshopImageMap[p.eshop]) {
+          const idx = eshopImageIdx[p.eshop] || 0;
+          const candidates = eshopImageMap[p.eshop];
+          if (idx < candidates.length) {
+            img = candidates[idx];
+            eshopImageIdx[p.eshop] = idx + 1;
+          }
+        }
+        
+        if (img && seenImages.has(img)) img = null;
+        if (img) seenImages.add(img);
+        
         return { ...p, imageUrl: img };
       });
 
