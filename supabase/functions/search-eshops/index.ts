@@ -268,6 +268,82 @@ async function fetchImageViaFirecrawl(url: string, firecrawlKey: string): Promis
     return null;
   }
 }
+
+async function saveResultsToDB(supabase: any, products: any[]) {
+  const shopCache: Record<string, string> = {};
+
+  for (const product of products) {
+    try {
+      // 1. Upsert shop
+      const shopName = product.eshop === 'alza' ? 'Alza.cz' : 
+                        product.eshop === 'datart' ? 'Datart.cz' :
+                        product.eshop === 'smarty' ? 'Smarty.cz' :
+                        product.eshop === 'mironet' ? 'Mironet.cz' :
+                        product.eshop === 'czc' ? 'CZC.cz' :
+                        product.eshop === 'mp' ? 'MP.cz' :
+                        product.eshop === 'refurbed' ? 'Refurbed.cz' :
+                        product.eshop === 'amazon' ? 'Amazon.de' :
+                        product.eshop === 'xiaomi' ? 'Xiaomi Store' :
+                        product.eshop === 'gigacomputer' ? 'Gigacomputer.cz' :
+                        product.eshop === 'tsbohemia' ? 'TSBohemia.cz' :
+                        product.eshop === 'allegro' ? 'Allegro.cz' :
+                        product.eshop === 'samsung' ? 'Samsung.cz' :
+                        product.eshop === 'isetos' ? 'iSetos.cz' : product.eshop;
+      
+      let shopId = shopCache[shopName];
+      if (!shopId) {
+        const { data: existingShop } = await supabase
+          .from('shops')
+          .select('id')
+          .eq('name', shopName)
+          .maybeSingle();
+
+        if (existingShop) {
+          shopId = existingShop.id;
+        } else {
+          const { data: newShop } = await supabase
+            .from('shops')
+            .insert({ name: shopName, website_url: `https://www.${shopName.toLowerCase()}` })
+            .select('id')
+            .single();
+          shopId = newShop?.id;
+        }
+        if (shopId) shopCache[shopName] = shopId;
+      }
+      if (!shopId) continue;
+
+      // 2. Upsert product
+      let productId: string;
+      const { data: existingProduct } = await supabase
+        .from('products')
+        .select('id')
+        .eq('name', product.name)
+        .maybeSingle();
+
+      if (existingProduct) {
+        productId = existingProduct.id;
+        // Update image if product has none and we found one
+        if (product.imageUrl) {
+          await supabase
+            .from('products')
+            .update({ image_url: product.imageUrl })
+            .eq('id', productId)
+            .is('image_url', null);
+        }
+      } else {
+        const { data: newProduct } = await supabase
+          .from('products')
+          .insert({
+            name: product.name,
+            image_url: product.imageUrl || null,
+            category: product.category || null,
+          })
+          .select('id')
+          .single();
+        if (!newProduct) continue;
+        productId = newProduct.id;
+      }
+
       // 3. Upsert price
       const { data: existingPrice } = await supabase
         .from('prices')
