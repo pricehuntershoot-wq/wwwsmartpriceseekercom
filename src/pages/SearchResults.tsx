@@ -465,8 +465,20 @@ const SearchResults = () => {
             <span className="font-semibold text-foreground">CZC.cz</span>,{" "}
             <span className="font-semibold text-foreground">Datart.cz</span>,{" "}
             <span className="font-semibold text-foreground">Smarty.cz</span>,{" "}
-            <span className="font-semibold text-foreground">Mironet.cz</span> a{" "}
+            <span className="font-semibold text-foreground">Mironet.cz</span>,{" "}
             <span className="font-semibold text-foreground">Amazon.de</span>
+            {isPremium && (
+              <>
+                ,{" "}<span className="font-semibold text-foreground">MP.cz</span>,{" "}
+                <span className="font-semibold text-foreground">Refurbed.cz</span>,{" "}
+                <span className="font-semibold text-foreground">Xiaomi Store</span>,{" "}
+                <span className="font-semibold text-foreground">Gigacomputer.cz</span>,{" "}
+                <span className="font-semibold text-foreground">TSBohemia.cz</span>,{" "}
+                <span className="font-semibold text-foreground">Allegro.cz</span>,{" "}
+                <span className="font-semibold text-foreground">Samsung.cz</span> a{" "}
+                <span className="font-semibold text-foreground">iSetos.cz</span>
+              </>
+            )}
           </p>
           {!isPremium && (
             <p className="mt-1 text-xs text-muted-foreground">
