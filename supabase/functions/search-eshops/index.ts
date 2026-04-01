@@ -253,6 +253,14 @@ async function saveResultsToDB(supabase: any, products: any[]) {
 
       if (existingProduct) {
         productId = existingProduct.id;
+        // Update image if product has none and we found one
+        if (product.imageUrl) {
+          await supabase
+            .from('products')
+            .update({ image_url: product.imageUrl })
+            .eq('id', productId)
+            .is('image_url', null);
+        }
       } else {
         const { data: newProduct } = await supabase
           .from('products')
