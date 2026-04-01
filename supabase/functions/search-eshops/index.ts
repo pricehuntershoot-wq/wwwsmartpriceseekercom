@@ -744,6 +744,25 @@ Call extract_products with all found products.`;
         return { ...p, imageUrl: img };
       });
 
+    // Step 2.5: Auto-fetch missing images from product pages (lightweight, no Firecrawl credits)
+    const productsNeedingImages = products.filter((p: any) => !p.imageUrl && p.productUrl);
+    if (productsNeedingImages.length > 0) {
+      console.log(`Fetching OG images for ${productsNeedingImages.length} products without images...`);
+      await Promise.allSettled(
+        productsNeedingImages.map(async (p: any) => {
+          try {
+            const img = await fetchOgImage(p.productUrl);
+            if (img && isValidProductImage(img)) {
+              console.log(`Found OG image for "${p.name}": ${img}`);
+              p.imageUrl = img;
+            }
+          } catch (e) {
+            // Silent fail — not critical
+          }
+        })
+      );
+    }
+
     console.log(`Found ${products.length} products across e-shops`);
 
     // Step 3: Save results to database (non-blocking)
