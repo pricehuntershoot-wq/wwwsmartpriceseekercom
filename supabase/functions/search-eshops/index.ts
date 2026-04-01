@@ -157,6 +157,49 @@ async function getCachedResults(supabase: any, query: string) {
   }));
 }
 
+// Lightweight OG image fetcher — no Firecrawl credits, just HTTP fetch
+async function fetchOgImage(url: string): Promise<string | null> {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const resp = await fetch(url, {
+      signal: controller.signal,
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; PriceHunter/1.0)' },
+      redirect: 'follow',
+    });
+    clearTimeout(timeout);
+    if (!resp.ok) { await resp.text(); return null; }
+    // Read only first 50KB to find og:image in <head>
+    const reader = resp.body?.getReader();
+    if (!reader) return null;
+    let html = '';
+    const decoder = new TextDecoder();
+    while (html.length < 50000) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      html += decoder.decode(value, { stream: true });
+      // Stop early if we passed </head>
+      if (html.includes('</head>')) break;
+    }
+    reader.cancel();
+    // Extract og:image
+    const ogMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+      || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+    if (ogMatch?.[1]) {
+      let imgUrl = ogMatch[1];
+      if (imgUrl.startsWith('//')) imgUrl = 'https:' + imgUrl;
+      if (imgUrl.startsWith('/')) {
+        const urlObj = new URL(url);
+        imgUrl = urlObj.origin + imgUrl;
+      }
+      return imgUrl;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 async function saveResultsToDB(supabase: any, products: any[]) {
   const shopCache: Record<string, string> = {};
 
