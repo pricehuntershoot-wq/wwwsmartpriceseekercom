@@ -614,8 +614,8 @@ serve(async (req) => {
       );
     }
 
-    // Scrape core 6 e-shops only (optimized for lower credit usage)
-    const scrapeResults = await Promise.all([
+    // Core 6 e-shops (always searched)
+    const coreSearches = [
       ...Object.entries(ESHOP_SEARCH_URLS).map(([name, urlFn]) =>
         scrapeEshop(name, urlFn(trimmedQuery), FIRECRAWL_API_KEY)
       ),
@@ -624,7 +624,22 @@ serve(async (req) => {
       searchViaFirecrawl('smarty', 'smarty.cz', trimmedQuery, FIRECRAWL_API_KEY, ['doc.smarty.cz', 'files.smarty.cz']),
       searchViaFirecrawl('mironet', 'mironet.cz', trimmedQuery, FIRECRAWL_API_KEY, ['img.mironet.cz']),
       searchViaFirecrawl('amazon', 'amazon.de', trimmedQuery, FIRECRAWL_API_KEY, ['m.media-amazon.com', 'images-eu.ssl-images-amazon.com']),
-    ]);
+    ];
+
+    // Premium-only: 8 additional e-shops
+    const premiumSearches = isPremium ? [
+      searchViaFirecrawl('mp', 'mobilpohotovost.cz', trimmedQuery, FIRECRAWL_API_KEY, ['mobilpohotovost.cz']),
+      searchViaFirecrawl('refurbed', 'refurbed.cz', trimmedQuery, FIRECRAWL_API_KEY, ['refurbed.cz', 'refurbed.com']),
+      searchViaFirecrawl('xiaomi', 'mi-home.cz', trimmedQuery, FIRECRAWL_API_KEY, ['mi-home.cz']),
+      searchViaFirecrawl('gigacomputer', 'gigacomputer.cz', trimmedQuery, FIRECRAWL_API_KEY, ['gigacomputer.cz']),
+      searchViaFirecrawl('tsbohemia', 'tsbohemia.cz', trimmedQuery, FIRECRAWL_API_KEY, ['tsbohemia.cz']),
+      searchViaFirecrawl('allegro', 'allegro.cz', trimmedQuery, FIRECRAWL_API_KEY, ['allegro.cz', 'a.allegroimg.com']),
+      searchViaFirecrawl('samsung', 'samsung.com', trimmedQuery, FIRECRAWL_API_KEY, ['samsung.com', 'image-us.samsung.com']),
+      searchViaFirecrawl('isetos', 'isetos.cz', trimmedQuery, FIRECRAWL_API_KEY, ['isetos.cz']),
+    ] : [];
+
+    console.log(`Searching ${coreSearches.length + premiumSearches.length} e-shops (premium: ${!!isPremium})`);
+    const scrapeResults = await Promise.all([...coreSearches, ...premiumSearches]);
 
     // Build combined content for AI analysis
     const combinedContent = scrapeResults
