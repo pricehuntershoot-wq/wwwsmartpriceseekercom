@@ -658,11 +658,26 @@ Call extract_products with all found products.`;
       }
     }
 
-    // Build per-eshop image lookup from scraped imageLinks
+    // Blocklist for junk images (social meta, favicons, logos, tracking pixels)
+    const IMAGE_BLOCKLIST = [
+      'facebook.com', 'fbcdn.net', 'twitter.com', 'x.com/favicon',
+      'google.com/images', 'googletagmanager', 'analytics',
+      'favicon.ico', 'logo', 'sprite', 'pixel', 'tracker',
+      'og-image', 'opengraph', 'share-', 'social-',
+      'badge', 'banner-ad', 'placeholder',
+    ];
+    
+    function isValidProductImage(url: string): boolean {
+      if (!url || !url.startsWith('http')) return false;
+      const lower = url.toLowerCase();
+      return !IMAGE_BLOCKLIST.some(blocked => lower.includes(blocked));
+    }
+
+    // Build per-eshop image lookup from scraped imageLinks (pre-filtered)
     const eshopImageMap: Record<string, string[]> = {};
     for (const r of scrapeResults) {
       if (r.imageLinks && r.imageLinks.length > 0) {
-        eshopImageMap[r.eshop] = r.imageLinks;
+        eshopImageMap[r.eshop] = r.imageLinks.filter(isValidProductImage);
       }
     }
 
@@ -682,9 +697,9 @@ Call extract_products with all found products.`;
       .map((p: any) => {
         let img = p.imageUrl;
         
-        // Validate URL format
+        // Validate URL format and content
         if (img && typeof img === 'string') {
-          if (!img.startsWith('http')) img = null;
+          if (!isValidProductImage(img)) img = null;
           if (img && seenImages.has(img)) img = null;
         } else {
           img = null;
