@@ -462,6 +462,14 @@ function regexFallbackParse(scrapeResults: { eshop: string; markdown: string | n
     smarty: 'https://www.smarty.cz',
     mironet: 'https://www.mironet.cz',
     amazon: 'https://www.amazon.de',
+    mp: 'https://www.mobilpohotovost.cz',
+    refurbed: 'https://www.refurbed.cz',
+    xiaomi: 'https://www.mi-home.cz',
+    gigacomputer: 'https://www.gigacomputer.cz',
+    tsbohemia: 'https://www.tsbohemia.cz',
+    allegro: 'https://www.allegro.cz',
+    samsung: 'https://www.samsung.com',
+    isetos: 'https://www.isetos.cz',
   };
 
   for (const result of scrapeResults) {
