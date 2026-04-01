@@ -686,11 +686,13 @@ Call extract_products with all found products.`;
       if (!url || !url.startsWith('http')) return false;
       const lower = url.toLowerCase();
       if (IMAGE_BLOCKLIST.some(blocked => lower.includes(blocked))) return false;
-      // Must be an actual image file or from a known product CDN
+      // Block tiny icon-like filenames (2-3 char names like CZ.png, US.png)
+      const filename = lower.split('/').pop() || '';
+      if (/^[a-z]{2,3}\.(png|jpg|gif|svg)$/.test(filename)) return false;
+      // Must be from a known product CDN or have a product-like path
       const isKnownHost = PRODUCT_IMAGE_HOSTS.some(host => lower.includes(host));
-      const hasImageExt = /\.(jpg|jpeg|png|webp|gif|avif)/i.test(lower);
-      const hasImagePath = /\/(img|image|foto|photo|Foto|ImgW|product|Product)/i.test(lower);
-      return isKnownHost || hasImageExt || hasImagePath;
+      const hasImagePath = /\/(img|image|foto|photo|Foto|ImgW|product|Product|pic\/)/i.test(lower);
+      return isKnownHost || hasImagePath;
     }
 
     // Build per-eshop image lookup from scraped imageLinks (pre-filtered)
