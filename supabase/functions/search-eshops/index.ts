@@ -662,7 +662,7 @@ Call extract_products with all found products.`;
 
     // Blocklist for junk images (social meta, favicons, logos, tracking pixels)
     const IMAGE_BLOCKLIST = [
-      'facebook.com', 'fbcdn.net', 'fb.com', 'scontent',
+      'facebook', 'fbcdn.net', 'fb.com', 'scontent',
       'twitter.com', 'x.com/favicon', 'twimg.com',
       'google.com/images', 'googletagmanager', 'analytics', 'gstatic.com/images',
       'favicon.ico', 'favicon', 'sprite', 'pixel', 'tracker',
@@ -670,6 +670,7 @@ Call extract_products with all found products.`;
       'badge', 'banner-ad', 'placeholder',
       'linkedin.com', 'instagram.com', 'youtube.com', 'ytimg.com',
       'gravatar.com', 'wp-content/plugins', 'data:image',
+      '/login/', '/auth/', '/sign', 'google.png', 'apple.png',
     ];
     
     // Known product image CDN patterns (allowlist for extra confidence)
