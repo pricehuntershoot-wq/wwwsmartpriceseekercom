@@ -651,8 +651,6 @@ Call extract_products with all found products.`;
         products = regexFallbackParse(scrapeResults, trimmedQuery);
       }
       console.log(`AI extracted ${products.length} products`);
-      // Debug: log all image URLs from AI
-      products.forEach((p: any) => { if (p.imageUrl) console.log(`AI imageUrl [${p.eshop}] ${p.name}: ${p.imageUrl}`); });
       if (products.length === 0) {
         console.log('AI returned 0 products, falling back to regex...');
         products = regexFallbackParse(scrapeResults, trimmedQuery);
