@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { firecrawlApi } from "@/lib/api/firecrawl";
 import { toast } from "sonner";
 import { SearchLimitModal } from "@/components/SearchLimitModal";
+import { getProxiedImageUrl } from "@/lib/imageProxy";
 
 interface EshopProduct {
   name: string;
