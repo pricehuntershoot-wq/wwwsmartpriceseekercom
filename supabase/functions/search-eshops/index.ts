@@ -661,7 +661,10 @@ serve(async (req) => {
     }
 
     // Use AI to extract structured product data via tool calling
-    const systemPrompt = `Extract product listings from Czech e-shop search results. Sections: ALZA, CZC, DATART, SMARTY, MIRONET, AMAZON.
+    const availableShops = isPremium
+      ? 'ALZA, CZC, DATART, SMARTY, MIRONET, AMAZON, MP, REFURBED, XIAOMI, GIGACOMPUTER, TSBOHEMIA, ALLEGRO, SAMSUNG, ISETOS'
+      : 'ALZA, CZC, DATART, SMARTY, MIRONET, AMAZON';
+    const systemPrompt = `Extract product listings from Czech e-shop search results. Sections: ${availableShops}.
 
 RULES:
 1. Extract products from ALL sections with data. At least 3 per section.
