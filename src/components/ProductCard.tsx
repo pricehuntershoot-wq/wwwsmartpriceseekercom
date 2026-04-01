@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { Heart, ExternalLink, Package, Clock, Tag, Sparkles } from "lucide-react";
 import { trackAffiliateClick } from "@/lib/affiliate";
+import { getProxiedImageUrl } from "@/lib/imageProxy";
 import { useAuth } from "@/hooks/useAuth";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "./ui/button";
