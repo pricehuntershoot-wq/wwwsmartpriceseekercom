@@ -676,8 +676,8 @@ Call extract_products with all found products.`;
     // Known product image CDN patterns (allowlist for extra confidence)
     const PRODUCT_IMAGE_HOSTS = [
       'cdn.alza.cz', 'image.alza.cz', 'i.alza.cz',
-      'czc.cz', 'datart.cz', 'smarty.cz', 'doc.smarty.cz', 'files.smarty.cz',
-      'img.mironet.cz', 'mironet.cz',
+      'czc.cz', 'image.datart.cz', 'doc.smarty.cz', 'files.smarty.cz',
+      'img.mironet.cz',
       'm.media-amazon.com', 'images-eu.ssl-images-amazon.com',
       'images-na.ssl-images-amazon.com',
     ];
