@@ -617,6 +617,13 @@ const SearchResults = () => {
                           src={product.imageUrl}
                           alt={product.name}
                           className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                          onLoad={(e) => {
+                            // Block tiny images (likely tracking pixels or icons, not product photos)
+                            const img = e.target as HTMLImageElement;
+                            if (img.naturalWidth < 100 || img.naturalHeight < 100) {
+                              img.style.display = "none";
+                            }
+                          }}
                           onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                         />
                       ) : (
