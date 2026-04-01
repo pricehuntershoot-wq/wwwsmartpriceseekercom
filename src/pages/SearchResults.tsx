@@ -388,7 +388,7 @@ const SearchResults = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke("search-eshops", {
-        body: { query: q, forceRefresh },
+        body: { query: q, forceRefresh, isPremium },
       });
 
       if (error) throw error;
