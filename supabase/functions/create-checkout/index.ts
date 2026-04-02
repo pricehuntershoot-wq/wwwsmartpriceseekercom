@@ -47,8 +47,6 @@ serve(async (req) => {
     } catch {}
 
     const ALLOWED_PRICES = [
-      "price_1SuiE1FmWsNdyjNFLxMsORxX",
-      "price_1T3yp5FmWsNdyjNFYXErdBnD",
       "price_1TDF3mFmWsNdyjNFbzPta9mx",
       "price_1TH6RRFmWsNdyjNF2dMiGI3e",
     ];
