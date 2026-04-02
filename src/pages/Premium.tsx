@@ -83,7 +83,7 @@ const Premium = () => {
   const premiumFeatures = [
     { icon: Zap, text: "Neomezené vyhledávání across e-shops", highlight: true },
     { icon: Clock, text: "Hloubková AI analýza cen a slev", highlight: true },
-    { icon: Crown, text: "Premium členský přístup" },
+    { icon: Crown, text: "Premium členský přístup", highlight: false },
   ];
 
   const premiumPlusFeatures = [
