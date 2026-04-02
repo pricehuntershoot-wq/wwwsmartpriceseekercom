@@ -11,7 +11,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const PREMIUM_PRICE_IDS = ["price_1SuiE1FmWsNdyjNFLxMsORxX", "price_1T3yp5FmWsNdyjNFYXErdBnD"];
+const PREMIUM_PRICE_IDS = ["price_1TDF3mFmWsNdyjNFbzPta9mx"];
 const PREMIUM_PLUS_PRICE_ID = "price_1TH6RRFmWsNdyjNF2dMiGI3e";
 
 const Premium = () => {
