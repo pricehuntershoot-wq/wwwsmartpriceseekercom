@@ -49,6 +49,8 @@ serve(async (req) => {
     const ALLOWED_PRICES = [
       "price_1TDF3mFmWsNdyjNFbzPta9mx",
       "price_1TH6RRFmWsNdyjNF2dMiGI3e",
+      "price_1THskiFmWsNdyjNF1eod9lRM",
+      "price_1THslGFmWsNdyjNFHYQDlVUB",
     ];
     if (!ALLOWED_PRICES.includes(priceId)) {
       return new Response(JSON.stringify({ error: "Invalid price" }), {
