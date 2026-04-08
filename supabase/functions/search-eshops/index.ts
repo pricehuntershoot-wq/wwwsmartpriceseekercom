@@ -66,7 +66,19 @@ async function searchViaFirecrawl(eshopName: string, domain: string, query: stri
         }
       }
 
-      combinedMarkdown += `### ${title}\nURL: ${url}\n${description}\n`;
+      // Pre-extract price from markdown so AI always sees it
+      let extractedPrice = '';
+      // Czech: "5 990 Kč", "11590,-", "od 5 990 Kč"
+      const priceMatches = pageMarkdown.match(/(\d[\d\s.]*\d)\s*(?:Kč|,-|CZK)/g) || [];
+      // EUR: "249,00 €"
+      const eurMatches = pageMarkdown.match(/(\d[\d\s.,]*\d)\s*€/g) || [];
+      if (priceMatches.length > 0) {
+        extractedPrice = ` | PRICES FOUND: ${priceMatches.slice(0, 3).join(', ')}`;
+      } else if (eurMatches.length > 0) {
+        extractedPrice = ` | PRICES FOUND: ${eurMatches.slice(0, 3).join(', ')}`;
+      }
+
+      combinedMarkdown += `### ${title}${extractedPrice}\nURL: ${url}\n${description}\n`;
       if (pageMarkdown) {
         combinedMarkdown += pageMarkdown.substring(0, 2000) + '\n';
       }
