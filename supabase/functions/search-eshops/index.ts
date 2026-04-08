@@ -66,7 +66,19 @@ async function searchViaFirecrawl(eshopName: string, domain: string, query: stri
         }
       }
 
-      combinedMarkdown += `### ${title}\nURL: ${url}\n${description}\n`;
+      // Pre-extract price from markdown so AI always sees it
+      let extractedPrice = '';
+      // Czech: "5 990 Kč", "11590,-", "od 5 990 Kč"
+      const priceMatches = pageMarkdown.match(/(\d[\d\s.]*\d)\s*(?:Kč|,-|CZK)/g) || [];
+      // EUR: "249,00 €"
+      const eurMatches = pageMarkdown.match(/(\d[\d\s.,]*\d)\s*€/g) || [];
+      if (priceMatches.length > 0) {
+        extractedPrice = ` | PRICES FOUND: ${priceMatches.slice(0, 3).join(', ')}`;
+      } else if (eurMatches.length > 0) {
+        extractedPrice = ` | PRICES FOUND: ${eurMatches.slice(0, 3).join(', ')}`;
+      }
+
+      combinedMarkdown += `### ${title}${extractedPrice}\nURL: ${url}\n${description}\n`;
       if (pageMarkdown) {
         combinedMarkdown += pageMarkdown.substring(0, 2000) + '\n';
       }
@@ -650,16 +662,19 @@ serve(async (req) => {
     const scrapeResults = await Promise.all([...coreSearches, ...premiumSearches]);
 
     // Build combined content for AI analysis
-    const combinedContent = scrapeResults
-      .filter(r => r.markdown)
+    // Give each shop a fair share of context - more shops = less per shop but ensure all are included
+    const shopsWithData = scrapeResults.filter(r => r.markdown);
+    const perShopLimit = Math.max(3000, Math.floor(30000 / Math.max(shopsWithData.length, 1)));
+    const combinedContent = shopsWithData
       .map(r => {
-        let section = `=== ${r.eshop.toUpperCase()} ===\n${r.markdown!.substring(0, 5000)}`;
+        let section = `=== ${r.eshop.toUpperCase()} (EXTRACT AT LEAST 2-3 PRODUCTS FROM THIS SECTION) ===\n${r.markdown!.substring(0, perShopLimit)}`;
         if (r.imageLinks.length > 0) {
           section += `\nIMAGES:\n${r.imageLinks.slice(0, 10).join('\n')}`;
         }
         return section;
       })
       .join('\n\n');
+
 
     if (!combinedContent) {
       return new Response(
@@ -672,18 +687,20 @@ serve(async (req) => {
     const availableShops = isPremium
       ? 'ALZA, CZC, DATART, SMARTY, MIRONET, AMAZON, MP, REFURBED, XIAOMI, GIGACOMPUTER, TSBOHEMIA, ALLEGRO, SAMSUNG, ISETOS'
       : 'ALZA, CZC, DATART, SMARTY, MIRONET, AMAZON';
-    const systemPrompt = `Extract product listings from Czech e-shop search results. Sections: ${availableShops}.
+    const systemPrompt = `Extract product listings from Czech e-shop search results. Each section is labeled with the shop name: ${availableShops}.
 
-RULES:
-1. Extract products from ALL sections with data. At least 3 per section.
-2. STRICT RELEVANCE: Only exact model matches. "Galaxy S24" query → only S24, not S24 Ultra/Plus/FE.
-3. normalizedName: canonical name without color (e.g. "iPhone 16 128GB").
-4. Czech prices: "11 590,-" → 11590. Amazon EUR: multiply by 25.2.
-5. URLs: prepend domain if path starts with "/".
-6. imageUrl: direct image URL or null. Skip duplicates.
-7. Refurbed → condition "refurbished". Amazon EUR → convert to CZK.
+CRITICAL RULES:
+1. You MUST extract products from EVERY section that has data. Do NOT skip any shop section.
+2. Extract at least 2-3 products PER SHOP section. Target 15-30 total products.
+3. RELEVANCE: Only products matching the search query. "Galaxy Buds 4 Pro" → include Galaxy Buds4 Pro / Galaxy Buds 4 Pro variants. Exclude unrelated products.
+4. normalizedName: canonical name without color (e.g. "Samsung Galaxy Buds4 Pro").
+5. Czech prices: "11 590,-" → 11590. "11 590 Kč" → 11590. Amazon EUR: multiply by 25.2 to get CZK.
+6. URLs: prepend domain if path starts with "/". alza.cz paths → https://www.alza.cz/..., mironet.cz → https://www.mironet.cz/...
+7. imageUrl: direct product image URL or null. Skip junk (logos, icons, social).
+8. Refurbed → condition "refurbished". Amazon EUR → convert to CZK.
+9. If a shop section contains the product but price format differs, still extract it.
 
-Call extract_products with all found products.`;
+Call extract_products with ALL found products from ALL shops.`;
 
     const tools = [{
       type: "function" as const,
@@ -855,12 +872,22 @@ Call extract_products with all found products.`;
     const seenImages = new Set<string>();
     const seenProductKeys = new Set<string>();
     const eshopImageIdx: Record<string, number> = {};
+    const preFilterCount = products.length;
     products = products
       .filter((p: any) => {
-        if (!p.price || typeof p.price !== 'number' || p.price <= 0) return false;
-        if (!p.name || p.name.trim().length < 3) return false;
+        if (!p.price || typeof p.price !== 'number' || p.price <= 0) {
+          console.log(`FILTERED (invalid price): ${p.name} from ${p.eshop}, price: ${p.price}`);
+          return false;
+        }
+        if (!p.name || p.name.trim().length < 3) {
+          console.log(`FILTERED (short name): ${p.name} from ${p.eshop}`);
+          return false;
+        }
         const key = `${p.eshop}:${(p.normalizedName || p.name).toLowerCase().trim()}`;
-        if (seenProductKeys.has(key)) return false;
+        if (seenProductKeys.has(key)) {
+          console.log(`FILTERED (duplicate): ${p.name} from ${p.eshop}`);
+          return false;
+        }
         seenProductKeys.add(key);
         return true;
       })
