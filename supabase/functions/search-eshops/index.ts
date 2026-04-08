@@ -650,10 +650,12 @@ serve(async (req) => {
     const scrapeResults = await Promise.all([...coreSearches, ...premiumSearches]);
 
     // Build combined content for AI analysis
-    const combinedContent = scrapeResults
-      .filter(r => r.markdown)
+    // Give each shop a fair share of context - more shops = less per shop but ensure all are included
+    const shopsWithData = scrapeResults.filter(r => r.markdown);
+    const perShopLimit = Math.max(3000, Math.floor(30000 / Math.max(shopsWithData.length, 1)));
+    const combinedContent = shopsWithData
       .map(r => {
-        let section = `=== ${r.eshop.toUpperCase()} ===\n${r.markdown!.substring(0, 5000)}`;
+        let section = `=== ${r.eshop.toUpperCase()} (EXTRACT AT LEAST 2-3 PRODUCTS FROM THIS SECTION) ===\n${r.markdown!.substring(0, perShopLimit)}`;
         if (r.imageLinks.length > 0) {
           section += `\nIMAGES:\n${r.imageLinks.slice(0, 10).join('\n')}`;
         }
