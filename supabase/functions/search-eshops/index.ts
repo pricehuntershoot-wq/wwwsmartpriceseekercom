@@ -675,10 +675,6 @@ serve(async (req) => {
       })
       .join('\n\n');
 
-    // Debug: log first 500 chars from each shop section to see what AI receives
-    for (const r of shopsWithData) {
-      console.log(`DEBUG ${r.eshop} first 500 chars: ${r.markdown!.substring(0, 500).replace(/\n/g, ' | ')}`);
-    }
 
     if (!combinedContent) {
       return new Response(
