@@ -859,12 +859,22 @@ Call extract_products with ALL found products from ALL shops.`;
     const seenImages = new Set<string>();
     const seenProductKeys = new Set<string>();
     const eshopImageIdx: Record<string, number> = {};
+    const preFilterCount = products.length;
     products = products
       .filter((p: any) => {
-        if (!p.price || typeof p.price !== 'number' || p.price <= 0) return false;
-        if (!p.name || p.name.trim().length < 3) return false;
+        if (!p.price || typeof p.price !== 'number' || p.price <= 0) {
+          console.log(`FILTERED (invalid price): ${p.name} from ${p.eshop}, price: ${p.price}`);
+          return false;
+        }
+        if (!p.name || p.name.trim().length < 3) {
+          console.log(`FILTERED (short name): ${p.name} from ${p.eshop}`);
+          return false;
+        }
         const key = `${p.eshop}:${(p.normalizedName || p.name).toLowerCase().trim()}`;
-        if (seenProductKeys.has(key)) return false;
+        if (seenProductKeys.has(key)) {
+          console.log(`FILTERED (duplicate): ${p.name} from ${p.eshop}`);
+          return false;
+        }
         seenProductKeys.add(key);
         return true;
       })
