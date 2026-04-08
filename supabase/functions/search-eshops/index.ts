@@ -674,18 +674,20 @@ serve(async (req) => {
     const availableShops = isPremium
       ? 'ALZA, CZC, DATART, SMARTY, MIRONET, AMAZON, MP, REFURBED, XIAOMI, GIGACOMPUTER, TSBOHEMIA, ALLEGRO, SAMSUNG, ISETOS'
       : 'ALZA, CZC, DATART, SMARTY, MIRONET, AMAZON';
-    const systemPrompt = `Extract product listings from Czech e-shop search results. Sections: ${availableShops}.
+    const systemPrompt = `Extract product listings from Czech e-shop search results. Each section is labeled with the shop name: ${availableShops}.
 
-RULES:
-1. Extract products from ALL sections with data. At least 3 per section.
-2. STRICT RELEVANCE: Only exact model matches. "Galaxy S24" query → only S24, not S24 Ultra/Plus/FE.
-3. normalizedName: canonical name without color (e.g. "iPhone 16 128GB").
-4. Czech prices: "11 590,-" → 11590. Amazon EUR: multiply by 25.2.
-5. URLs: prepend domain if path starts with "/".
-6. imageUrl: direct image URL or null. Skip duplicates.
-7. Refurbed → condition "refurbished". Amazon EUR → convert to CZK.
+CRITICAL RULES:
+1. You MUST extract products from EVERY section that has data. Do NOT skip any shop section.
+2. Extract at least 2-3 products PER SHOP section. Target 15-30 total products.
+3. RELEVANCE: Only products matching the search query. "Galaxy Buds 4 Pro" → include Galaxy Buds4 Pro / Galaxy Buds 4 Pro variants. Exclude unrelated products.
+4. normalizedName: canonical name without color (e.g. "Samsung Galaxy Buds4 Pro").
+5. Czech prices: "11 590,-" → 11590. "11 590 Kč" → 11590. Amazon EUR: multiply by 25.2 to get CZK.
+6. URLs: prepend domain if path starts with "/". alza.cz paths → https://www.alza.cz/..., mironet.cz → https://www.mironet.cz/...
+7. imageUrl: direct product image URL or null. Skip junk (logos, icons, social).
+8. Refurbed → condition "refurbished". Amazon EUR → convert to CZK.
+9. If a shop section contains the product but price format differs, still extract it.
 
-Call extract_products with all found products.`;
+Call extract_products with ALL found products from ALL shops.`;
 
     const tools = [{
       type: "function" as const,
