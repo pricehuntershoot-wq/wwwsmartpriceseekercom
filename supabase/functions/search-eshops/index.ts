@@ -981,6 +981,27 @@ Call extract_products with ALL found products from ALL shops.`;
       );
     }
 
+    // Outlier price filter: remove products with prices far below the median for the same normalizedName
+    // This catches cookie-banner numbers (e.g., "905 partnerů" parsed as 905 Kč)
+    const pricesByNormalized: Record<string, number[]> = {};
+    for (const p of products) {
+      const key = (p.normalizedName || p.name).toLowerCase().trim();
+      if (!pricesByNormalized[key]) pricesByNormalized[key] = [];
+      pricesByNormalized[key].push(p.price);
+    }
+    products = products.filter((p: any) => {
+      const key = (p.normalizedName || p.name).toLowerCase().trim();
+      const prices = pricesByNormalized[key];
+      if (prices.length < 2) return true; // Can't compare with just one price
+      const sorted = [...prices].sort((a, b) => a - b);
+      const median = sorted[Math.floor(sorted.length / 2)];
+      if (p.price < median * 0.3) {
+        console.log(`FILTERED (outlier price ${p.price} vs median ${median}): ${p.name} from ${p.eshop}`);
+        return false;
+      }
+      return true;
+    });
+
     console.log(`Found ${products.length} products across e-shops`);
 
     // Step 3: Save results to database (non-blocking)
