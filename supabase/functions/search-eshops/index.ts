@@ -887,6 +887,7 @@ Call extract_products with ALL found products from ALL shops.`;
       'gravatar.com', 'wp-content/plugins', 'data:image',
       '/login/', '/auth/', '/sign', 'google.png', 'apple.png',
       'empty.', 'slevy', 'menu2-', 'vyprodej',
+      'cookies-alzak', 'cookie', 'web-static/catalog',
     ];
     
     // Known product image CDN patterns (allowlist for extra confidence)
