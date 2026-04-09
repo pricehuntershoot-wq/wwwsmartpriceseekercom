@@ -911,7 +911,11 @@ Call extract_products with ALL found products from ALL shops.`;
     function isValidProductImage(url: string): boolean {
       if (!url || !url.startsWith('http')) return false;
       const lower = url.toLowerCase();
-      if (IMAGE_BLOCKLIST.some(blocked => lower.includes(blocked))) return false;
+      const blockedBy = IMAGE_BLOCKLIST.find(blocked => lower.includes(blocked));
+      if (blockedBy) {
+        console.log(`IMAGE BLOCKED by "${blockedBy}": ${url}`);
+        return false;
+      }
       // Block tiny icon-like filenames (2-3 char names like CZ.png, US.png)
       const filename = lower.split('/').pop() || '';
       if (/^[a-z]{2,3}\.(png|jpg|gif|svg)$/.test(filename)) return false;
