@@ -982,7 +982,9 @@ Call extract_products with ALL found products from ALL shops.`;
         
         // Validate URL format and content
         if (img && typeof img === 'string') {
-          if (!isValidProductImage(img)) {
+          console.log(`CHECKING image for ${p.eshop}/${p.name}: ${img}`);
+          const valid = isValidProductImage(img);
+          if (!valid) {
             console.log(`BLOCKED image for ${p.name}: ${img}`);
             img = null;
           }
