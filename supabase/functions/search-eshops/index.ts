@@ -492,7 +492,8 @@ async function scrapeEshop(eshopName: string, url: string, apiKey: string, maxRe
         return { eshop: eshopName, markdown: null, imageLinks: [], error: errMsg };
       }
 
-      const markdown = data.data?.markdown || data.markdown || null;
+      const rawMarkdown = data.data?.markdown || data.markdown || null;
+      const markdown = rawMarkdown ? cleanMarkdown(rawMarkdown) : null;
       const links: string[] = data.data?.links || data.links || [];
       // Filter to only image URLs
       const imageLinks = links.filter((l: string) => 
