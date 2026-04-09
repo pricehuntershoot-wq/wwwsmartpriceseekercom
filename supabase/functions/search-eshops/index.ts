@@ -659,7 +659,7 @@ serve(async (req) => {
     }
 
     const trimmedQuery = query.trim();
-    console.log(`[V3] Searching for "${trimmedQuery}" across e-shops...${forceRefresh ? ' (force refresh)' : ''}`);
+    console.log(`Searching for "${trimmedQuery}" across e-shops...${forceRefresh ? ' (force refresh)' : ''}`);
 
     // Step 1: Check database cache first (skip if force refresh)
     const supabase = getSupabaseAdmin();
