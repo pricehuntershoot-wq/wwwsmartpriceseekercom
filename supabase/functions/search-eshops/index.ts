@@ -12,6 +12,56 @@ const ESHOP_SEARCH_URLS = {
   datart: (q: string) => `https://www.datart.cz/vyhledavani?q=${encodeURIComponent(q)}`,
 };
 
+// Clean markdown from cookie banners, consent dialogs, navigation, and other junk
+function cleanMarkdown(md: string): string {
+  // Remove lines containing cookie/consent/banner keywords
+  const junkPatterns = [
+    /cookie/i, /souhlas/i, /consent/i, /gdpr/i, /soukromí/i, /privacy/i,
+    /přijmout vše/i, /accept all/i, /odmítnout/i, /reject/i,
+    /partnerů/i, /partners/i, /účel/i, /purposes/i,
+    /personalizace/i, /personali[sz]/i,
+    /nastavení cookies/i, /cookie settings/i,
+    /přihlásit se/i, /registrace/i, /sign in/i, /sign up/i,
+    /newsletter/i, /odběr/i, /subscribe/i,
+    /sledovat nás/i, /follow us/i,
+    /zákaznická linka/i, /kontaktujte nás/i, /customer service/i,
+    /obchodní podmínky/i, /terms/i,
+    /copyright\s*©/i, /©\s*\d{4}/,
+    /facebook|instagram|twitter|youtube|tiktok|linkedin/i,
+  ];
+
+  const lines = md.split('\n');
+  const cleaned: string[] = [];
+  let skipBlock = false;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    
+    // Detect start of cookie/consent block
+    if (/cookie|consent|souhlas|gdpr|soukromí|privacy policy/i.test(trimmed) && trimmed.length < 200) {
+      skipBlock = true;
+      continue;
+    }
+
+    // End skip block on separator or heading
+    if (skipBlock && (/^---/.test(trimmed) || /^#{1,4}\s/.test(trimmed))) {
+      skipBlock = false;
+    }
+
+    if (skipBlock) continue;
+
+    // Skip individual junk lines
+    if (junkPatterns.some(p => p.test(trimmed))) continue;
+
+    // Skip very short lines that look like nav items
+    if (trimmed.length > 0 && trimmed.length < 4 && !/^\d/.test(trimmed)) continue;
+
+    cleaned.push(line);
+  }
+
+  return cleaned.join('\n');
+}
+
 async function searchViaFirecrawl(eshopName: string, domain: string, query: string, apiKey: string, imageHostPatterns: string[] = []): Promise<{ eshop: string; markdown: string | null; imageLinks: string[]; error?: string }> {
   try {
     console.log(`Searching ${domain} via Firecrawl search API for: "${query}"`);
