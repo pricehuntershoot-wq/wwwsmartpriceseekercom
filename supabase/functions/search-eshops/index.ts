@@ -1038,7 +1038,7 @@ Call extract_products with ALL found products from ALL shops.`;
         toFetch.map(async (p: any) => {
           try {
             const img = await fetchImageViaFirecrawl(p.productUrl, FIRECRAWL_API_KEY);
-            if (img) {
+            if (img && isValidProductImage(img)) {
               p.imageUrl = img;
             }
           } catch (e) {
