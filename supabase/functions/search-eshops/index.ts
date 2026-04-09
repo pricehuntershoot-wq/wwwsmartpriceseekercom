@@ -106,11 +106,17 @@ async function searchViaFirecrawl(eshopName: string, domain: string, query: stri
       // Clean cookie banners and junk before processing
       const pageMarkdown = cleanMarkdown(rawMarkdown);
 
+      // Early junk image filter patterns
+      const EARLY_IMAGE_BLOCKLIST = ['cookie', 'cookies-', 'web-static/catalog', 'favicon', 'sprite', 'pixel', 'tracker', 'banner-ad', 'placeholder', 'social-', 'og-image', 'empty.'];
+      
       const imgMatches = pageMarkdown.match(/!\[.*?\]\((https?:\/\/[^\s)]+)\)/g) || [];
       for (const imgMatch of imgMatches) {
         const urlMatch = imgMatch.match(/\((https?:\/\/[^\s)]+)\)/);
         if (urlMatch) {
           const imgUrl = urlMatch[1];
+          const imgLower = imgUrl.toLowerCase();
+          // Skip junk images early
+          if (EARLY_IMAGE_BLOCKLIST.some(b => imgLower.includes(b))) continue;
           const isHostMatch = imageHostPatterns.length === 0 || imageHostPatterns.some(p => imgUrl.includes(p));
           if (isHostMatch || /\.(jpg|jpeg|png|webp)/i.test(imgUrl)) {
             imageLinks.push(imgUrl);
@@ -905,7 +911,11 @@ Call extract_products with ALL found products from ALL shops.`;
     function isValidProductImage(url: string): boolean {
       if (!url || !url.startsWith('http')) return false;
       const lower = url.toLowerCase();
-      if (IMAGE_BLOCKLIST.some(blocked => lower.includes(blocked))) return false;
+      const blockedBy = IMAGE_BLOCKLIST.find(blocked => lower.includes(blocked));
+      if (blockedBy) {
+        console.log(`IMAGE BLOCKED by "${blockedBy}": ${url}`);
+        return false;
+      }
       // Block tiny icon-like filenames (2-3 char names like CZ.png, US.png)
       const filename = lower.split('/').pop() || '';
       if (/^[a-z]{2,3}\.(png|jpg|gif|svg)$/.test(filename)) return false;
@@ -973,7 +983,6 @@ Call extract_products with ALL found products from ALL shops.`;
         // Validate URL format and content
         if (img && typeof img === 'string') {
           if (!isValidProductImage(img)) {
-            console.log(`BLOCKED image for ${p.name}: ${img}`);
             img = null;
           }
           if (img && seenImages.has(img)) img = null;
@@ -1026,7 +1035,7 @@ Call extract_products with ALL found products from ALL shops.`;
         toFetch.map(async (p: any) => {
           try {
             const img = await fetchImageViaFirecrawl(p.productUrl, FIRECRAWL_API_KEY);
-            if (img) {
+            if (img && isValidProductImage(img)) {
               p.imageUrl = img;
             }
           } catch (e) {
