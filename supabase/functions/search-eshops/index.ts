@@ -102,7 +102,9 @@ async function searchViaFirecrawl(eshopName: string, domain: string, query: stri
 
       const title = r.title || '';
       const description = r.description || '';
-      const pageMarkdown = r.markdown || '';
+      const rawMarkdown = r.markdown || '';
+      // Clean cookie banners and junk before processing
+      const pageMarkdown = cleanMarkdown(rawMarkdown);
 
       const imgMatches = pageMarkdown.match(/!\[.*?\]\((https?:\/\/[^\s)]+)\)/g) || [];
       for (const imgMatch of imgMatches) {
