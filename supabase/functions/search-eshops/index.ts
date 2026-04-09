@@ -752,6 +752,7 @@ CRITICAL RULES:
 7. imageUrl: direct product image URL or null. Skip junk (logos, icons, social).
 8. Refurbed → condition "refurbished". Amazon EUR → convert to CZK.
 9. If a shop section contains the product but price format differs, still extract it.
+10. IGNORE prices from cookie banners, consent dialogs, partner counts (e.g. "905 partnerů" is NOT a price), and navigation menus. Only extract actual product prices.
 
 Call extract_products with ALL found products from ALL shops.`;
 
