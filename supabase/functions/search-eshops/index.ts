@@ -106,11 +106,17 @@ async function searchViaFirecrawl(eshopName: string, domain: string, query: stri
       // Clean cookie banners and junk before processing
       const pageMarkdown = cleanMarkdown(rawMarkdown);
 
+      // Early junk image filter patterns
+      const EARLY_IMAGE_BLOCKLIST = ['cookie', 'cookies-', 'web-static/catalog', 'favicon', 'sprite', 'pixel', 'tracker', 'banner-ad', 'placeholder', 'social-', 'og-image', 'empty.'];
+      
       const imgMatches = pageMarkdown.match(/!\[.*?\]\((https?:\/\/[^\s)]+)\)/g) || [];
       for (const imgMatch of imgMatches) {
         const urlMatch = imgMatch.match(/\((https?:\/\/[^\s)]+)\)/);
         if (urlMatch) {
           const imgUrl = urlMatch[1];
+          const imgLower = imgUrl.toLowerCase();
+          // Skip junk images early
+          if (EARLY_IMAGE_BLOCKLIST.some(b => imgLower.includes(b))) continue;
           const isHostMatch = imageHostPatterns.length === 0 || imageHostPatterns.some(p => imgUrl.includes(p));
           if (isHostMatch || /\.(jpg|jpeg|png|webp)/i.test(imgUrl)) {
             imageLinks.push(imgUrl);
