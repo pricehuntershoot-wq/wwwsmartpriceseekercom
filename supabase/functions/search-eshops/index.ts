@@ -12,6 +12,56 @@ const ESHOP_SEARCH_URLS = {
   datart: (q: string) => `https://www.datart.cz/vyhledavani?q=${encodeURIComponent(q)}`,
 };
 
+// Clean markdown from cookie banners, consent dialogs, navigation, and other junk
+function cleanMarkdown(md: string): string {
+  // Remove lines containing cookie/consent/banner keywords
+  const junkPatterns = [
+    /cookie/i, /souhlas/i, /consent/i, /gdpr/i, /soukromí/i, /privacy/i,
+    /přijmout vše/i, /accept all/i, /odmítnout/i, /reject/i,
+    /partnerů/i, /partners/i, /účel/i, /purposes/i,
+    /personalizace/i, /personali[sz]/i,
+    /nastavení cookies/i, /cookie settings/i,
+    /přihlásit se/i, /registrace/i, /sign in/i, /sign up/i,
+    /newsletter/i, /odběr/i, /subscribe/i,
+    /sledovat nás/i, /follow us/i,
+    /zákaznická linka/i, /kontaktujte nás/i, /customer service/i,
+    /obchodní podmínky/i, /terms/i,
+    /copyright\s*©/i, /©\s*\d{4}/,
+    /facebook|instagram|twitter|youtube|tiktok|linkedin/i,
+  ];
+
+  const lines = md.split('\n');
+  const cleaned: string[] = [];
+  let skipBlock = false;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    
+    // Detect start of cookie/consent block
+    if (/cookie|consent|souhlas|gdpr|soukromí|privacy policy/i.test(trimmed) && trimmed.length < 200) {
+      skipBlock = true;
+      continue;
+    }
+
+    // End skip block on separator or heading
+    if (skipBlock && (/^---/.test(trimmed) || /^#{1,4}\s/.test(trimmed))) {
+      skipBlock = false;
+    }
+
+    if (skipBlock) continue;
+
+    // Skip individual junk lines
+    if (junkPatterns.some(p => p.test(trimmed))) continue;
+
+    // Skip very short lines that look like nav items
+    if (trimmed.length > 0 && trimmed.length < 4 && !/^\d/.test(trimmed)) continue;
+
+    cleaned.push(line);
+  }
+
+  return cleaned.join('\n');
+}
+
 async function searchViaFirecrawl(eshopName: string, domain: string, query: string, apiKey: string, imageHostPatterns: string[] = []): Promise<{ eshop: string; markdown: string | null; imageLinks: string[]; error?: string }> {
   try {
     console.log(`Searching ${domain} via Firecrawl search API for: "${query}"`);
@@ -52,7 +102,9 @@ async function searchViaFirecrawl(eshopName: string, domain: string, query: stri
 
       const title = r.title || '';
       const description = r.description || '';
-      const pageMarkdown = r.markdown || '';
+      const rawMarkdown = r.markdown || '';
+      // Clean cookie banners and junk before processing
+      const pageMarkdown = cleanMarkdown(rawMarkdown);
 
       const imgMatches = pageMarkdown.match(/!\[.*?\]\((https?:\/\/[^\s)]+)\)/g) || [];
       for (const imgMatch of imgMatches) {
@@ -440,7 +492,8 @@ async function scrapeEshop(eshopName: string, url: string, apiKey: string, maxRe
         return { eshop: eshopName, markdown: null, imageLinks: [], error: errMsg };
       }
 
-      const markdown = data.data?.markdown || data.markdown || null;
+      const rawMarkdown = data.data?.markdown || data.markdown || null;
+      const markdown = rawMarkdown ? cleanMarkdown(rawMarkdown) : null;
       const links: string[] = data.data?.links || data.links || [];
       // Filter to only image URLs
       const imageLinks = links.filter((l: string) => 
@@ -699,6 +752,7 @@ CRITICAL RULES:
 7. imageUrl: direct product image URL or null. Skip junk (logos, icons, social).
 8. Refurbed → condition "refurbished". Amazon EUR → convert to CZK.
 9. If a shop section contains the product but price format differs, still extract it.
+10. IGNORE prices from cookie banners, consent dialogs, partner counts (e.g. "905 partnerů" is NOT a price), and navigation menus. Only extract actual product prices.
 
 Call extract_products with ALL found products from ALL shops.`;
 
@@ -833,6 +887,7 @@ Call extract_products with ALL found products from ALL shops.`;
       'gravatar.com', 'wp-content/plugins', 'data:image',
       '/login/', '/auth/', '/sign', 'google.png', 'apple.png',
       'empty.', 'slevy', 'menu2-', 'vyprodej',
+      'cookies-alzak', 'cookie', 'web-static/catalog',
     ];
     
     // Known product image CDN patterns (allowlist for extra confidence)
