@@ -62,6 +62,50 @@ function cleanMarkdown(md: string): string {
   return cleaned.join('\n');
 }
 
+// Score search results to prioritize main product pages over accessories
+function scoreSearchResult(title: string, url: string, query: string): number {
+  const titleLower = (title || '').toLowerCase();
+  const urlLower = (url || '').toLowerCase();
+  const queryLower = query.toLowerCase();
+  const queryTokens = queryLower.split(/\s+/).filter(t => t.length > 1);
+
+  let score = 0;
+
+  // High score: title contains all query tokens
+  const matchedTokens = queryTokens.filter(t => titleLower.includes(t));
+  score += matchedTokens.length * 10;
+
+  // Bonus: exact query match in title
+  if (titleLower.includes(queryLower)) score += 30;
+
+  // Penalty: accessory keywords in title or URL
+  const accessoryKeywords = [
+    'pouzdro', 'obal', 'kryt', 'case', 'cover', 'fólie', 'folie', 'film',
+    'nabíječka', 'nabíjecí', 'charger', 'charging', 'adaptér', 'adapter',
+    'kabel', 'cable', 'řemínek', 'páse', 'strap', 'band',
+    'držák', 'holder', 'mount', 'stojánek', 'stand',
+    'náhradní', 'replacement', 'náušník', 'eartip', 'gel', 'polštářek',
+    'spigen', 'ringke', 'nillkin', 'baseus', 'ugreen',
+    'pro model', 'kompatibilní', 'compatible', 'vhodné pro', 'fits',
+  ];
+  for (const kw of accessoryKeywords) {
+    if (titleLower.includes(kw)) score -= 25;
+    if (urlLower.includes(kw)) score -= 10;
+  }
+
+  // Penalty: URL looks like a category/listing page
+  if (urlLower.includes('/kategori') || urlLower.includes('/category') || urlLower.includes('/prislusenstvi') || urlLower.includes('/accessories')) {
+    score -= 15;
+  }
+
+  // Bonus: URL looks like a product detail page (short path with product ID)
+  if (/\/d\d+\.htm/i.test(urlLower) || /\/[a-z0-9-]+-d\d+/i.test(urlLower)) {
+    score += 5; // Alza product detail pattern
+  }
+
+  return score;
+}
+
 async function searchViaFirecrawl(eshopName: string, domain: string, query: string, apiKey: string, imageHostPatterns: string[] = []): Promise<{ eshop: string; markdown: string | null; imageLinks: string[]; error?: string }> {
   try {
     console.log(`Searching ${domain} via Firecrawl search API for: "${query}"`);
@@ -93,12 +137,29 @@ async function searchViaFirecrawl(eshopName: string, domain: string, query: stri
       return { eshop: eshopName, markdown: null, imageLinks: [], error: 'No results found' };
     }
 
+    // Score and sort results — prioritize main product, deprioritize accessories
+    const scored = results.map((r: any) => ({
+      ...r,
+      _score: scoreSearchResult(r.title || '', r.url || '', query),
+    }));
+    scored.sort((a: any, b: any) => b._score - a._score);
+
+    // Log scoring for debugging
+    for (const s of scored.slice(0, 5)) {
+      console.log(`  ${eshopName} score=${s._score}: ${(s.title || '').substring(0, 60)} | ${s.url}`);
+    }
+
     let combinedMarkdown = '';
     const imageLinks: string[] = [];
 
-    for (const r of results) {
+    for (const r of scored) {
       const url = r.url || '';
       if (!url.includes(domain) || url.includes('/vyhledavani') || url.includes('/img/') || url.includes('/search')) continue;
+      // Skip results with very negative scores (clear accessories)
+      if (r._score < -10) {
+        console.log(`  ${eshopName} SKIPPED (score=${r._score}): ${(r.title || '').substring(0, 60)}`);
+        continue;
+      }
 
       const title = r.title || '';
       const description = r.description || '';
