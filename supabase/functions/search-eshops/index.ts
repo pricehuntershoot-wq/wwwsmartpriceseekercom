@@ -14,7 +14,13 @@ const ESHOP_SEARCH_URLS = {
 
 // Clean markdown from cookie banners, consent dialogs, navigation, and other junk
 function cleanMarkdown(md: string): string {
-  // Remove lines containing cookie/consent/banner keywords
+  // First pass: remove entire cookie/consent blocks (multi-line)
+  // Alza pattern: "905 partnerů" or "X partnerů" spread across lines
+  md = md.replace(/\d+\s*partnerů/gi, '');
+  md = md.replace(/\d+\s*partners/gi, '');
+  md = md.replace(/\d+\s*účelů/gi, '');
+  md = md.replace(/\d+\s*purposes/gi, '');
+
   const junkPatterns = [
     /cookie/i, /souhlas/i, /consent/i, /gdpr/i, /soukromí/i, /privacy/i,
     /přijmout vše/i, /accept all/i, /odmítnout/i, /reject/i,
