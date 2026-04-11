@@ -14,7 +14,13 @@ const ESHOP_SEARCH_URLS = {
 
 // Clean markdown from cookie banners, consent dialogs, navigation, and other junk
 function cleanMarkdown(md: string): string {
-  // Remove lines containing cookie/consent/banner keywords
+  // First pass: remove entire cookie/consent blocks (multi-line)
+  // Alza pattern: "905 partnerů" or "X partnerů" spread across lines
+  md = md.replace(/\d+\s*partnerů/gi, '');
+  md = md.replace(/\d+\s*partners/gi, '');
+  md = md.replace(/\d+\s*účelů/gi, '');
+  md = md.replace(/\d+\s*purposes/gi, '');
+
   const junkPatterns = [
     /cookie/i, /souhlas/i, /consent/i, /gdpr/i, /soukromí/i, /privacy/i,
     /přijmout vše/i, /accept all/i, /odmítnout/i, /reject/i,
@@ -186,9 +192,16 @@ async function searchViaFirecrawl(eshopName: string, domain: string, query: stri
       }
 
       // Pre-extract price from markdown so AI always sees it
+      // Filter out fake prices: numbers near "partnerů", "partner", "účel" etc.
       let extractedPrice = '';
       // Czech: "5 990 Kč", "11590,-", "od 5 990 Kč"
-      const priceMatches = pageMarkdown.match(/(\d[\d\s.]*\d)\s*(?:Kč|,-|CZK)/g) || [];
+      const priceMatches = (pageMarkdown.match(/(\d[\d\s.]*\d)\s*(?:Kč|,-|CZK)/g) || [])
+        .filter(m => {
+          // Check if this price match appears near junk context in the original text
+          const idx = pageMarkdown.indexOf(m);
+          const surroundingText = pageMarkdown.substring(Math.max(0, idx - 80), idx + m.length + 80).toLowerCase();
+          return !(/partner|partnerů|účel|cookie|souhlas|consent|gdpr/i.test(surroundingText));
+        });
       // EUR: "249,00 €"
       const eurMatches = pageMarkdown.match(/(\d[\d\s.,]*\d)\s*€/g) || [];
       if (priceMatches.length > 0) {

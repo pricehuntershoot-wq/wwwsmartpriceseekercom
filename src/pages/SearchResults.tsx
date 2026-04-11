@@ -100,8 +100,8 @@ function normalizeForGrouping(name: string): string {
 
 function getGroupingTokens(name: string): string[] {
   const normalized = normalizeForGrouping(name);
-  // Remove common filler words
-  const stopWords = new Set(["barva", "barev", "cerny", "cerna", "bila", "bily", "modra", "modry", "cervena", "cerveny", "zelena", "zeleny", "seda", "sedy", "ruzova", "ruzovy", "zlata", "zlaty", "stribrna", "stribrny", "bezova", "bezovy"]);
+  // Remove common filler words including colors, shop-specific prefixes
+  const stopWords = new Set(["barva", "barev", "cerny", "cerna", "bila", "bily", "modra", "modry", "cervena", "cerveny", "zelena", "zeleny", "seda", "sedy", "ruzova", "ruzovy", "zlata", "zlaty", "stribrna", "stribrny", "bezova", "bezovy", "sluchatka", "bezdrátová", "bezdrátové", "kabellose", "kopfhörer", "wireless", "earbuds", "headphones", "bluetooth", "anc", "bt", "silver", "graphite", "cream", "navy"]);
   return normalized.split(" ").filter(t => t.length > 1 && !stopWords.has(t));
 }
 
@@ -114,13 +114,26 @@ function tokensOverlap(a: string[], b: string[]): number {
   return overlap;
 }
 
+// Enhanced normalizedName matching - strips more noise for comparison
+function superNormalize(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/\s*(černá|bílá|modrá|zelená|šedá|zlatá|stříbrná|růžová|fialová|červená|black|white|blue|green|silver|gold|pink|purple|red|graphite|cream|navy|gray|grey)\b/gi, '')
+    .replace(/\s*(bezdrátová|bezdrátové|sluchátka|kabellose|kopfhörer|wireless|earbuds|headphones|bluetooth|anc|bt|hi-fi|microphone|mikrofon)\b/gi, '')
+    .replace(/[^a-záčďéěíňóřšťúůýž0-9]/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function groupProducts(products: EshopProduct[]): GroupedProduct[] {
   const groups: GroupedProduct[] = [];
   const groupTokens: string[][] = [];
   const groupNormNames: string[] = [];
+  const groupSuperNorms: string[] = [];
 
   for (const p of products) {
     const normName = (p.normalizedName || p.name).toLowerCase().trim();
+    const superNorm = superNormalize(p.normalizedName || p.name);
     const tokens = getGroupingTokens(p.name);
     let bestGroupIdx = -1;
     let bestScore = 0;
@@ -133,6 +146,20 @@ function groupProducts(products: EshopProduct[]): GroupedProduct[] {
       if (normName === groupNormNames[i]) {
         bestGroupIdx = i;
         bestScore = 1;
+        break;
+      }
+
+      // Priority 1.5: super-normalized match (strips colors + descriptors)
+      if (superNorm.length > 5 && superNorm === groupSuperNorms[i]) {
+        bestGroupIdx = i;
+        bestScore = 0.95;
+        break;
+      }
+
+      // Priority 1.7: one name contains the other (e.g. "Samsung Galaxy Buds4 Pro" vs "Samsung Galaxy Buds4 Pro Black / ANC / BT")
+      if (superNorm.length > 5 && (groupSuperNorms[i].includes(superNorm) || superNorm.includes(groupSuperNorms[i]))) {
+        bestGroupIdx = i;
+        bestScore = 0.9;
         break;
       }
 
@@ -174,6 +201,7 @@ function groupProducts(products: EshopProduct[]): GroupedProduct[] {
       });
       groupTokens.push(tokens);
       groupNormNames.push(normName);
+      groupSuperNorms.push(superNorm);
     }
   }
 
