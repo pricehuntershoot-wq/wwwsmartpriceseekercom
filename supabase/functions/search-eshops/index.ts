@@ -186,9 +186,16 @@ async function searchViaFirecrawl(eshopName: string, domain: string, query: stri
       }
 
       // Pre-extract price from markdown so AI always sees it
+      // Filter out fake prices: numbers near "partnerů", "partner", "účel" etc.
       let extractedPrice = '';
       // Czech: "5 990 Kč", "11590,-", "od 5 990 Kč"
-      const priceMatches = pageMarkdown.match(/(\d[\d\s.]*\d)\s*(?:Kč|,-|CZK)/g) || [];
+      const priceMatches = (pageMarkdown.match(/(\d[\d\s.]*\d)\s*(?:Kč|,-|CZK)/g) || [])
+        .filter(m => {
+          // Check if this price match appears near junk context in the original text
+          const idx = pageMarkdown.indexOf(m);
+          const surroundingText = pageMarkdown.substring(Math.max(0, idx - 80), idx + m.length + 80).toLowerCase();
+          return !(/partner|partnerů|účel|cookie|souhlas|consent|gdpr/i.test(surroundingText));
+        });
       // EUR: "249,00 €"
       const eurMatches = pageMarkdown.match(/(\d[\d\s.,]*\d)\s*€/g) || [];
       if (priceMatches.length > 0) {
